@@ -2,10 +2,12 @@ local settings = {}
 
 local terminal_runner = require('pesto.runner.terminal')
 
-settings.run_bazel = terminal_runner.run
+settings.bazel_command = 'bazel'
+settings.bazel_runner = terminal_runner.run
 
 function settings.setup(opts)
-    settings = opts.runner or settings.runner
+    settings.bazel_command = opts.bazel_command or settings.bazel_command
+    settings.bazel_runner = opts.runner or settings.bazel_runner
 end
 
 return settings
