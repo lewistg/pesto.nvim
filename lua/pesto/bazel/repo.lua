@@ -21,7 +21,7 @@ function repo.find_build_file()
     local filenames = {'BUILD.repo', 'BUILD'}
     for _, filename in ipairs(filenames) do
         build_file = vim.fn.findfile(filename, buffer_dir .. ';')
-        if build_file then
+        if build_file ~= '' then
             build_file = vim.fn.fnamemodify(build_file, ':p')
             return build_file
         end
