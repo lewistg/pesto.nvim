@@ -43,7 +43,7 @@ end
 --]]
 function repo.find_project_root_marker_file()
     local buffer_dir = vim.fn.expand('%:p:h')
-    local root_marker_filenames = {'MODULE.repo', 'WORKSPACE'}
+    local root_marker_filenames = {'MODULE.bazel', 'WORKSPACE'}
     for _, filename in ipairs(root_marker_filenames) do
         root_marker_file = vim.fn.findfile(filename, buffer_dir .. ';')
         if root_marker_file  and string.len(root_marker_file) > 0 then
