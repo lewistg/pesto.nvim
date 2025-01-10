@@ -18,7 +18,7 @@ local function pesto_yank_package_label()
     vim.fn.setreg('@', package_label .. '\n')
 end
 
-local function run_bazel(opts)
+local function pesto_bazel(opts)
     run_opts = {
         bazel_command = { settings.bazel_command },
         workspace_root = bazel.repo.find_project_root_dir()
@@ -33,7 +33,7 @@ local function run_bazel(opts)
 end
 
 function commands.create_commands()
-    vim.api.nvim_create_user_command('Bazel', run_bazel, {
+    vim.api.nvim_create_user_command('PestoBazel', pesto_bazel, {
         nargs = '*',
         -- complete = run_bazel_complete,
     })
