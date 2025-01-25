@@ -31,7 +31,6 @@ function QueryDrawerManager:_get_or_create_drawer(win_id)
         self._query_win_to_drawer[win_id] = QueryDrawer:new {
             query_win_id = win_id,
             on_dispose = function()
-                vim.print("here")
                 self._query_win_to_drawer[win_id] = nil
             end
         }

@@ -103,7 +103,6 @@ function QueryDrawerView:_append_buffer(buf_nr, lines)
         if (BufferUtil.is_empty(buf_nr)) then
             start_index = 0
         end
-        vim.print(start_index)
         vim.api.nvim_buf_set_lines(buf_nr, start_index, -1, false, lines)
     end)
 end
