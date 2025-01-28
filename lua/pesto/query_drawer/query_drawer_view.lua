@@ -15,7 +15,7 @@ QueryDrawerView.__index = QueryDrawerView
 ---@field public query_win_id number
 ---@field public on_dispose fun()
 
----@param opts QueryDrawerOpts
+---@param opts QueryDrawerViewOpts
 ---@return QueryDrawerView 
 function QueryDrawerView:new(opts)
     local o = {}

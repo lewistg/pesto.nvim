@@ -1,17 +1,20 @@
 local Job = require('plenary.job')
 local QueryDrawerView = require('pesto.query_drawer.query_drawer_view')
-local settings = require('pesto.settings')
 
 ---@class QueryDrawer
 ---@field private _view QueryDrawerView
 ---@field private _current_job? Job
 ---@field private _on_dispose? fun()
+---@field private _logger Logger
+---@field private _settings Settings
 local QueryDrawer = {}
 QueryDrawer.__index = QueryDrawer
 
 ---@class QueryDrawerOpts
 ---@field public query_win_id number
 ---@field public on_dispose? fun()
+---@field public logger Logger
+---@field public settings Settings
 
 ---@param opts QueryDrawerOpts
 ---@return QueryDrawer
@@ -26,6 +29,8 @@ function QueryDrawer:new(opts)
     }
     o._current_job = nil
     o._on_dispose = opts.on_dispose
+    o._logger = opts.logger
+    o._settings = opts.settings
 
     return o
 end
@@ -54,7 +59,7 @@ function QueryDrawer:run_query(query)
     end
 
     self._current_job = Job:new {
-        command = settings.bazel_command,
+        command = self._settings.bazel_command,
         args = {
             "query",
             query

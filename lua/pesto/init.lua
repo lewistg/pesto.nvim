@@ -1,11 +1,12 @@
 local pesto = {}
 
-local settings = require('pesto.settings')
-local commands = require('pesto.commands')
+function pesto.setup(settings_override)
+    local settings = require('pesto.settings')
+    settings.setup(settings_override)
 
-function pesto.setup(opts)
-    settings.setup(opts)
-    commands.create_commands()
+    local components = require('pesto.components')
+    local commands = require('pesto.commands')
+    commands.create_commands(components)
 end
 
 return pesto
