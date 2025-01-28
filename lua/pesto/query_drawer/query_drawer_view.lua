@@ -15,7 +15,7 @@ QueryDrawerView.__index = QueryDrawerView
 ---@field public query_win_id number
 ---@field public on_dispose fun()
 
----@param opts QueryDrawerOpts
+---@param opts QueryDrawerViewOpts
 ---@return QueryDrawerView 
 function QueryDrawerView:new(opts)
     local o = {}
@@ -103,7 +103,6 @@ function QueryDrawerView:_append_buffer(buf_nr, lines)
         if (BufferUtil.is_empty(buf_nr)) then
             start_index = 0
         end
-        vim.print(start_index)
         vim.api.nvim_buf_set_lines(buf_nr, start_index, -1, false, lines)
     end)
 end

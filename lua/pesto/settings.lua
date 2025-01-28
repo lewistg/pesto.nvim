@@ -1,13 +1,23 @@
-local settings = {}
+local M = {}
 
 local terminal_runner = require('pesto.runner.terminal')
 
-settings.bazel_command = 'bazel'
-settings.bazel_runner = terminal_runner.run
+---@class Settings
+---@field bazel_command string Name of bazel binary
+---@field bazel_runner fun() Runs the bazel command
+---@field log_level string Logger level
 
-function settings.setup(opts)
-    settings.bazel_command = opts.bazel_command or settings.bazel_command
-    settings.bazel_runner = opts.runner or settings.bazel_runner
+---@type Settings
+M.settings = {
+    bazel_command = 'bazel',
+    bazel_runner = terminal_runner.run,
+    log_level = 'info',
+}
+
+---@param settings_overrides Settings
+---@return Settings
+function M.setup(settings_overrides)
+    M.settings = vim.tbl_deep_extend('force', M.settings, settings_overrides)
 end
 
-return settings
+return M
