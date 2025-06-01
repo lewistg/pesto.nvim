@@ -1,39 +1,39 @@
-local bazel_repo = require('pesto.bazel.repo')
+local bazel_repo = require("pesto.bazel.repo")
 
 local cli = {}
 
 function cli.insert_or_expand_target_labels(args)
-    if #args == 0 then
-        return
-    end
-    
-    local expandable_commands = { 
-        ['build'] = true,
-        ['run'] = true,
-        ['test'] = true
-    }
+	if #args == 0 then
+		return
+	end
 
-    local target_pattern = '^:[^%s]+'
+	local expandable_commands = {
+		["build"] = true,
+		["run"] = true,
+		["test"] = true,
+	}
 
-    last_non_target_arg = nil
-    for i=1,#args do
-        j = #args - i + 1
-        if not string.match(args[j], target_pattern) then
-            last_non_target_arg = j
-            break
-        end
-    end
+	local target_pattern = "^:[^%s]+"
 
-    if last_non_target_arg ~= nil and expandable_commands[args[last_non_target_arg]] then
-        package_label = bazel_repo.get_package_label()
-        if last_non_target_arg == #args then
-            table.insert(args, package_label)
-        else
-            for i=last_non_target_arg + 1,#args do
-                args[i] = package_label .. args[i]
-            end
-        end
-    end
+	last_non_target_arg = nil
+	for i = 1, #args do
+		j = #args - i + 1
+		if not string.match(args[j], target_pattern) then
+			last_non_target_arg = j
+			break
+		end
+	end
+
+	if last_non_target_arg ~= nil and expandable_commands[args[last_non_target_arg]] then
+		package_label = bazel_repo.get_package_label()
+		if last_non_target_arg == #args then
+			table.insert(args, package_label)
+		else
+			for i = last_non_target_arg + 1, #args do
+				args[i] = package_label .. args[i]
+			end
+		end
+	end
 end
 
 -- TODO
