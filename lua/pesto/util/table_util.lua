@@ -5,7 +5,7 @@ local iter_util = require("pesto.util.iter_util")
 ---@generic T
 ---@generic U
 ---@param list T[]
----@param fn fun(t: T): U
+---@param fn fun(t: `T`): `U`
 ---@return U[]
 function M.map(list, fn)
 	local ret = {}
