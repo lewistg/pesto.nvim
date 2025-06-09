@@ -3,9 +3,9 @@
 set -euo pipefail
 
 # Ignore local config
-export XDG_CONFIG_HOME='test/xdg/config'
-export XDG_STATE_HOME='test/xdg/local/state'
-export XDG_DATA_HOME='test/xdg/local/share'
+export XDG_CONFIG_HOME="$(realpath 'test/xdg/config')"
+export XDG_STATE_HOME="$(realpath 'test/xdg/local/state')"
+export XDG_DATA_HOME="$(realpath 'test/xdg/local/share')"
 
 # Isolate the plugin
 plugin_symlink="$XDG_DATA_HOME/nvim/site/pack/pesto/start/pesto.nvim"
