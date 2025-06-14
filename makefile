@@ -1,3 +1,3 @@
 .PHONY: format
 format:
-	stylua lua/ test/spec/
+	stylua lua/ test/spec/ plugin/
