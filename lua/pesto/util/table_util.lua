@@ -75,15 +75,11 @@ end
 
 ---@generic T
 ---@param list T[]
----@param target_value T
----@param are_equal fun(a: T, b: T): boolean
+---@param predicate_fn fun(t: T): boolean
 ---@return T|nil, number|nil
-function M.find(list, target_value, are_equal)
-	are_equal = are_equal or function(a, b)
-		return a == b
-	end
+function M.find(list, predicate_fn)
 	for i, value in ipairs(list) do
-		if are_equal(value, target_value) then
+		if predicate_fn(value) then
 			return value, i
 		end
 	end
@@ -186,6 +182,21 @@ function M.take_while(list, filter)
 		end
 	end
 	return ret
+end
+
+---@generic T: table
+---@param t T
+---@return T
+function M.deep_copy(t)
+	local copy = {}
+	for key, value in pairs(t) do
+		if type(value) == "table" then
+			copy[key] = M.deep_copy(value)
+		else
+			copy[key] = value
+		end
+	end
+	return copy
 end
 
 return M

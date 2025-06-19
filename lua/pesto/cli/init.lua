@@ -1,7 +1,8 @@
 local M = {}
 
-local subcommands = require("pesto.cli.subcommands")
 local logger = require("pesto.logger")
+local subcommands = require("pesto.cli.subcommands")
+local table_util = require("pesto.util.table_util")
 
 M.COMMAND_NAME = "Pesto"
 
@@ -73,13 +74,10 @@ function M.run_command(opts)
 	local subcommand = subcommands.SUBCOMMANDS_BY_NAME[subcommand_name]
 
 	if subcommand then
-		local subcommand_opts = setmetatable({}, { __index = opts })
-		subcommand_opts.fargs = {}
-		local i = 3
-		while i < #opts.fargs do
-			table.insert(subcommand_opts.fargs, opts.fargs[i])
-		end
-		subcommand.execute()
+		subcommand.execute({
+			fargs = table_util.slice(opts.fargs, 2),
+			buf_nr = vim.api.nvim_get_current_buf(),
+		})
 	elseif string.len(subcommand_name) > 0 then
 		vim.notify(string.format("[%s] Invalid subcommand '%s'", M.COMMAND_NAME, subcommand), vim.log.levels.ERROR)
 	end

@@ -5,15 +5,22 @@
 -- statements.
 
 local LazyTable = require("pesto.util.lazy_table")
+local BazelSubcommand = require("pesto.cli.bazel_subcommand")
 
 -- This plugin does manual dependency injection. This class contains the
 -- plugin's global set of components.
 ---@class Components
+---@field bazel_sub_command BazelSubcommand
 ---@field settings Settings
 ---@field query_drawer_manager QueryDrawerManager
 
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
+
+local function _bazel_sub_command()
+	return BazelSubcommand:new(components.settings.bazel_runner)
+end
+components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
 
 local _settings = function()
 	return require("pesto.settings").settings
@@ -26,3 +33,5 @@ local _query_drawer_manager = function()
 	return QueryDrawerManager:new(logger, components.settings)
 end
 components.query_drawer_manager = _query_drawer_manager --[[@as QueryDrawerManager ]]
+
+return components

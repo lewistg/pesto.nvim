@@ -10,12 +10,14 @@ local Path = require("pesto.util.path")
 
 ---@class BazelSubcommand: Subcommand
 ---@field private _subcommand_completions {[string]: SubcommandCompleteFn}
+---@field private _run_bazel_fn RunBazelFn
 local BazelSubcommand = {}
 BazelSubcommand.__index = BazelSubcommand
 
 BazelSubcommand.name = "bazel"
 
-function BazelSubcommand:new()
+---@param run_bazel_fn RunBazelFn
+function BazelSubcommand:new(run_bazel_fn)
 	local o = setmetatable({}, BazelSubcommand)
 
 	o._subcommand_completions = {
@@ -30,11 +32,13 @@ function BazelSubcommand:new()
 		end,
 	}
 
+	o._run_bazel_fn = run_bazel_fn
+
 	o.complete = function(opts)
 		return o:_complete(opts)
 	end
 	o.execute = function(opts)
-		return o:_execute(opts)
+		o:_execute(opts)
 	end
 
 	return o
@@ -168,7 +172,29 @@ function BazelSubcommand:_complete(opts)
 	return {}
 end
 
----@param raw_command string
-function BazelSubcommand:_execute(raw_command) end
+---@param opts SubcommandExecuteOpts
+function BazelSubcommand:_execute(opts)
+	-- There should be at least one farg value (the name of the subcommand)
+	assert(#opts.fargs >= 1)
+
+	local build_file = bazel_repo.find_build_file()
+	local build_dir = vim.fs.dirname(build_file)
+
+	local workspace_marker_file = bazel_repo.find_project_root_marker_file()
+	local workspace_dir = vim.fs.dirname(workspace_marker_file)
+
+	---@type RunBazelContext
+	local context = {
+		workspace_dir = workspace_dir,
+		package_dir = build_dir,
+	}
+	local bazel_command = table_util.deep_copy(opts.fargs)
+	table.insert(bazel_command, 1, "bazel")
+
+	self._run_bazel_fn({
+		bazel_command = bazel_command,
+		context = context,
+	})
+end
 
 return BazelSubcommand

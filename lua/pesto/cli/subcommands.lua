@@ -3,6 +3,7 @@ local M = {}
 local bazel = require("pesto.bazel")
 local table_util = require("pesto.util.table_util")
 local BazelSubcommand = require("pesto.cli.bazel_subcommand")
+local components = require("pesto.components")
 
 ---@class SubcommandCompleteOpts
 ---@field subcommand_line string
@@ -11,7 +12,12 @@ local BazelSubcommand = require("pesto.cli.bazel_subcommand")
 ---@field buf_nr number
 
 ---@alias SubcommandCompleteFn fun(opts: SubcommandCompleteOpts): string[]
----@alias SubcommandExecuteFn fun(raw_command: string)
+
+---@class SubcommandExecuteOpts
+---@field fargs string[]
+---@field buf_nr number
+
+---@alias SubcommandExecuteFn fun(opts: SubcommandExecuteOpts)
 
 ---@class Subcommand
 ---@field name string
@@ -39,7 +45,7 @@ end
 ---@type Subcommand[]
 local subcommands = {
 	-- Please keep keys alphabetized
-	BazelSubcommand:new(),
+	components.bazel_sub_command,
 	{
 		name = "sp-build",
 		execute = execute_sp_build_subcommand,
