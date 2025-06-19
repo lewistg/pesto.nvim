@@ -53,7 +53,7 @@ function M.find_build_file(buf_nr)
 			return build_file
 		end
 	end
-	error("could not find BUILD.repo or BUILD file")
+	error("could not find BUILD.bazel or BUILD file")
 end
 
 ---@param dir Path
