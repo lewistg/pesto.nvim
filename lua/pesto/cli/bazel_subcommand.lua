@@ -1,5 +1,6 @@
 local M = {}
 
+local bazel_package = require("pesto.bazel").package
 local bazel_repo = require("pesto.bazel").repo
 local cli_util = require("pesto.util.cli")
 local fs_util = require("pesto.util.file_system")
@@ -96,13 +97,29 @@ function BazelSubcommand:_complete_build(opts)
 					"//" .. tostring(relative_path) .. ":",
 				}
 			end)
-		else
-			---@type Path
-			local package_dir = project_root_dir:join(label_parts.package_path)
+		elseif label_parts.target_name ~= nil then
+			-- Working on the target name part
+			local target_name_candidates = self:_get_target_name_completion_candidates(label_parts.target_name)
+			return table_util.map(target_name_candidates, function(target_name)
+				return "//" .. label_parts.path .. ":" .. target_name
+			end)
 		end
 		return {}
+	elseif string_util.starts_with(opts.arg_lead, ":") then
+		local target_lead = opts.arg_lead:sub(2)
+		local target_names = self:_get_target_name_completion_candidates(target_lead)
+		return table_util.map(target_names, function(target_name)
+			return ":" .. target_name
+		end)
 	end
 	return {}
+end
+
+---@param target_name_lead string
+function BazelSubcommand:_get_target_name_completion_candidates(target_name_lead)
+	local build_file = Path:new(bazel_repo.find_build_file())
+	local target_names = bazel_package.guess_target_names(build_file)
+	return cli_util.get_completion_candidates(target_name_lead, target_names)
 end
 
 ---@param base_path Path
@@ -130,7 +147,6 @@ end
 ---@param label_str string
 function BazelSubcommand:_parse_label(label_str)
 	local parts = string_util.split(label_str, "//", 1)
-	-- local parts = string_util.split(label_str, "//")
 	local repo_name = parts[1]
 	local path, target_name = unpack(string_util.split(parts[2] or "", ":", 1))
 	return {

@@ -8,6 +8,9 @@ return {
         verbose = true,
         ROOT = { "test/spec" }
     },
+    unit = {
+        ROOT = { "test/spec/unit" }
+    },
     tests = {
         verbose = true
     }

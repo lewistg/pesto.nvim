@@ -43,8 +43,8 @@ end
 ---@param buf_id integer|nil
 ---@return PestoTerminalBufInfo|nil
 function terminal.get_build_info(buf_id)
-    local _, build_info = pcall(vim.api.nvim_buf_get_var, buf_id or 0, terminal.PESTO_TERMINAL_BUF)
-    return build_info
+	local _, build_info = pcall(vim.api.nvim_buf_get_var, buf_id or 0, terminal.PESTO_TERMINAL_BUF)
+	return build_info
 end
 
 ---@type RunBazelFn

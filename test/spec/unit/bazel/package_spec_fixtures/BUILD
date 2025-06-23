@@ -1,4 +1,9 @@
 sh_binary(
+    name = "foo",
+    srcs = ["foo.sh"]
+)
+
+sh_binary(
     name = "foo1",
     srcs = ["foo1.sh"]
 )
