@@ -1,0 +1,10 @@
+local bazel = require("pesto.bazel")
+local busted_fixtures = require("busted.fixtures")
+local Path = require("pesto.util.path")
+
+describe("bazel.package", function()
+	local bazel_repo_dir = Path:new(busted_fixtures.path("package_spec_fixtures"))
+	local build_file_path = bazel_repo_dir:join("BUILD")
+	local targets = bazel.package.guess_target_names(build_file_path)
+	assert.are.same({ "foo", "foo1", "foo2", "foo3" }, targets)
+end)

@@ -4,43 +4,34 @@
 -- like wrapping component initialization in functions and inlining `require`
 -- statements.
 
+local LazyTable = require("pesto.util.lazy_table")
+local BazelSubcommand = require("pesto.cli.bazel_subcommand")
+
 -- This plugin does manual dependency injection. This class contains the
 -- plugin's global set of components.
 ---@class Components
+---@field bazel_sub_command BazelSubcommand
 ---@field settings Settings
----@field logger Logger
 ---@field query_drawer_manager QueryDrawerManager
 
-local _components = {}
-local component_providers = {
-    settings = function()
-        return require('pesto.settings').settings
-    end,
-    logger = function()
-        local logger_factory = require('pesto.logger')
-        return logger_factory.get_logger(_components.settings.log_level)
-    end,
-    query_drawer_manager = function()
-        local QueryDrawerManager = require('pesto.query_drawer.query_drawer_manager')
-        return QueryDrawerManager:new(_components.logger, _components.settings)
-    end
-}
-
 ---@type Components
-local components = setmetatable(_components, {
-    -- We lazily create the components
-    __index = function(_, key)
-        -- Recall: The __index method is only called when the indexed value is
-        -- not present in the table. We leverage this to lazily fill in the 
-        if (component_providers[key] == nil) then
-           error('No provider for component: ' .. key)
-        elseif (type(component_providers[key]) == "function") then
-            _components[key] = component_providers[key]()
-        else
-            _components[key] = component_providers[key]
-        end
-        return _components[key]
-    end,
-})
+local components = LazyTable:new() --[[@as Components]]
+
+local function _bazel_sub_command()
+	return BazelSubcommand:new(components.settings.bazel_runner)
+end
+components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
+
+local _settings = function()
+	return require("pesto.settings").settings
+end
+components.settings = _settings --[[@as Settings ]]
+
+local _query_drawer_manager = function()
+	local QueryDrawerManager = require("pesto.query_drawer.query_drawer_manager")
+	local logger = require("lua.pesto.logger")
+	return QueryDrawerManager:new(logger, components.settings)
+end
+components.query_drawer_manager = _query_drawer_manager --[[@as QueryDrawerManager ]]
 
 return components
