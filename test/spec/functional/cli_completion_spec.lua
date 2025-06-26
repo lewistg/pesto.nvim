@@ -53,8 +53,6 @@ describe("CLI completion", function()
 				"//baz:",
 				"//foo/",
 				"//foo:",
-				"//test/",
-				"//test:",
 			},
 		},
 		{
