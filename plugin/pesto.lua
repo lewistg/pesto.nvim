@@ -12,3 +12,5 @@ vim.api.nvim_create_user_command("Pesto", pesto_cli.run_command, {
 	range = true,
 	complete = pesto_cli.complete,
 })
+
+vim.api.nvim_set_keymap("n", "<Plug>pesto-compile-on-dep", ":Pesto compile-one-dep<CR>", {})
