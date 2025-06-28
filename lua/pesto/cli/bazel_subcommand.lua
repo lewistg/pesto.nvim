@@ -4,6 +4,7 @@ local bazel_package = require("pesto.bazel").package
 local bazel_repo = require("pesto.bazel").repo
 local cli_util = require("pesto.util.cli")
 local fs_util = require("pesto.util.file_system")
+local runner = require("pesto.runner.runner")
 local string_util = require("pesto.util.string")
 local table_util = require("pesto.util.table_util")
 local logger = require("pesto.logger")
@@ -193,17 +194,7 @@ function BazelSubcommand:_execute(opts)
 	-- There should be at least one farg value (the name of the subcommand)
 	assert(#opts.fargs >= 1)
 
-	local build_file = bazel_repo.find_build_file()
-	local build_dir = vim.fs.dirname(build_file)
-
-	local workspace_marker_file = bazel_repo.find_project_root_marker_file()
-	local workspace_dir = vim.fs.dirname(workspace_marker_file)
-
-	---@type RunBazelContext
-	local context = {
-		workspace_dir = workspace_dir,
-		package_dir = build_dir,
-	}
+	local context = runner.get_run_bazel_context()
 	local bazel_command = table_util.deep_copy(opts.fargs)
 	table.insert(bazel_command, 1, "bazel")
 
