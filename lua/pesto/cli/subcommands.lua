@@ -45,12 +45,38 @@ local function execute_yank_package_label_subcommand()
 	vim.fn.setreg("@", package_label .. "\n")
 end
 
----@param deps {bazel_sub_command: BazelSubcommand}
+---@param run_bazel_fn RunBazelFn
+local function get_compile_one_dep_subcommand(run_bazel_fn)
+	---@type SubcommandExecuteFn
+	local function execute()
+		---@type string
+		local filename = vim.api.nvim_buf_get_name(0)
+		filename = vim.fs.basename(filename)
+		---@type RunBazelContext
+		local context = runner.get_run_bazel_context()
+		---@type string[]
+		local bazel_command = { "bazel", "build", "--compile_one_dependency", filename }
+
+		---@type RunBazelOpts
+		local opts = {
+			bazel_command = bazel_command,
+			context = context,
+		}
+		run_bazel_fn(opts)
+	end
+	return {
+		name = "compile-one-dep",
+		execute = execute,
+	}
+end
+
+---@param deps {bazel_sub_command: BazelSubcommand, run_bazel_fn: RunBazelFn}
 ---@return Subcommand[]
 function M.make_subcommands(deps)
 	local subcommands = {
 		-- Please keep keys alphabetized
 		deps.bazel_sub_command,
+		get_compile_one_dep_subcommand(deps.run_bazel_fn),
 		{
 			name = "sp-build",
 			execute = execute_sp_build_subcommand,

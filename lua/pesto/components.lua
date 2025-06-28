@@ -38,6 +38,7 @@ components.settings = _settings --[[@as Settings ]]
 local _subcommands = function()
 	return require("pesto.cli.subcommands").make_subcommands({
 		bazel_sub_command = components.bazel_sub_command,
+		run_bazel_fn = components.settings.bazel_runner,
 	})
 end
 components.subcommands = _subcommands --[[@as Subcommands]]
