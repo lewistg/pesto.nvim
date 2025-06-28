@@ -1,9 +1,12 @@
 local M = {}
 
 local bazel = require("pesto.bazel")
+local runner = require("pesto.runner.runner")
 local table_util = require("pesto.util.table_util")
-local BazelSubcommand = require("pesto.cli.bazel_subcommand")
-local components = require("pesto.components")
+
+---@class Subcommands
+---@field SUBCOMMANDS_BY_NAME {[string]: Subcommand}
+---@field SUBCOMMAND_NAMES string[]
 
 ---@class SubcommandCompleteOpts
 ---@field subcommand_line string
@@ -42,30 +45,38 @@ local function execute_yank_package_label_subcommand()
 	vim.fn.setreg("@", package_label .. "\n")
 end
 
----@type Subcommand[]
-local subcommands = {
-	-- Please keep keys alphabetized
-	components.bazel_sub_command,
-	{
-		name = "sp-build",
-		execute = execute_sp_build_subcommand,
-	},
-	{
-		name = "vs-build",
-		execute = execute_vs_build_subcommand,
-	},
-	{
-		name = "yank-package-label",
-		execute = execute_yank_package_label_subcommand,
-	},
-}
+---@param deps {bazel_sub_command: BazelSubcommand}
+---@return Subcommand[]
+function M.make_subcommands(deps)
+	local subcommands = {
+		-- Please keep keys alphabetized
+		deps.bazel_sub_command,
+		{
+			name = "sp-build",
+			execute = execute_sp_build_subcommand,
+		},
+		{
+			name = "vs-build",
+			execute = execute_vs_build_subcommand,
+		},
+		{
+			name = "yank-package-label",
+			execute = execute_yank_package_label_subcommand,
+		},
+	}
 
----@type {[string]: Subcommand}
-M.SUBCOMMANDS_BY_NAME = table_util.to_map(table_util.map(subcommands, function(subcommand)
-	return { subcommand.name, subcommand }
-end))
+	---@type {[string]: Subcommand}
+	local SUBCOMMANDS_BY_NAME = table_util.to_map(table_util.map(subcommands, function(subcommand)
+		return { subcommand.name, subcommand }
+	end))
 
----@type string[]
-M.SUBCOMMAND_NAMES = table_util.get_keys(M.SUBCOMMANDS_BY_NAME)
+	---@type string[]
+	local SUBCOMMAND_NAMES = table_util.get_keys(SUBCOMMANDS_BY_NAME)
+
+	return {
+		SUBCOMMANDS_BY_NAME = SUBCOMMANDS_BY_NAME,
+		SUBCOMMAND_NAMES = SUBCOMMAND_NAMES,
+	}
+end
 
 return M
