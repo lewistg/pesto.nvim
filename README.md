@@ -1,15 +1,24 @@
 # pesto.nvim
 
-pesto.nvim integrates Neovim with Bazel.
+pesto.nvim integrates Neovim with Bazel to make the edit-build-test cycle more seamless.
 
-## Design goals
+## Features
 
-* A solid command line experience for the `bazel` sub-command.
-The goal is to facilitate the edit-build-edit cycle for bazel projects.
-The non-goal here is achieving complete parity with bazel's native command line interface.
-* Provide bazel-specific features.
-The goal here is to provide features that take advantage of being bazel-specific.
-Neomake is a build-tool agnostic Neovim plugin.
-If all plugin user's do is run `bazel build` 
+* Construct and execute bazel commands to build the file you're currently editing.
+* Quickly navigate to BUILD or BUILD.bazel files.
+
+## Commands
+
+| Command | Description| 
+| --- | --- |
+| `:Pesto bazel <bazel-subocommand>` | This command is somewhat equivalent to `:!bazel <bazel-subcommand>`. By default the bazel command is run in a terminal buffer. |
+| `:Pesto sp-build` | Opens the `BUILD` or `BUILD.bazel` file for the current source file in a horizontal split. |
+| `:Pesto vs-build` | The same as the `sp-build` command but splits vertically. |
+| `:Pesto yank-package-label` | Yanks the label for the current source file's package. |
+
+## Goals
+
+* A solid (not perfect) command line experience for the `bazel` sub-command.
+* Somewhat low-level. Don't hide bazel too much.
+* Leverage being bazel-specific.
 * Extendable.
-Especially when it comes to running bazel commands through pesto.nvim's `bazel` subcommand, plugin users should be able to extend or modify the experience provided by pesto.nvim.
