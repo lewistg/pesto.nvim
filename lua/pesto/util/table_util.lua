@@ -199,4 +199,21 @@ function M.deep_copy(t)
 	return copy
 end
 
+---@return string|nil
+function M.some_key(dict_table)
+    for key, _ in pairs(dict_table) do
+        return key
+    end
+end
+
+---@return number
+function M.get_size(t)
+    ---@type number
+    local count = 0
+    for _ in pairs(t) do
+        count = count + 1
+    end
+    return count
+end
+
 return M
