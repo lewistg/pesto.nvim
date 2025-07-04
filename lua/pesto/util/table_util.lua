@@ -199,4 +199,33 @@ function M.deep_copy(t)
 	return copy
 end
 
+---@return string|nil
+function M.some_key(dict_table)
+	for key, _ in pairs(dict_table) do
+		return key
+	end
+end
+
+---@return number
+function M.get_size(t)
+	---@type number
+	local count = 0
+	for _ in pairs(t) do
+		count = count + 1
+	end
+	return count
+end
+
+---@generic T
+---@param ts `T`[]
+---@return {[T]: boolean}
+function M.make_set(ts)
+	---@type {[`T`]: boolean}
+	local t_set = {}
+	for _, value in ipairs(ts) do
+		t_set[value] = true
+	end
+	return t_set
+end
+
 return M
