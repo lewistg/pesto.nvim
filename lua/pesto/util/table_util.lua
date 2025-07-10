@@ -228,4 +228,34 @@ function M.make_set(ts)
 	return t_set
 end
 
+---@generic T
+---@param sorted_ts `T`[]
+---@param compare fun(t1: T, t2: T): number Returns negative number if t1 < t2; 0 if t1 == t2; and positive number if t1 > t2
+---@param t `T`
+function M.sorted_insert(sorted_ts, t, compare)
+	---@param i number
+	---@param j number
+	---@return number The index of the first element that is greater than the parameter `t`
+	local function find_insertion_point(i, j)
+		if i > j then
+			return i
+		end
+		---@type number
+		local k = i + math.floor((j - i) / 2)
+		if compare(t, sorted_ts[k]) < 0 then
+			return find_insertion_point(i, k - 1)
+		else
+			return find_insertion_point(k + 1, j)
+		end
+	end
+	local insertion_index = math.max(1, find_insertion_point(1, #sorted_ts))
+
+	local i = #sorted_ts + 1
+	while i > insertion_index do
+		sorted_ts[i] = sorted_ts[i - 1]
+		i = i - 1
+	end
+	sorted_ts[insertion_index] = t
+end
+
 return M
