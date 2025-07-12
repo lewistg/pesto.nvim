@@ -70,7 +70,7 @@ local function get_compile_one_dep_subcommand(run_bazel_fn)
 	}
 end
 
----@param deps {bazel_sub_command: BazelSubcommand, run_bazel_fn: RunBazelFn}
+---@param deps {bazel_sub_command: BazelSubcommand, view_build_events_summary_subcommand: ViewBuildEventsSummarySubcommand, run_bazel_fn: RunBazelFn}
 ---@return Subcommand[]
 function M.make_subcommands(deps)
 	local subcommands = {
@@ -81,6 +81,7 @@ function M.make_subcommands(deps)
 			name = "sp-build",
 			execute = execute_sp_build_subcommand,
 		},
+		deps.view_build_events_summary_subcommand,
 		{
 			name = "vs-build",
 			execute = execute_vs_build_subcommand,

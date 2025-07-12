@@ -5,12 +5,13 @@ local iter_util = require("pesto.util.iter_util")
 ---@generic T
 ---@generic U
 ---@param list T[]
----@param fn fun(t: `T`): `U`
+---@param fn fun(t: `T`, i: number): `U`
 ---@return U[]
 function M.map(list, fn)
 	local ret = {}
-	for _, item in ipairs(list) do
-		table.insert(ret, fn(item))
+	for i, item in ipairs(list) do
+		local mapped_item = fn(item, i)
+		table.insert(ret, mapped_item)
 	end
 	return ret
 end
@@ -43,6 +44,17 @@ function M.concat(list1, list2)
 		table.insert(concated_list, value)
 	end
 	return concated_list
+end
+
+---@generic T
+---@param list1 T[]
+---@param list2 T[]
+---@return T[]
+function M.append(list1, list2)
+	for _, value in ipairs(list2) do
+		table.insert(list1, value)
+	end
+	return list1
 end
 
 ---@generic T

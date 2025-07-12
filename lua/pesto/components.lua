@@ -10,10 +10,12 @@ local LazyTable = require("pesto.util.lazy_table")
 -- plugin's global set of components.
 ---@class Components
 ---@field bazel_sub_command BazelSubcommand
+---@field build_events_json_loader BuildEventJsonLoader
 ---@field pesto_cli PestoCli
 ---@field settings Settings
 ---@field subcommands Subcommands
 ---@field query_drawer_manager QueryDrawerManager
+---@field view_build_events_summary_subcommand ViewBuildEventsSummarySubcommand
 
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
@@ -23,6 +25,13 @@ local function _bazel_sub_command()
 	return BazelSubcommand:new(components.settings.bazel_runner)
 end
 components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
+
+---@return BuildEventJsonLoader
+local function _build_events_json_loader()
+	local BuildEventJsonLoader = require("pesto.bazel.build_event_json_loader")
+	return BuildEventJsonLoader:new()
+end
+components.build_events_json_loader = _build_events_json_loader --[[@as BuildEventJsonLoader]]
 
 local function _pesto_cli()
 	return require("pesto.cli").make_cli(components.subcommands)
@@ -39,6 +48,7 @@ local _subcommands = function()
 	return require("pesto.cli.subcommands").make_subcommands({
 		bazel_sub_command = components.bazel_sub_command,
 		run_bazel_fn = components.settings.bazel_runner,
+		view_build_events_summary_subcommand = components.view_build_events_summary_subcommand,
 	})
 end
 components.subcommands = _subcommands --[[@as Subcommands]]
@@ -49,5 +59,13 @@ local _query_drawer_manager = function()
 	return QueryDrawerManager:new(logger, components.settings)
 end
 components.query_drawer_manager = _query_drawer_manager --[[@as QueryDrawerManager ]]
+
+---@return ViewBuildEventsSummarySubcommand
+local function _view_build_events_summary_subcommand()
+	---@type ViewBuildEventsSummarySubcommand
+	local ViewBuildEventsSummarySubcommand = require("pesto.cli.view_build_events_summary_subcommand")
+	return ViewBuildEventsSummarySubcommand:new(components.build_events_json_loader)
+end
+components.view_build_events_summary_subcommand = _view_build_events_summary_subcommand --[[@as ViewBuildEventsSummarySubcommand]]
 
 return components

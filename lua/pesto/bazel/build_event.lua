@@ -7,70 +7,67 @@ local table_util = require("pesto.util.table_util")
 -- BuildEventIdIds
 -- ===============================================================
 
----@class KeyableId
----@field id_key string
-
----@class UnknownBuildEventId: KeyableId
+---@class UnknownBuildEventId
 ---@field details string|nil
 
----@class ProgressId: KeyableId
+---@class ProgressId
 ---@field opaque_count number|nil
 
----@class BuildStartedId: KeyableId
+---@class BuildStartedId
 
----@class UnstructuredCommandLineId: KeyableId
+---@class UnstructuredCommandLineId
 
----@class StructuredCommandLineId: KeyableId
+---@class StructuredCommandLineId
 ---@field command_line_label string|nil
 
----@class WorkspaceStatusId: KeyableId
+---@class WorkspaceStatusId
 
----@class OptionsParsedId: KeyableId
+---@class OptionsParsedId
 
 ---@alias Downloader 0|1|2
 
----@class FetchId: KeyableId
+---@class FetchId
 ---@field url string|nil
 ---@field downloader Downloader|nil
 
----@class PatternExpandedId: KeyableId
+---@class PatternExpandedId
 ---@field pattern string|nil
 
----@class WorkspaceConfigId: KeyableId
+---@class WorkspaceConfigId
 
----@class BuildMetadataId: KeyableId
+---@class BuildMetadataId
 
----@class TargetConfiguredId: KeyableId
+---@class TargetConfiguredId
 
----@class NamedSetOfFilesId: KeyableId
+---@class NamedSetOfFilesId
 
----@class ConfigurationId: KeyableId
+---@class ConfigurationId
 ---@field id string
 
----@class TargetCompletedId: KeyableId
+---@class TargetCompletedId
 ---@field label string|nil
 ---@field configuration ConfigurationId|nil
 
----@class ActionCompletedId: KeyableId
+---@class ActionCompletedId
 ---@field primary_output string|nil
 ---@field label string|nil
 ---@field configuration ConfigurationId|nil
 
----@class UnconfiguredLabelId: KeyableId
+---@class UnconfiguredLabelId
 ---@field label string|nil
 
----@class ConfiguredLabelId: KeyableId
+---@class ConfiguredLabelId
 ---@field lable string|nil
 ---@field configuration ConfigurationId|nil
 
----@class TestResultId: KeyableId
+---@class TestResultId
 ---@field label string|nil
 ---@field configuration ConfigurationId|nil
 ---@field run number|nil
 ---@field shard number|nil
 ---@field attempt number|nil
 
----@class TestProgressId: KeyableId
+---@class TestProgressId
 ---@field label string|nil
 ---@field configuration ConfigurationId|nil
 ---@field run number|nil
@@ -78,23 +75,23 @@ local table_util = require("pesto.util.table_util")
 ---@field attempt number|nil
 ---@field opaque_count number|nil
 
----@class TestSummaryId: KeyableId
+---@class TestSummaryId
 ---@field label string|nil
 ---@field configuration ConfigurationId|nil
 
----@class TargetSummaryId: KeyableId
+---@class TargetSummaryId
 ---@field label string|nil
 ---@field configuration ConfigurationId|nil
 
----@class BuildFinishedId: KeyableId
+---@class BuildFinishedId
 
----@class BuildToolLogsId: KeyableId
+---@class BuildToolLogsId
 
----@class BuildMetricsId: KeyableId
+---@class BuildMetricsId
 
----@class ConvenienceSymlinksIdentifiedId: KeyableId
+---@class ConvenienceSymlinksIdentifiedId
 
----@class ExecRequestId: KeyableId
+---@class ExecRequestId
 
 ---@alias SpecificBuildEventId
 ---| UnknownBuildEventId

@@ -10,7 +10,7 @@ function BuildEventJsonLoader:new()
 	return o
 end
 
----@param bep_json_file Path
+---@param bep_json_file string|Path
 ---@return table[]
 function BuildEventJsonLoader:load(bep_json_file)
 	local lines = vim.fn.readfile(tostring(bep_json_file))
