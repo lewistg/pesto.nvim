@@ -14,6 +14,7 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field settings Settings
 ---@field subcommands Subcommands
 ---@field query_drawer_manager QueryDrawerManager
+---@field view_build_events_summary_subcommand pesto.ViewBuildEventsSummarySubcommand
 
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
@@ -38,6 +39,7 @@ components.settings = _settings --[[@as Settings ]]
 local _subcommands = function()
 	return require("pesto.cli.subcommands").make_subcommands({
 		bazel_sub_command = components.bazel_sub_command,
+		view_build_events_summary_subcommand = components.view_build_events_summary_subcommand,
 		run_bazel_fn = components.settings.bazel_runner,
 	})
 end
@@ -49,5 +51,11 @@ local _query_drawer_manager = function()
 	return QueryDrawerManager:new(logger, components.settings)
 end
 components.query_drawer_manager = _query_drawer_manager --[[@as QueryDrawerManager ]]
+
+---@return pesto.ViewBuildEventsSummarySubcommand
+local _view_build_events_summary_subcommand = function()
+	return require("pesto.cli.view_build_events_summary_subcommand"):new()
+end
+components.view_build_events_summary_subcommand = _view_build_events_summary_subcommand --[[@as pesto.ViewBuildEventsSummarySubcommand]]
 
 return components
