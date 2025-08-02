@@ -60,6 +60,33 @@ function M.filter(list, fn)
 end
 
 ---@generic T
+---@param list1 T[]
+---@param list2 T[]
+---@return T[]
+function M.append(list1, list2)
+	for _, value in ipairs(list2) do
+		table.insert(list1, value)
+	end
+	return list1
+end
+
+---@generic T
+---@generic U
+---@param list `T`[]
+---@param fn fun(t: T): `U`|nil
+---@return U[]
+function M.filter_map(list, fn)
+	local ret = {}
+	for _, value in ipairs(list) do
+		local mapped_value = fn(value)
+		if mapped_value then
+			table.insert(ret, mapped_value)
+		end
+	end
+	return ret
+end
+
+---@generic T
 ---@generic U
 ---@param list T[]
 ---@param fn fun(accumulator: U, next_value: T): U

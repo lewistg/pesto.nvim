@@ -1,7 +1,7 @@
 local BuildEventsBuffer = require("pesto.ui.build_events_buffer.build_events_buffer")
 local BuildEventTree = require("pesto.bazel.build_event_tree")
 
----@class pesto.ViewBuildEventsSummarySubcommand: Subcommand
+---@class ViewBuildEventsSummarySubcommand: Subcommand
 ---@field private _build_event_json_loader pesto.BuildEventJsonLoader
 ---@field private _build_events_buffer pesto.BuildEventsBuffer
 ---@field private _build_event_file_loader pesto.BuildEventFileLoader

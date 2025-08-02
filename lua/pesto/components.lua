@@ -10,6 +10,8 @@ local LazyTable = require("pesto.util.lazy_table")
 -- plugin's global set of components.
 ---@class Components
 ---@field bazel_sub_command BazelSubcommand
+---@field build_event_json_json_loader pesto.BuildEventJsonLoader
+---@field build_event_file_loader pesto.BuildEventFileLoader
 ---@field pesto_cli PestoCli
 ---@field settings Settings
 ---@field subcommands Subcommands
@@ -18,6 +20,18 @@ local LazyTable = require("pesto.util.lazy_table")
 
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
+
+---@return pesto.BuildEventJsonLoader
+local function _build_event_json_loader()
+	return require("pesto.bazel.build_event_json_loader"):new()
+end
+components.build_event_json_json_loader = _build_event_json_loader --[[@as pesto.BuildEventJsonLoader]]
+
+---return pesto.BuildEventFileLoader
+local function _build_event_file_loader()
+	return require("pesto.bazel.build_event_file_loader"):new()
+end
+components.build_event_file_loader = _build_event_file_loader --[[@as pesto.BuildEventFileLoader]]
 
 local function _bazel_sub_command()
 	local BazelSubcommand = require("pesto.cli.bazel_subcommand")
@@ -54,7 +68,10 @@ components.query_drawer_manager = _query_drawer_manager --[[@as QueryDrawerManag
 
 ---@return pesto.ViewBuildEventsSummarySubcommand
 local _view_build_events_summary_subcommand = function()
-	return require("pesto.cli.view_build_events_summary_subcommand"):new()
+	return require("pesto.cli.view_build_events_summary_subcommand"):new(
+		components.build_event_json_json_loader,
+		components.build_event_file_loader
+	)
 end
 components.view_build_events_summary_subcommand = _view_build_events_summary_subcommand --[[@as pesto.ViewBuildEventsSummarySubcommand]]
 

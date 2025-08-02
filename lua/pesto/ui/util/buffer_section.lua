@@ -1,4 +1,4 @@
-local table_util = require("pesto.util.table_util")
+local buffer_util = require("pesto.util.buffer")
 
 ---@class pesto.LineEdit
 ---@field start_row number
@@ -104,7 +104,9 @@ function BufferSection:edit_lines(rel_line_edit)
 		lines = rel_line_edit.lines
 	end
 
-	vim.api.nvim_buf_set_lines(self._buf_id, start_row, end_row, false, lines)
+	buffer_util.with_temp_options(self._buf_id, { modifiable = true }, function()
+		vim.api.nvim_buf_set_lines(self._buf_id, start_row, end_row, false, lines)
+	end)
 
 	---@type number
 	local num_replaced_lines = end_row - start_row
