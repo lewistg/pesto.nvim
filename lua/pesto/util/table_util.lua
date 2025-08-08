@@ -60,6 +60,33 @@ function M.filter(list, fn)
 end
 
 ---@generic T
+---@param list1 T[]
+---@param list2 T[]
+---@return T[]
+function M.append(list1, list2)
+	for _, value in ipairs(list2) do
+		table.insert(list1, value)
+	end
+	return list1
+end
+
+---@generic T
+---@generic U
+---@param list `T`[]
+---@param fn fun(t: T): `U`|nil
+---@return U[]
+function M.filter_map(list, fn)
+	local ret = {}
+	for _, value in ipairs(list) do
+		local mapped_value = fn(value)
+		if mapped_value then
+			table.insert(ret, mapped_value)
+		end
+	end
+	return ret
+end
+
+---@generic T
 ---@generic U
 ---@param list T[]
 ---@param fn fun(accumulator: U, next_value: T): U
@@ -197,6 +224,25 @@ function M.deep_copy(t)
 		end
 	end
 	return copy
+end
+
+---@return string|nil
+function M.some_key(dict_table)
+	for key, _ in pairs(dict_table) do
+		return key
+	end
+end
+
+---@generic T
+---@param ts `T`[]
+---@return {[T]: boolean}
+function M.make_set(ts)
+	---@type {[`T`]: boolean}
+	local t_set = {}
+	for _, value in ipairs(ts) do
+		t_set[value] = true
+	end
+	return t_set
 end
 
 return M

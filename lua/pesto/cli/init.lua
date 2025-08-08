@@ -6,8 +6,8 @@ local table_util = require("pesto.util.table_util")
 M.COMMAND_NAME = "Pesto"
 
 ---@class PestoCli
----@field run_command
----@field complete
+---@field run_command function
+---@field complete function
 
 ---@param arg_lead string
 ---@param candidates table[string]
