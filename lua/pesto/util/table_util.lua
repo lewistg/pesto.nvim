@@ -245,4 +245,17 @@ function M.make_set(ts)
 	return t_set
 end
 
+---@generic T
+---@param t table
+---@return `T`|nil
+function M.dig(t, keys)
+	return M.reduce(keys, function(acc, next_key)
+		if acc ~= nil then
+			return acc[next_key]
+		else
+			return nil
+		end
+	end, t)
+end
+
 return M

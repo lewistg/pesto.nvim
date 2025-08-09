@@ -1,5 +1,5 @@
 local os = require("pesto.util.os")
-local settings = require("pesto.settings").settings
+-- local settings = require("pesto.settings").settings
 local uv = vim.loop
 
 -- Plenary doesn't have a type annotations for their logger yet
@@ -40,9 +40,11 @@ end
 
 for log_level, numeric_log_level in pairs(LOG_LEVEL) do
 	M[log_level] = function(message)
+		--[[
 		if numeric_log_level < LOG_LEVEL[settings.log_level] then
 			return
 		end
+        --]]
 		local call_location = get_call_location()
 		local time = vim.fn.strftime("%c")
 		local log_message = string.format(

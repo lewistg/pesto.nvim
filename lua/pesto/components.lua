@@ -13,7 +13,8 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field build_event_json_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
 ---@field pesto_cli PestoCli
----@field settings Settings
+---@field settings pesto.Settings
+---@field run_bazel_fn RunBazelFn
 ---@field subcommands Subcommands
 ---@field query_drawer_manager QueryDrawerManager
 ---@field view_build_events_summary_subcommand pesto.ViewBuildEventsSummarySubcommand
@@ -35,7 +36,7 @@ components.build_event_file_loader = _build_event_file_loader --[[@as pesto.Buil
 
 local function _bazel_sub_command()
 	local BazelSubcommand = require("pesto.cli.bazel_subcommand")
-	return BazelSubcommand:new(components.settings.bazel_runner)
+	return BazelSubcommand:new(components.run_bazel_fn)
 end
 components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
 
@@ -45,16 +46,25 @@ end
 components.pesto_cli = _pesto_cli --[[@as PestoCli]]
 
 local _settings = function()
-	return require("pesto.settings").settings
+	return require("pesto.settings"):new()
 end
-components.settings = _settings --[[@as Settings ]]
+components.settings = _settings --[[@as pesto.Settings ]]
+
+---@return RunBazelFn
+local _run_bazel_fn = function()
+	---@params opts RunBazelOpts
+	return function(opts)
+		return components.settings:get_bazel_runner()(opts)
+	end
+end
+components.run_bazel_fn = _run_bazel_fn --[[@as RunBazelFn ]]
 
 ---@return Subcommands
 local _subcommands = function()
 	return require("pesto.cli.subcommands").make_subcommands({
 		bazel_sub_command = components.bazel_sub_command,
 		view_build_events_summary_subcommand = components.view_build_events_summary_subcommand,
-		run_bazel_fn = components.settings.bazel_runner,
+		run_bazel_fn = components.run_bazel_fn,
 	})
 end
 components.subcommands = _subcommands --[[@as Subcommands]]
