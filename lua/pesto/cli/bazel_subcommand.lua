@@ -27,10 +27,10 @@ function BazelSubcommand:new(run_bazel_fn)
 			return o:_complete_build(opts)
 		end,
 		["test"] = function(opts)
-			return {}
+			return o:_complete_build(opts)
 		end,
 		["run"] = function(opts)
-			return {}
+			return o:_complete_build(opts)
 		end,
 	}
 
