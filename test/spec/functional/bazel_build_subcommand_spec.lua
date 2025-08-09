@@ -24,10 +24,11 @@ describe("open BUILD file subcommands", function()
 		vim.fn.jobstop(nvim_chan)
 	end)
 
-	it("bazel build runs the bazel build command in a new terminal window", function()
+	---@param bazel_args string[]
+	local function test_bazel_command(bazel_args)
 		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { "foo/foo1/foo2/foo3/foo3.sh" } }, {})
 
-		local subcommand = { "bazel", "build", "//foo/foo1/foo2/foo3" }
+		local subcommand = table_util.concat({ "bazel" }, bazel_args)
 		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "Pesto", args = subcommand }, {})
 
 		-- There should be two windows open in the current tab
@@ -56,5 +57,17 @@ describe("open BUILD file subcommands", function()
 			}, {})
 			return build_info.exit_code == 0
 		end)
+	end
+
+	it("bazel build runs in a new terminal window", function()
+		test_bazel_command({ "build", "//foo/foo1/foo2/foo3" })
+	end)
+
+	it("bazel test runs in a new terminal window", function()
+		test_bazel_command({ "test", "//foo/foo1/foo2/foo3:foo1_spec" })
+	end)
+
+	it("bazel run runs in a new terminal window", function()
+		test_bazel_command({ "run", "//foo/foo1/foo2/foo3" })
 	end)
 end)

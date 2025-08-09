@@ -3,6 +3,13 @@ sh_binary(
     srcs = ["foo1.sh"]
 )
 
+sh_test(
+    name = "foo1_spec",
+    srcs = [
+        "foo1_spec.sh"
+    ]
+)
+
 sh_binary(
     name = "foo2",
     srcs = ["foo2.sh"]

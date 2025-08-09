@@ -11,6 +11,9 @@ return {
     unit = {
         ROOT = { "test/spec/unit" }
     },
+    functional = {
+        ROOT = { "test/spec/functional" }
+    },
     tests = {
         verbose = true
     }
