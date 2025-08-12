@@ -1,6 +1,7 @@
 local M = {}
 
 local bazel = require("pesto.bazel")
+local build_event_util = require("pesto.cli.bazel_build_event_util")
 local runner = require("pesto.runner.runner")
 local table_util = require("pesto.util.table_util")
 
@@ -46,7 +47,8 @@ local function execute_yank_package_label_subcommand()
 end
 
 ---@param run_bazel_fn RunBazelFn
-local function get_compile_one_dep_subcommand(run_bazel_fn)
+---@param settings pesto.Settings
+local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
 	---@type SubcommandExecuteFn
 	local function execute()
 		---@type string
@@ -56,6 +58,10 @@ local function get_compile_one_dep_subcommand(run_bazel_fn)
 		local context = runner.get_run_bazel_context()
 		---@type string[]
 		local bazel_command = { "bazel", "build", "--compile_one_dependency", filename }
+
+		if settings:get_enable_bep_integration() then
+			build_event_util.inject_bep_option(bazel_command, settings)
+		end
 
 		---@type RunBazelOpts
 		local opts = {
@@ -74,6 +80,7 @@ end
 ---@field bazel_sub_command BazelSubcommand
 ---@field view_build_events_summary_subcommand pesto.ViewBuildEventsSummarySubcommand
 ---@field run_bazel_fn RunBazelFn
+---@field settings pesto.Settings
 
 ---@param deps pesto.SubcommandDeps
 ---@return Subcommands[]
@@ -81,7 +88,7 @@ function M.make_subcommands(deps)
 	local subcommands = {
 		-- Please keep keys alphabetized
 		deps.bazel_sub_command,
-		get_compile_one_dep_subcommand(deps.run_bazel_fn),
+		get_compile_one_dep_subcommand(deps.run_bazel_fn, deps.settings),
 		{
 			name = "sp-build",
 			execute = execute_sp_build_subcommand,

@@ -17,7 +17,7 @@ local default_raw_settings = {
 	bazel_command = "bazel",
 	bazel_runner = default_bazel_runner,
 	log_level = "info",
-	use_bep_integration = false,
+	enable_bep_integration = false,
 }
 
 ---@class pesto.Settings
@@ -44,6 +44,25 @@ end
 ---@return RunBazelFn
 function Settings:get_bazel_runner()
 	return self:_resolve_setting("bazel_runner")
+end
+
+---@return string Directory where temp files may be written
+function Settings:get_temp_dir()
+	return vim.fn.stdpath("run") .. "/pesto.nvim"
+end
+
+---@return string Temporary directory where build event files are written
+function Settings:get_bep_temp_dir()
+	return self:get_temp_dir() .. "/bep"
+end
+
+---Indicates whether or not the bep integration is enabled. When enabled, the
+---`--build_event_json_file=<string>` bazel flag is automatically injected into
+---the bazel command. The argument to `--build_event_json_file` will be a well
+---known file that can be loaded post-build.
+---@return boolean
+function Settings:get_enable_bep_integration()
+	return self:_resolve_setting("enable_bep_integration")
 end
 
 return Settings

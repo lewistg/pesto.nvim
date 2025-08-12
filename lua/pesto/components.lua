@@ -65,6 +65,7 @@ local _subcommands = function()
 		bazel_sub_command = components.bazel_sub_command,
 		view_build_events_summary_subcommand = components.view_build_events_summary_subcommand,
 		run_bazel_fn = components.run_bazel_fn,
+		settings = components.settings,
 	})
 end
 components.subcommands = _subcommands --[[@as Subcommands]]
