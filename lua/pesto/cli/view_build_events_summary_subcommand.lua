@@ -1,5 +1,6 @@
 local BuildEventsBuffer = require("pesto.ui.build_events_buffer.build_events_buffer")
 local BuildEventTree = require("pesto.bazel.build_event_tree")
+local terminal_buf_info = require("pesto.runner.default.terminal_buf_info")
 
 ---@class pesto.ViewBuildEventsSummarySubcommand: Subcommand
 ---@field private _build_event_json_loader pesto.BuildEventJsonLoader
@@ -27,13 +28,23 @@ end
 
 ---@param opts SubcommandExecuteOpts
 function ViewBuildEventsSummarySubcommand:_execute(opts)
+	---@type string|nil
+	local build_events_file
 	if #opts.fargs < 1 then
+		local buf_id = vim.api.nvim_get_current_buf()
+		local term_buf_info = terminal_buf_info.get_pesto_terminal_info(buf_id)
+		if term_buf_info and term_buf_info.bep_file then
+			build_events_file = term_buf_info.bep_file
+		end
+	else
+		build_events_file = opts.fargs[1]
+	end
+
+	if build_events_file == nil then
 		vim.notify(string.format("Missing file name argument"), vim.log.levels.ERROR)
 		return
 	end
 
-	---@type string
-	local build_events_file = opts.fargs[1]
 	if vim.fn.filereadable(build_events_file) == 0 then
 		vim.notify(string.format("File not readable: %s", build_events_file), vim.log.levels.ERROR)
 		return

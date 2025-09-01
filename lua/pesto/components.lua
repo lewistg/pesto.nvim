@@ -12,6 +12,9 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field bazel_sub_command BazelSubcommand
 ---@field build_event_json_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
+---@field build_terminal_manager pesto.BuildTerminalManager
+---@field default_runner pesto.DefaultRunner
+---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
 ---@field settings pesto.Settings
 ---@field run_bazel_fn RunBazelFn
@@ -28,17 +31,35 @@ local function _build_event_json_loader()
 end
 components.build_event_json_json_loader = _build_event_json_loader --[[@as pesto.BuildEventJsonLoader]]
 
----return pesto.BuildEventFileLoader
+---@return pesto.BuildEventFileLoader
 local function _build_event_file_loader()
 	return require("pesto.bazel.build_event_file_loader"):new()
 end
 components.build_event_file_loader = _build_event_file_loader --[[@as pesto.BuildEventFileLoader]]
 
+---@return pesto.BuildTerminalManager
+local function _build_terminal_manager()
+	return require("pesto.runner.default.terminal_buffer_manager"):new()
+end
+components.build_terminal_manager = _build_terminal_manager --[[@as pesto.BuildTerminalManager]]
+
 local function _bazel_sub_command()
 	local BazelSubcommand = require("pesto.cli.bazel_subcommand")
-	return BazelSubcommand:new(components.run_bazel_fn)
+	return BazelSubcommand:new(components.settings, components.run_bazel_fn)
 end
 components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
+
+---@return pesto.DefaultRunner
+local function _default_runner()
+	return require("pesto.runner.default.default_runner"):new(components.settings, components.build_terminal_manager)
+end
+components.default_runner = _default_runner --[[@as pesto.DefaultRunner]]
+
+---@return pesto.OpenBuildTermSubcommand
+local function _open_build_term_subcommand()
+	return require("pesto.cli.open_build_term_subcommand"):new(components.build_terminal_manager)
+end
+components.open_build_term_subcommand = _open_build_term_subcommand --[[@as pesto.OpenBuildTermSubcommand]]
 
 local function _pesto_cli()
 	return require("pesto.cli").make_cli(components.subcommands)
@@ -65,6 +86,7 @@ local _subcommands = function()
 		bazel_sub_command = components.bazel_sub_command,
 		view_build_events_summary_subcommand = components.view_build_events_summary_subcommand,
 		run_bazel_fn = components.run_bazel_fn,
+		open_build_term_subcommand = components.open_build_term_subcommand,
 		settings = components.settings,
 	})
 end

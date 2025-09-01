@@ -59,10 +59,6 @@ local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
 		---@type string[]
 		local bazel_command = { "bazel", "build", "--compile_one_dependency", filename }
 
-		if settings:get_enable_bep_integration() then
-			build_event_util.inject_bep_option(bazel_command, settings)
-		end
-
 		---@type RunBazelOpts
 		local opts = {
 			bazel_command = bazel_command,
@@ -79,6 +75,7 @@ end
 ---@class pesto.SubcommandDeps
 ---@field bazel_sub_command BazelSubcommand
 ---@field view_build_events_summary_subcommand pesto.ViewBuildEventsSummarySubcommand
+---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field run_bazel_fn RunBazelFn
 ---@field settings pesto.Settings
 
@@ -86,9 +83,10 @@ end
 ---@return Subcommands[]
 function M.make_subcommands(deps)
 	local subcommands = {
-		-- Please keep keys alphabetized
+		-- Please keep keys alphabetized (by command name)
 		deps.bazel_sub_command,
 		get_compile_one_dep_subcommand(deps.run_bazel_fn, deps.settings),
+		deps.open_build_term_subcommand,
 		{
 			name = "sp-build",
 			execute = execute_sp_build_subcommand,

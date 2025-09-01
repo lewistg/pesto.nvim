@@ -22,6 +22,11 @@ BuildEventsBuffer.__index = BuildEventsBuffer
 
 BuildEventsBuffer.FILE_TYPE = "pesto-build-summary"
 
+---@param buf_id number
+function BuildEventsBuffer.is_build_events_buffer(buf_id)
+	return vim.api.nvim_buf_get_option(buf_id, "filetype") == BuildEventsBuffer.FILE_TYPE
+end
+
 ---@param build_event_tree BuildEventTree
 ---@param build_event_file_loader pesto.BuildEventFileLoader
 ---@return pesto.BuildEventsBuffer

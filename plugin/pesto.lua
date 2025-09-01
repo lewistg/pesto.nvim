@@ -19,4 +19,12 @@ end, {
 	end,
 })
 
+-- Recommended mappings:
+-- ```
+-- vim.api.nvim_set_keymap("n", "<Leader>b", "<Plug>pesto-compile-on-dep", {recursive = true})
+-- vim.api.nvim_set_keymap("n", "<Leader>bs", "<Plug>view-build-events-summary", {recursive = true})
+-- vim.api.nvim_set_keymap("n", "<Leader>bt", "<Plug>last-build-terminal", {recursive = true})
+-- ```
+
 vim.api.nvim_set_keymap("n", "<Plug>pesto-compile-on-dep", ":Pesto compile-one-dep<CR>", {})
+vim.api.nvim_set_keymap("n", "<Plug>pesto-view-build-events-summary", ":Pesto view-build-events-summary<CR>", {})

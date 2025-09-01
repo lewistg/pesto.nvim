@@ -20,9 +20,12 @@ BazelSubcommand.__index = BazelSubcommand
 
 BazelSubcommand.name = "bazel"
 
+---@param settings pesto.Settings
 ---@param run_bazel_fn RunBazelFn
-function BazelSubcommand:new(run_bazel_fn)
+function BazelSubcommand:new(settings, run_bazel_fn)
 	local o = setmetatable({}, BazelSubcommand)
+
+	o._settings = settings
 
 	o._subcommand_completions = {
 		["build"] = function(opts)

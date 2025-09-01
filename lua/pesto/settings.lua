@@ -2,22 +2,22 @@ local table_util = require("pesto.util.table_util")
 
 ---@class pesto.RawSettings
 ---@field bazel_command string Name of bazel binary
----@field bazel_runner fun() Runs the bazel command
+---@field bazel_runner RunBazelFn Runs the bazel command
 ---@field log_level string Logger level
+---@field enable_bep_integration boolean
+---@field auto_open_build_term boolean
 
 local SETTINGS_KEY = "pesto"
-
----@param opts RunBazelOpts
-local function default_bazel_runner(opts)
-	require("pesto.runner.terminal").run(opts)
-end
 
 ---@type pesto.RawSettings
 local default_raw_settings = {
 	bazel_command = "bazel",
-	bazel_runner = default_bazel_runner,
+	bazel_runner = function(opts)
+		require("pesto.components").default_runner(opts)
+	end,
 	log_level = "info",
 	enable_bep_integration = false,
+	auto_open_build_term = true,
 }
 
 ---@class pesto.Settings
@@ -63,6 +63,10 @@ end
 ---@return boolean
 function Settings:get_enable_bep_integration()
 	return self:_resolve_setting("enable_bep_integration")
+end
+
+function Settings:get_auto_open_build_term()
+	return self:_resolve_setting("auto_open_build_term")
 end
 
 return Settings
