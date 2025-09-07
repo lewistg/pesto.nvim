@@ -9,8 +9,10 @@ local string_util = require("pesto.util.string")
 local table_util = require("pesto.util.table_util")
 local logger = require("pesto.logger")
 local Path = require("pesto.util.path")
+local bazel_build_event_util = require("pesto.cli.bazel_build_event_util")
 
 ---@class BazelSubcommand: Subcommand
+---@field private _settings pesto.Settings
 ---@field private _subcommand_completions {[string]: SubcommandCompleteFn}
 ---@field private _run_bazel_fn RunBazelFn
 local BazelSubcommand = {}
@@ -18,9 +20,12 @@ BazelSubcommand.__index = BazelSubcommand
 
 BazelSubcommand.name = "bazel"
 
+---@param settings pesto.Settings
 ---@param run_bazel_fn RunBazelFn
-function BazelSubcommand:new(run_bazel_fn)
+function BazelSubcommand:new(settings, run_bazel_fn)
 	local o = setmetatable({}, BazelSubcommand)
+
+	o._settings = settings
 
 	o._subcommand_completions = {
 		["build"] = function(opts)
@@ -196,6 +201,9 @@ function BazelSubcommand:_execute(opts)
 
 	local context = runner.get_run_bazel_context()
 	local bazel_command = table_util.deep_copy(opts.fargs)
+	if self._settings:get_enable_bep_integration() then
+		bazel_build_event_util.inject_bep_option(bazel_command, self._settings)
+	end
 	table.insert(bazel_command, 1, "bazel")
 
 	self._run_bazel_fn({

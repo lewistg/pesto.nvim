@@ -41,7 +41,7 @@ describe("open BUILD file subcommands", function()
 		local build_win_id = vim.rpcrequest(
 			nvim_chan,
 			"nvim_exec_lua",
-			"return require('pesto.runner.terminal').find_build_window()",
+			"return require('pesto.runner.default.build_window').find_build_window()",
 			{}
 		)
 
@@ -52,7 +52,12 @@ describe("open BUILD file subcommands", function()
 		local wait_status = vim.fn.wait(10 * 1000, function()
 			local build_info = vim.rpcrequest(nvim_chan, "nvim_cmd", {
 				cmd = "lua",
-				args = { string.format("return require('pesto.runner.terminal').get_build_info(%s)", build_win_buf_id) },
+				args = {
+					string.format(
+						"return require('pesto.runner.default.terminal_buf_info').get_pesto_terminal_info(%s)",
+						build_win_buf_id
+					),
+				},
 			}, {})
 			return build_info.exit_code == 0
 		end)

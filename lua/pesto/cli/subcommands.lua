@@ -1,6 +1,7 @@
 local M = {}
 
 local bazel = require("pesto.bazel")
+local build_event_util = require("pesto.cli.bazel_build_event_util")
 local runner = require("pesto.runner.runner")
 local table_util = require("pesto.util.table_util")
 
@@ -46,7 +47,8 @@ local function execute_yank_package_label_subcommand()
 end
 
 ---@param run_bazel_fn RunBazelFn
-local function get_compile_one_dep_subcommand(run_bazel_fn)
+---@param settings pesto.Settings
+local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
 	---@type SubcommandExecuteFn
 	local function execute()
 		---@type string
@@ -72,21 +74,24 @@ end
 
 ---@class pesto.SubcommandDeps
 ---@field bazel_sub_command BazelSubcommand
----@field view_build_events_summary_subcommand pesto.ViewBuildEventsSummarySubcommand
+---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
+---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field run_bazel_fn RunBazelFn
+---@field settings pesto.Settings
 
 ---@param deps pesto.SubcommandDeps
 ---@return Subcommands[]
 function M.make_subcommands(deps)
 	local subcommands = {
-		-- Please keep keys alphabetized
+		-- Please keep keys alphabetized (by command name)
 		deps.bazel_sub_command,
-		get_compile_one_dep_subcommand(deps.run_bazel_fn),
+		get_compile_one_dep_subcommand(deps.run_bazel_fn, deps.settings),
+		deps.open_build_term_subcommand,
 		{
 			name = "sp-build",
 			execute = execute_sp_build_subcommand,
 		},
-		deps.view_build_events_summary_subcommand,
+		deps.open_build_events_summary_subcommand,
 		{
 			name = "vs-build",
 			execute = execute_vs_build_subcommand,
