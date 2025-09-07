@@ -1,19 +1,19 @@
 local BuildEventsBuffer = require("pesto.ui.build_events_buffer.build_events_buffer")
 local BuildEventTree = require("pesto.bazel.build_event_tree")
 
----@class ViewBuildEventsSummarySubcommand: Subcommand
+---@class OpenBuildEventsSummarySubcommand: Subcommand
 ---@field private _build_event_json_loader pesto.BuildEventJsonLoader
 ---@field private _build_events_buffer pesto.BuildEventsBuffer
 ---@field private _build_event_file_loader pesto.BuildEventFileLoader
-local ViewBuildEventsSummarySubcommand = {}
-ViewBuildEventsSummarySubcommand.__index = ViewBuildEventsSummarySubcommand
+local OpenBuildEventsSummarySubcommand = {}
+OpenBuildEventsSummarySubcommand.__index = OpenBuildEventsSummarySubcommand
 
-ViewBuildEventsSummarySubcommand.name = "view-build-events-summary"
+OpenBuildEventsSummarySubcommand.name = "view-build-events-summary"
 
 ---@param build_event_json_loader pesto.BuildEventJsonLoader
 ---@param build_event_file_loader pesto.BuildEventFileLoader
-function ViewBuildEventsSummarySubcommand:new(build_event_json_loader, build_event_file_loader)
-	local o = setmetatable({}, ViewBuildEventsSummarySubcommand)
+function OpenBuildEventsSummarySubcommand:new(build_event_json_loader, build_event_file_loader)
+	local o = setmetatable({}, OpenBuildEventsSummarySubcommand)
 
 	o._build_event_json_loader = build_event_json_loader
 	o._build_event_file_loader = build_event_file_loader
@@ -26,7 +26,7 @@ function ViewBuildEventsSummarySubcommand:new(build_event_json_loader, build_eve
 end
 
 ---@param opts SubcommandExecuteOpts
-function ViewBuildEventsSummarySubcommand:_execute(opts)
+function OpenBuildEventsSummarySubcommand:_execute(opts)
 	if #opts.fargs < 1 then
 		vim.notify(string.format("Missing file name argument"), vim.log.levels.ERROR)
 		return
@@ -49,4 +49,4 @@ function ViewBuildEventsSummarySubcommand:_execute(opts)
 	vim.api.nvim_set_current_buf(build_events_buffer:get_buf_id())
 end
 
-return ViewBuildEventsSummarySubcommand
+return OpenBuildEventsSummarySubcommand

@@ -74,7 +74,7 @@ end
 
 ---@class pesto.SubcommandDeps
 ---@field bazel_sub_command BazelSubcommand
----@field view_build_events_summary_subcommand pesto.ViewBuildEventsSummarySubcommand
+---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field run_bazel_fn RunBazelFn
 ---@field settings pesto.Settings
@@ -91,7 +91,7 @@ function M.make_subcommands(deps)
 			name = "sp-build",
 			execute = execute_sp_build_subcommand,
 		},
-		deps.view_build_events_summary_subcommand,
+		deps.open_build_events_summary_subcommand,
 		{
 			name = "vs-build",
 			execute = execute_vs_build_subcommand,

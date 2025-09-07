@@ -20,7 +20,7 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field run_bazel_fn RunBazelFn
 ---@field subcommands Subcommands
 ---@field query_drawer_manager QueryDrawerManager
----@field view_build_events_summary_subcommand pesto.ViewBuildEventsSummarySubcommand
+---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
@@ -84,7 +84,7 @@ components.run_bazel_fn = _run_bazel_fn --[[@as RunBazelFn ]]
 local _subcommands = function()
 	return require("pesto.cli.subcommands").make_subcommands({
 		bazel_sub_command = components.bazel_sub_command,
-		view_build_events_summary_subcommand = components.view_build_events_summary_subcommand,
+		open_build_events_summary_subcommand = components.open_build_events_summary_subcommand,
 		run_bazel_fn = components.run_bazel_fn,
 		open_build_term_subcommand = components.open_build_term_subcommand,
 		settings = components.settings,
@@ -99,13 +99,13 @@ local _query_drawer_manager = function()
 end
 components.query_drawer_manager = _query_drawer_manager --[[@as QueryDrawerManager ]]
 
----@return pesto.ViewBuildEventsSummarySubcommand
-local _view_build_events_summary_subcommand = function()
-	return require("pesto.cli.view_build_events_summary_subcommand"):new(
+---@return pesto.OpenBuildEventsSummarySubcommand
+local _open_build_events_summary_subcommand = function()
+	return require("pesto.cli.open_build_events_summary_subcommand"):new(
 		components.build_event_json_json_loader,
 		components.build_event_file_loader
 	)
 end
-components.view_build_events_summary_subcommand = _view_build_events_summary_subcommand --[[@as pesto.ViewBuildEventsSummarySubcommand]]
+components.open_build_events_summary_subcommand = _open_build_events_summary_subcommand --[[@as pesto.OpenBuildEventsSummarySubcommand]]
 
 return components
