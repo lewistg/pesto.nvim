@@ -1,11 +1,26 @@
 local table_util = require("pesto.util.table_util")
 
+--- Maps a rule's actions' mnemonics to either a errorformat string or compiler plugin (which should in turn define a errorformat)
+---@class pesto.ActionErrorformat
+---@field action_mnemonic string A lua string pattern
+---@field compiler string|nil The compiler plugin that should define the errorformat to use for parsing the action's stderr output
+---@field errorformat string|nil Errorformat string (:help errorformat)
+
+---@class pesto.RuleActionErrorformats
+---@field rule_kind string A lua string pattern
+---@field action_errorformats pesto.ActionErrorformat[]
+
 ---@class pesto.RawSettings
 ---@field bazel_command string Name of bazel binary
 ---@field bazel_runner RunBazelFn Runs the bazel command
 ---@field log_level string Logger level
 ---@field enable_bep_integration boolean
 ---@field auto_open_build_term boolean
+---@field errorformats pesto.RuleActionErrorformats[] Maps a (rule kind pattern, action mnemonic pattern)
+--- pair to an errorformat string or compiler plugin name. Note that
+--- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
+--- string pattern.
+--See pesto.RuleActionErrorformats and pesto.ActionErrorformat.
 
 ---@type pesto.RawSettings
 local default_raw_settings = {
@@ -16,6 +31,26 @@ local default_raw_settings = {
 	log_level = "info",
 	enable_bep_integration = false,
 	auto_open_build_term = true,
+	errorformats = {
+		{
+			rule_kind = "java_*",
+			action_errorformats = {
+				{
+					action_mnemonic = "Javac",
+					compiler = "javac",
+				},
+			},
+		},
+		{
+			rule_kind = "cc_*",
+			action_errorformats = {
+				{
+					action_mnemonic = "CppCompile",
+					compiler = "gcc",
+				},
+			},
+		},
+	},
 }
 
 ---@class pesto.Settings
@@ -67,6 +102,11 @@ end
 
 function Settings:get_auto_open_build_term()
 	return self:_resolve_setting("auto_open_build_term")
+end
+
+---@return pesto.RuleActionErrorformats
+function Settings:get_errorformats(rule_kind, action_mnemonic)
+	return self:_resolve_setting("errorformats")
 end
 
 return Settings

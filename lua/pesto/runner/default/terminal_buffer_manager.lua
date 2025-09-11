@@ -8,14 +8,17 @@ local terminal_buf_info = require("pesto.runner.default.terminal_buf_info")
 --
 ---@class pesto.BuildTerminalManager
 ---@field private _terminal_buf_info {[number]: pesto.TerminalBufInfo}
+---@field private _build_event_json_loader pesto.BuildEventJsonLoader
 local BuildTerminalManager = {}
 BuildTerminalManager.__index = BuildTerminalManager
 
+---@param build_event_json_loader pesto.BuildEventJsonLoader
 ---@return pesto.BuildTerminalManager
-function BuildTerminalManager:new()
+function BuildTerminalManager:new(build_event_json_loader)
 	local o = setmetatable({}, BuildTerminalManager)
 
 	o._terminal_buf_info = {}
+	o._build_event_json_loader = build_event_json_loader
 
 	---@type number
 	local autocmd_group = vim.api.nvim_create_augroup("pesto.BuildTerminalManager", { clear = true })
@@ -56,9 +59,10 @@ function BuildTerminalManager:_on_buf_wipeout(buf_id)
 	self._terminal_buf_info[buf_id] = nil
 end
 
----@param opts RunBazelOpts
+---@param run_bazel_opts RunBazelOpts
+---@param on_build_finished fun(event: pesto.BuildFinishedEvent)
 ---@return number
-function BuildTerminalManager:run_bazel(opts)
+function BuildTerminalManager:run_bazel(run_bazel_opts, on_build_finished)
 	---@type number
 	local tab_id = vim.api.nvim_get_current_tabpage()
 
@@ -66,7 +70,7 @@ function BuildTerminalManager:run_bazel(opts)
 	local prev_term_buf_id = self:_find_tab_terminal_buf(tab_id)
 
 	---@type number
-	local new_term_buf_id = self:_create_term_buf(opts)
+	local new_term_buf_id = self:_create_term_buf(run_bazel_opts, on_build_finished)
 
 	if prev_term_buf_id ~= nil then
 		for _, win_id in ipairs(vim.fn.win_findbuf(prev_term_buf_id)) do
@@ -76,6 +80,20 @@ function BuildTerminalManager:run_bazel(opts)
 	end
 
 	return new_term_buf_id
+end
+
+---@param buf_id number
+function BuildTerminalManager:close_terminal_buf(buf_id)
+	local term_buf_info = self._terminal_buf_info[buf_id]
+	if term_buf_info == nil then
+		return
+	end
+	local build_window = require("pesto.runner.default.build_window")
+	local win_id = build_window.find_build_window(term_buf_info.tab_id)
+	if win_id ~= nil then
+		-- make sure it's not the last window that's open
+		vim.api.nvim_win_close(win_id, false)
+	end
 end
 
 ---@private
@@ -93,9 +111,11 @@ function BuildTerminalManager:_find_tab_terminal_buf(tab_id)
 	return nil
 end
 
+---@private
 ---@param run_opts RunBazelOpts
+---@param on_build_finished fun(event: pesto.BuildFinishedEvent)
 ---@return number
-function BuildTerminalManager:_create_term_buf(run_opts)
+function BuildTerminalManager:_create_term_buf(run_opts, on_build_finished)
 	local tab_id = vim.api.nvim_get_current_tabpage()
 	local buf_id = vim.api.nvim_create_buf(false, true)
 
@@ -115,6 +135,13 @@ function BuildTerminalManager:_create_term_buf(run_opts)
 				else
 					vim.notify("Pesto: Build failed", vim.log.levels.ERROR)
 				end
+				---@type pesto.BuildFinishedEvent
+				local event = require("pesto.runner.default.terminal_buffer_manager_events").BuildFinishedEvent:new(
+					exit_code,
+					term_buf_info.bep_file,
+					self._build_event_json_loader
+				)
+				on_build_finished(event)
 			end,
 		})
 	end)

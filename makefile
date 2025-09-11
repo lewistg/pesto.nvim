@@ -2,6 +2,10 @@
 format:
 	stylua lua/ test/spec/ plugin/
 
+.PHONY: type-check
+type-check:
+	lua-language-server --check lua
+
 .PHONY: test
 test:
 	busted

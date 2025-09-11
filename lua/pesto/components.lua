@@ -16,8 +16,9 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field default_runner pesto.DefaultRunner
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
----@field settings pesto.Settings
+---@field quick_fix_loader pesto.QuickfixLoader
 ---@field run_bazel_fn RunBazelFn
+---@field settings pesto.Settings
 ---@field subcommands Subcommands
 ---@field query_drawer_manager QueryDrawerManager
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
@@ -39,7 +40,7 @@ components.build_event_file_loader = _build_event_file_loader --[[@as pesto.Buil
 
 ---@return pesto.BuildTerminalManager
 local function _build_terminal_manager()
-	return require("pesto.runner.default.terminal_buffer_manager"):new()
+	return require("pesto.runner.default.terminal_buffer_manager"):new(components.build_event_json_json_loader)
 end
 components.build_terminal_manager = _build_terminal_manager --[[@as pesto.BuildTerminalManager]]
 
@@ -51,7 +52,11 @@ components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
 
 ---@return pesto.DefaultRunner
 local function _default_runner()
-	return require("pesto.runner.default.default_runner"):new(components.settings, components.build_terminal_manager)
+	return require("pesto.runner.default.default_runner"):new(
+		components.settings,
+		components.build_terminal_manager,
+		components.quick_fix_loader
+	)
 end
 components.default_runner = _default_runner --[[@as pesto.DefaultRunner]]
 
@@ -70,6 +75,11 @@ local _settings = function()
 	return require("pesto.settings"):new()
 end
 components.settings = _settings --[[@as pesto.Settings ]]
+
+local _quick_fix_loader = function()
+	return require("pesto.runner.default.quickfix_loader"):new(components.build_event_file_loader, components.settings)
+end
+components.quick_fix_loader = _quick_fix_loader --[[ @as pesto.QuickfixLoader ]]
 
 ---@return RunBazelFn
 local _run_bazel_fn = function()

@@ -1,16 +1,19 @@
 ---@class pesto.DefaultRunner
 ---@field private _settings pesto.Settings
 ---@field private _build_terminal_manager pesto.BuildTerminalManager
+---@field private _quickfix_loader pesto.QuickfixLoader
 local DefaultRunner = {}
 DefaultRunner.__index = DefaultRunner
 
 ---@param settings pesto.Settings
 ---@param build_terminal_manager pesto.BuildTerminalManager
-function DefaultRunner:new(settings, build_terminal_manager)
+---@param quickfix_loader pesto.QuickfixLoader
+function DefaultRunner:new(settings, build_terminal_manager, quickfix_loader)
 	local o = setmetatable({}, DefaultRunner)
 
 	o._settings = settings
 	o._build_terminal_manager = build_terminal_manager
+	o._quickfix_loader = quickfix_loader
 
 	return o
 end
@@ -21,7 +24,25 @@ function DefaultRunner.__call(self, opts)
 		require("pesto.cli.bazel_build_event_util").inject_bep_option(opts.bazel_command, self._settings)
 	end
 
-	local build_term_buf_id = self._build_terminal_manager:run_bazel(opts)
+	local quickfix_loader = self._quickfix_loader
+	local build_terminal_manager = self._build_terminal_manager
+	local build_term_buf_id
+	build_term_buf_id = self._build_terminal_manager:run_bazel(
+		opts,
+		---@param build_finished_event pesto.BuildFinishedEvent
+		function(build_finished_event)
+			local build_tree = build_finished_event:get_build_event_tree()
+			if build_tree then
+				quickfix_loader:load_quickfix(build_tree, function()
+					vim.cmd.copen()
+					build_terminal_manager:close_terminal_buf(build_term_buf_id)
+				end)
+			else
+				local logger = require("pesto.logger")
+				logger.warn("Failed to load build event tree")
+			end
+		end
+	)
 
 	---@type number|nil
 	local win_id
