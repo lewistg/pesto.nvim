@@ -21,11 +21,12 @@ function BuildTerminalManager:new()
 	local autocmd_group = vim.api.nvim_create_augroup("pesto.BuildTerminalManager", { clear = true })
 	vim.api.nvim_create_autocmd("TabClosed", {
 		group = autocmd_group,
-		callback = function()
-			o:_on_tab_closed()
+		callback = function(args)
+			-- Note: args.file is id of the tab page being closed (see `h: TabClosed`)
+			o:_on_tab_closed(args.file)
 		end,
 	})
-	vim.api.nvim_create_autocmd({"BufDelete", "BufWipeout"}, {
+	vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
 		group = autocmd_group,
 		callback = function(args)
 			o:_on_buf_wipeout(args.buf)
@@ -41,13 +42,10 @@ function BuildTerminalManager:get_tab_id(tab_id)
 	return self:_find_tab_terminal_buf(tab_id)
 end
 
-function BuildTerminalManager:_on_tab_closed(opts)
-	-- We can't get the ID of the tab that was closed, so we loop over
-	-- all terminal buffers and delete the ones for which the tab
-	-- doesn't exist anymore. Neovim does re-use tab IDs, but this
-	-- should be good enough for now.
+---@param tab_id number
+function BuildTerminalManager:_on_tab_closed(tab_id)
 	for buf_id, term_buf_info in pairs(self._terminal_buf_info) do
-		if not vim.api.nvim_tabpage_is_valid(term_buf_info.tab_id) then
+		if term_buf_info.tab_id == tab_id then
 			vim.api.nvim_buf_delete(buf_id, { force = true })
 		end
 	end
@@ -100,7 +98,6 @@ end
 function BuildTerminalManager:_create_term_buf(run_opts)
 	local tab_id = vim.api.nvim_get_current_tabpage()
 	local buf_id = vim.api.nvim_create_buf(false, true)
-
 
 	local bazel_command = table.concat(run_opts.bazel_command, " ")
 	local command = string.format("(cd %s && %s)", run_opts.context.package_dir, bazel_command)
