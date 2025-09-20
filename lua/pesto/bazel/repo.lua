@@ -42,7 +42,7 @@ end
 -- Finds the corresponding build file for the source file in the given buffer.
 --
 ---@param buf_nr number|nil
----@return string
+---@return string|nil
 function M.find_build_file(buf_nr)
 	local buffer_dir = get_buffer_dir(buf_nr)
 	-- note: BUILD.repo takes precedence over BUILD [1]
@@ -54,7 +54,6 @@ function M.find_build_file(buf_nr)
 			return build_file
 		end
 	end
-	error("could not find BUILD.bazel or BUILD file")
 end
 
 ---@param dir Path

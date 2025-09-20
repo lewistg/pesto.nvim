@@ -28,16 +28,24 @@ local table_util = require("pesto.util.table_util")
 ---@field complete SubcommandCompleteFn?
 ---@field execute SubcommandExecuteFn
 
+---@param open_cmd "vsplit"|"split"
+local function open_build_file(open_cmd)
+	local build_file_path = bazel.repo.find_build_file()
+	if build_file_path == nil then
+		vim.notify("Pesto: failed to find BUILD or BUILD.bazel file for current file", vim.log.levels.ERROR)
+	else
+		vim.cmd(string.format("%s %s", open_cmd, build_file_path))
+	end
+end
+
 ---@type SubcommandExecuteFn
 local function execute_vs_build_subcommand()
-	local build_file_path = bazel.repo.find_build_file()
-	vim.cmd.vsplit(build_file_path)
+	open_build_file("vsplit")
 end
 
 ---@type SubcommandExecuteFn
 local function execute_sp_build_subcommand()
-	local build_file_path = bazel.repo.find_build_file()
-	vim.cmd.split(build_file_path)
+	open_build_file("split")
 end
 
 ---@type SubcommandExecuteFn

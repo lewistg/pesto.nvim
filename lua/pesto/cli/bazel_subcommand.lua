@@ -123,7 +123,12 @@ end
 
 ---@param target_name_lead string
 function BazelSubcommand:_get_target_name_completion_candidates(target_name_lead)
-	local build_file = Path:new(bazel_repo.find_build_file())
+	local raw_build_file_path = bazel_repo.find_build_file()
+	if raw_build_file_path == nil then
+		require("pesto.logger").debug("failed to find BUILD or BUILD.bazel file for the current buffer")
+		return {}
+	end
+	local build_file = Path:new(raw_build_file_path)
 	local target_names = bazel_package.guess_target_names(build_file)
 	return cli_util.get_completion_candidates(target_name_lead, target_names)
 end
