@@ -7,8 +7,6 @@ local table_util = require("pesto.util.table_util")
 ---@field enable_bep_integration boolean
 ---@field auto_open_build_term boolean
 
-local SETTINGS_KEY = "pesto"
-
 ---@type pesto.RawSettings
 local default_raw_settings = {
 	bazel_command = "bazel",
@@ -24,6 +22,8 @@ local default_raw_settings = {
 local Settings = {}
 Settings.__index = Settings
 
+Settings.SETTINGS_KEY = "pesto"
+
 ---@return pesto.Settings
 function Settings:new()
 	local o = setmetatable({}, Settings)
@@ -36,8 +36,8 @@ end
 ---@return `T`
 function Settings:_resolve_setting(key)
 	local buf_id = vim.api.nvim_get_current_buf()
-	return table_util.dig(vim.b, { buf_id, SETTINGS_KEY, key })
-		or table_util.dig(vim.g, { SETTINGS_KEY, key })
+	return table_util.dig(vim.b, { buf_id, Settings.SETTINGS_KEY, key })
+		or table_util.dig(vim.g, { Settings.SETTINGS_KEY, key })
 		or default_raw_settings[key]
 end
 

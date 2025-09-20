@@ -1,5 +1,4 @@
 local os = require("pesto.util.os")
--- local settings = require("pesto.settings").settings
 local uv = vim.loop
 
 -- Plenary doesn't have a type annotations for their logger yet
@@ -17,6 +16,8 @@ local LOG_LEVEL = {
 	["warn"] = 2,
 	["error"] = 3,
 }
+
+local DEFAULT_LOG_LEVEL = "info"
 
 local log_dir = vim.F.if_nil(vim.F.npcall(vim.fn.stdpath, "log"), vim.fn.stdpath("cache"))
 log_dir = vim.fs.normalize(log_dir)
@@ -40,11 +41,14 @@ end
 
 for log_level, numeric_log_level in pairs(LOG_LEVEL) do
 	M[log_level] = function(message)
-		--[[
-		if numeric_log_level < LOG_LEVEL[settings.log_level] then
+		---@type number
+		local log_level_setting = vim.tbl_get(
+			LOG_LEVEL,
+			vim.tbl_get(vim.g, require("pesto.settings").SETTINGS_KEY, "log_level")
+		) or LOG_LEVEL[DEFAULT_LOG_LEVEL]
+		if numeric_log_level < log_level_setting then
 			return
 		end
-        --]]
 		local call_location = get_call_location()
 		local time = vim.fn.strftime("%c")
 		local log_message = string.format(
