@@ -30,7 +30,7 @@ pesto.nvim integrates Neovim with Bazel to make the edit-build-test cycle more s
 
 ## Goals
 
-* A solid (not perfect) command line experience for the `bazel` sub-command.
+* A solid (not perfect) command line experience for the `:Pesto bazel` sub-command.
 * Somewhat low-level. Don't hide Bazel too much.
 * Leverage being Bazel-specific.
 * Extendable.
