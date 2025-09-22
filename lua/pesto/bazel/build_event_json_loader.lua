@@ -12,13 +12,21 @@ end
 
 ---@param bep_json_file string|Path
 ---@return table[]
-function BuildEventJsonLoader:load(bep_json_file)
+function BuildEventJsonLoader:load_raw(bep_json_file)
 	local lines = vim.fn.readfile(tostring(bep_json_file))
 	return table_util.map(lines, function(line)
 		local raw_event = vim.json.decode(line)
 		raw_event = self:_normalize_keys(raw_event)
 		return raw_event
 	end)
+end
+
+---@param bep_json_file string|Path
+---@return BuildEventTree
+function BuildEventJsonLoader:load(bep_json_file)
+	---@type table[]
+	local raw_events = self:load_raw(bep_json_file)
+	return require("pesto.bazel.build_event_tree"):new(raw_events)
 end
 
 local function camel_case_to_snake_case(camel_case_key)

@@ -1,5 +1,4 @@
 local BuildEventsBuffer = require("pesto.ui.build_events_buffer.build_events_buffer")
-local BuildEventTree = require("pesto.bazel.build_event_tree")
 local terminal_buf_info = require("pesto.runner.default.terminal_buf_info")
 
 ---@class pesto.OpenBuildEventsSummarySubcommand: Subcommand
@@ -50,11 +49,8 @@ function OpenBuildEventsSummarySubcommand:_execute(opts)
 		return
 	end
 
-	local build_events = self._build_event_json_loader:load(build_events_file)
-
 	---@type BuildEventTree
-	local build_events_tree = BuildEventTree:new(build_events)
-	-- build_events_buffer:load_events(build_events_tree)
+	local build_events_tree = self._build_event_json_loader:load(build_events_file)
 
 	local build_events_buffer = BuildEventsBuffer:new(build_events_tree, self._build_event_file_loader)
 	vim.api.nvim_set_current_buf(build_events_buffer:get_buf_id())
