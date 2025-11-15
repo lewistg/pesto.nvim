@@ -63,4 +63,6 @@ for log_level, numeric_log_level in pairs(LOG_LEVEL) do
 	end
 end
 
+M.log_path = log_path
+
 return M
