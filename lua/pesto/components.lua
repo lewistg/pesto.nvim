@@ -10,7 +10,7 @@ local LazyTable = require("pesto.util.lazy_table")
 -- plugin's global set of components.
 ---@class Components
 ---@field bazel_sub_command BazelSubcommand
----@field build_event_json_json_loader pesto.BuildEventJsonLoader
+---@field build_event_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
 ---@field build_terminal_manager pesto.BuildTerminalManager
 ---@field default_runner pesto.DefaultRunner
@@ -30,7 +30,7 @@ local components = LazyTable:new() --[[@as Components]]
 local function _build_event_json_loader()
 	return require("pesto.bazel.build_event_json_loader"):new()
 end
-components.build_event_json_json_loader = _build_event_json_loader --[[@as pesto.BuildEventJsonLoader]]
+components.build_event_json_loader = _build_event_json_loader --[[@as pesto.BuildEventJsonLoader]]
 
 ---@return pesto.BuildEventFileLoader
 local function _build_event_file_loader()
@@ -40,7 +40,7 @@ components.build_event_file_loader = _build_event_file_loader --[[@as pesto.Buil
 
 ---@return pesto.BuildTerminalManager
 local function _build_terminal_manager()
-	return require("pesto.runner.default.terminal_buffer_manager"):new(components.build_event_json_json_loader)
+	return require("pesto.runner.default.terminal_buffer_manager"):new(components.build_event_json_loader)
 end
 components.build_terminal_manager = _build_terminal_manager --[[@as pesto.BuildTerminalManager]]
 
@@ -112,7 +112,7 @@ components.query_drawer_manager = _query_drawer_manager --[[@as QueryDrawerManag
 ---@return pesto.OpenBuildEventsSummarySubcommand
 local _open_build_events_summary_subcommand = function()
 	return require("pesto.cli.open_build_events_summary_subcommand"):new(
-		components.build_event_json_json_loader,
+		components.build_event_json_loader,
 		components.build_event_file_loader
 	)
 end
