@@ -29,7 +29,7 @@ local default_raw_settings = {
 		require("pesto.components").default_runner(opts)
 	end,
 	log_level = "info",
-	enable_bep_integration = false,
+	enable_bep_integration = true,
 	auto_open_build_term = true,
 	errorformats = {
 		{
