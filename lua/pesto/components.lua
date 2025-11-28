@@ -14,6 +14,7 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field build_event_file_loader pesto.BuildEventFileLoader
 ---@field build_terminal_manager pesto.BuildTerminalManager
 ---@field default_runner pesto.DefaultRunner
+---@field functional_test_helper pesto.FunctionalTestHelper
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
 ---@field quick_fix_loader pesto.QuickfixLoader
@@ -59,6 +60,12 @@ local function _default_runner()
 	)
 end
 components.default_runner = _default_runner --[[@as pesto.DefaultRunner]]
+
+---@return pesto.FunctionalTestHelper
+local function _functional_test_helper()
+	return require("pesto.test.functional_test_helper"):new(components.build_terminal_manager)
+end
+components.functional_test_helper = _functional_test_helper --[[@as pesto.FunctionalTestHelper]]
 
 ---@return pesto.OpenBuildTermSubcommand
 local function _open_build_term_subcommand()

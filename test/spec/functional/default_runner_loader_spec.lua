@@ -22,12 +22,21 @@ describe("default runner loader", function()
 		vim.fn.jobstop(nvim_chan)
 	end)
 
+	--- Navigate to
+	---@param quickfix_buf_id number 0 for the current buffer
+	---@param error_index number
+	local function jump_via_quickfix_item(quickfix_buf_id, error_index)
+		local quickfix_lines = vim.rpcrequest(nvim_chan, "nvim_buf_get_lines", quickfix_buf_id, 0, -2, false)
+	end
+
 	it("loads errors into the quickfix window", function()
-		-- vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { "hello-error/main.c" } }, {})
+		-- Note: hello-error/main.c has an  error
 		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { "hello-error/main.c" } }, {})
 
-		local subcommand = { "compile-one-dep" }
-		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "Pesto", args = subcommand }, {})
+		local error_source_file_buf_id = vim.rpcrequest(nvim_chan, "nvim_get_current_buf")
+		local original_win_id = vim.rpcrequest(nvim_chan, "nvim_get_current_win")
+
+		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "Pesto", args = { "compile-one-dep" } }, {})
 
 		-- Build should finish successfully
 		local expected_exit_code = 1 -- The build should fail
@@ -56,5 +65,36 @@ describe("default runner loader", function()
 			return is_quickfix == 1
 		end)
 		assert.are.same(0, wait_status)
+
+		-- Test quickfix navigation by making sure it jumps to the error
+		local quickfix_items = vim.rpcrequest(
+			nvim_chan,
+			"nvim_exec_lua",
+			"return require('pesto.components').functional_test_helper:get_quickfix_items()",
+			{}
+		)
+
+		-- We open a separate window, to observe the the navigation back to the original source file
+		vim.rpcrequest(nvim_chan, "nvim_set_current_win", original_win_id)
+		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { "hello-error/BUILD" } }, {})
+
+		for _, quickfix_entry in ipairs(quickfix_items) do
+			if quickfix_entry.bufnr ~= 0 then
+				vim.rpcrequest(
+					nvim_chan,
+					"nvim_exec_lua",
+					string.format(
+						"return require('pesto.components').functional_test_helper:jump_via_quickfix_item(0, %d)",
+						quickfix_entry.lnum - 1
+					),
+					{}
+				)
+				break
+			end
+		end
+
+		-- Confirm the jump
+		local current_buf_id = vim.rpcrequest(nvim_chan, "nvim_get_current_buf")
+		assert.are.same(error_source_file_buf_id, current_buf_id)
 	end)
 end)
