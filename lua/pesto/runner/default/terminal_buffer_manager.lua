@@ -122,6 +122,9 @@ function BuildTerminalManager:_create_term_buf(run_opts, on_build_finished)
 	local bazel_command = table.concat(run_opts.bazel_command, " ")
 	local command = string.format("(cd %s && %s)", run_opts.context.package_dir, bazel_command)
 
+	local logger = require("pesto.logger")
+	logger.info(string.format("Running bazel: %s", command))
+
 	self._terminal_buf_info[buf_id] = terminal_buf_info.init_terminal_buf_info(buf_id, tab_id)
 
 	local term_buf_info = self._terminal_buf_info[buf_id]
@@ -130,11 +133,6 @@ function BuildTerminalManager:_create_term_buf(run_opts, on_build_finished)
 			on_exit = function(job_id, exit_code, event_type)
 				term_buf_info.exit_code = exit_code
 				term_buf_info.bep_file = bazel_build_event_util.extract_bep_option(run_opts.bazel_command)
-				if term_buf_info.exit_code == 0 then
-					vim.notify("Pesto: Build succeeded", vim.log.levels.INFO)
-				else
-					vim.notify("Pesto: Build failed", vim.log.levels.ERROR)
-				end
 				---@type pesto.BuildFinishedEvent
 				local event = require("pesto.runner.default.terminal_buffer_manager_events").BuildFinishedEvent:new(
 					exit_code,

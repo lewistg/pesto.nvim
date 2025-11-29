@@ -31,6 +31,22 @@ function DefaultRunner.__call(self, opts)
 		opts,
 		---@param build_finished_event pesto.BuildFinishedEvent
 		function(build_finished_event)
+			local logger = require("pesto.logger")
+			logger.info("Build finished. Loading quickfix")
+
+			-- Wrapping these vim.notify calls in a vim.schedule seems to
+			-- prevent (perhaps) a textlock issue that blocks us from
+			-- immediately opening the quickfix window.
+			if build_finished_event.exit_code == 0 then
+				vim.schedule(function()
+					vim.notify("Pesto: Build succeeded", vim.log.levels.INFO)
+				end)
+			else
+				vim.schedule(function()
+					vim.notify("Pesto: Build failed", vim.log.levels.ERROR)
+				end)
+			end
+
 			local build_tree = build_finished_event:get_build_event_tree()
 			if build_tree then
 				quickfix_loader:load_quickfix(build_tree, function()
