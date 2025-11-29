@@ -1,5 +1,3 @@
-local string_util = require("pesto.util.string")
-
 local FILE_SCHEME = "file://"
 
 -- Loads a file referenced in a build events file
@@ -17,7 +15,7 @@ end
 ---@param on_error fun(error: string)
 function BuildEventFileLoader:load_file(file, on_load, on_error)
 	local file_protocol = "file://"
-	if file.uri and string_util.starts_with(file.uri, file_protocol) then
+	if file.uri and vim.startswith(file.uri, file_protocol) then
 		local path = file.uri:sub(string.len(file_protocol) + 1)
 		local lines = vim.fn.readfile(path)
 		on_load(lines)

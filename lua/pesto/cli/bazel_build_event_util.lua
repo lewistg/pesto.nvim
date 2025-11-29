@@ -1,7 +1,5 @@
 local M = {}
 
-local string_util = require("pesto.util.string")
-
 ---@type string
 local BUILD_EVENT_JSON_FILE_OPTION = "--build_event_json_file"
 
@@ -10,7 +8,7 @@ local BUILD_EVENT_JSON_FILE_OPTION = "--build_event_json_file"
 function M.inject_bep_option(bazel_command, settings)
 	local option_name = BUILD_EVENT_JSON_FILE_OPTION
 	for _, arg in ipairs(bazel_command) do
-		if string_util.starts_with(arg, option_name) then
+		if vim.startswith(arg, option_name) then
 			-- Do not override this option if it's already defined by the user
 			return
 		end

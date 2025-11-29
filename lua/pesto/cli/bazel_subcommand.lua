@@ -5,7 +5,6 @@ local bazel_repo = require("pesto.bazel").repo
 local cli_util = require("pesto.util.cli")
 local fs_util = require("pesto.util.file_system")
 local runner = require("pesto.runner.runner")
-local string_util = require("pesto.util.string")
 local table_util = require("pesto.util.table_util")
 local logger = require("pesto.logger")
 local Path = require("pesto.util.path")
@@ -59,9 +58,10 @@ function BazelSubcommand:_complete_build(opts)
 	end
 	if opts.arg_lead == "/" then
 		return { "//" }
-	elseif string_util.starts_with(opts.arg_lead, "//") then
-		local label_parts = self:_parse_label(opts.arg_lead)
-		if label_parts == nil then
+	elseif vim.startswith(opts.arg_lead, "//") then
+		local bazel_label_util = require("pesto.bazel.label")
+		local bazel_label = bazel_label_util.parse_label(opts.arg_lead)
+		if bazel_label == nil then
 			return {}
 		end
 
@@ -71,22 +71,22 @@ function BazelSubcommand:_complete_build(opts)
 		end
 		local project_root_dir = Path:new(raw_project_root_dir)
 
-		if label_parts.target_name == nil then
+		if bazel_label.target_name == "" then
 			-- Path part of the label is still incomplete
 
 			-- Strip any trailing wildcard
-			if string_util.ends_with(label_parts.path, "*") then
-				label_parts.path = label_parts.path:sub(1, label_parts.path:len() - 1)
+			if vim.endswith(bazel_label.package_name, "*") then
+				bazel_label.package_name = bazel_label.package_name:sub(1, bazel_label.package_name:len() - 1)
 			end
 
 			---@type Path
-			local path_so_far = Path:new(label_parts.path)
+			local path_so_far = Path:new(bazel_label.package_name)
 
 			---@type Path
 			local base_path
 			---@type string|nil
 			local dir_name_prefix
-			if string_util.ends_with(label_parts.path, "/") then
+			if vim.endswith(bazel_label.package_name, "/") then
 				base_path = path_so_far
 			else
 				base_path = path_so_far:get_dirname()
@@ -103,15 +103,15 @@ function BazelSubcommand:_complete_build(opts)
 					"//" .. tostring(relative_path) .. ":",
 				}
 			end)
-		elseif label_parts.target_name ~= nil then
+		elseif bazel_label.target_name ~= nil then
 			-- Working on the target name part
-			local target_name_candidates = self:_get_target_name_completion_candidates(label_parts.target_name)
+			local target_name_candidates = self:_get_target_name_completion_candidates(bazel_label.target_name)
 			return table_util.map(target_name_candidates, function(target_name)
-				return "//" .. label_parts.path .. ":" .. target_name
+				return "//" .. bazel_label.package_name .. ":" .. target_name
 			end)
 		end
 		return {}
-	elseif string_util.starts_with(opts.arg_lead, ":") then
+	elseif vim.startswith(opts.arg_lead, ":") then
 		local target_lead = opts.arg_lead:sub(2)
 		local target_names = self:_get_target_name_completion_candidates(target_lead)
 		return table_util.map(target_names, function(target_name)
@@ -137,7 +137,7 @@ end
 ---@param dir_name_prefix string|nil
 ---@return Path[]
 function BazelSubcommand:_get_dir_completion_candidates(base_path, dir_name_prefix)
-	if string_util.starts_with(dir_name_prefix or "", ".") then
+	if vim.startswith(dir_name_prefix or "", ".") then
 		-- dot files are ignored
 		return {}
 	end
@@ -153,18 +153,6 @@ function BazelSubcommand:_get_dir_completion_candidates(base_path, dir_name_pref
 	return table_util.map(dirs, function(dir)
 		return Path:new(dir)
 	end)
-end
-
----@param label_str string
-function BazelSubcommand:_parse_label(label_str)
-	local parts = string_util.split(label_str, "//", 1)
-	local repo_name = parts[1]
-	local path, target_name = unpack(string_util.split(parts[2] or "", ":", 1))
-	return {
-		repo_name = repo_name,
-		path = path or "",
-		target_name = target_name,
-	}
 end
 
 ---@param opts SubcommandCompleteOpts
