@@ -5,7 +5,8 @@ It aims to make the edit-build-test cycle more seamless.
 
 ## Features
 
-* A bazel wrapper command (`:pesto bazel <bazel-subcommand> [subcommand-args]`) with autocomplete support
+* A `bazel` wrapper command with autocomplete support:
+  - `:Pesto bazel <bazel-subcommand> [subcommand-args]`
 * Integrates with the [Build Event Protocol](https://bazel.build/remote/bep) (BEP)
   - Failed actions' stderr files are parsed and loaded into the quickfix list
   - A build summary window shows a high-level overview of successful and failed targets
