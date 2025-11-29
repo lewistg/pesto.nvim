@@ -4,7 +4,7 @@ local PESTO_TERMINAL_BUF_INFO = "PESTO_TERMINAL_BUF_INFO"
 
 ---@class pesto.TerminalBufInfo
 ---@field private _buf_id number
----@field exit_code boolean|nil
+---@field exit_code number|nil
 ---@field bep_file string|nil
 ---@field tab_id number
 local TerminalBufInfo = {}
