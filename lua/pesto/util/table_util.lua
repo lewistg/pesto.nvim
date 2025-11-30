@@ -30,21 +30,6 @@ function M.reduce(list, fn, initial_value)
 	return acc
 end
 
----@generic T: table
----@param t T
----@return T
-function M.deep_copy(t)
-	local copy = {}
-	for key, value in pairs(t) do
-		if type(value) == "table" then
-			copy[key] = M.deep_copy(value)
-		else
-			copy[key] = value
-		end
-	end
-	return copy
-end
-
 ---@return string|nil
 function M.some_key(dict_table)
 	for key, _ in pairs(dict_table) do

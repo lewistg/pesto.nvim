@@ -193,7 +193,7 @@ function BazelSubcommand:_execute(opts)
 	assert(#opts.fargs >= 1)
 
 	local context = runner.get_run_bazel_context()
-	local bazel_command = table_util.deep_copy(opts.fargs)
+	local bazel_command = vim.deepcopy(opts.fargs)
 	if self._settings:get_enable_bep_integration() then
 		bazel_build_event_util.inject_bep_option(bazel_command, self._settings)
 	end
