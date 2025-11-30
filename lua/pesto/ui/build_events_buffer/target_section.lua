@@ -86,7 +86,7 @@ function TargetSection:set_lines()
 					local divider_line = indent .. "---"
 					table.insert(lines, indent .. name)
 					table.insert(lines, divider_line)
-					table_util.append(lines, indented_log_lines)
+					vim.list_extend(lines, indented_log_lines)
 					table.insert(lines, divider_line)
 				end
 			else
@@ -117,7 +117,7 @@ function TargetSection:set_lines()
 					end
 					---@type string[]
 					local laid_out_lines = get_laid_out_lines(label, log_line_result)
-					table_util.append(log_lines, laid_out_lines)
+					vim.list_extend(log_lines, laid_out_lines)
 
 					if #laid_out_lines > 0 and i < #log_line_results then
 						-- Add spacer

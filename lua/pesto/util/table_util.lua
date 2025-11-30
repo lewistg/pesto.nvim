@@ -19,17 +19,6 @@ function M.concat(...)
 end
 
 ---@generic T
----@param list1 T[]
----@param list2 T[]
----@return T[]
-function M.append(list1, list2)
-	for _, value in ipairs(list2) do
-		table.insert(list1, value)
-	end
-	return list1
-end
-
----@generic T
 ---@generic U
 ---@param list `T`[]
 ---@param fn fun(t: T): `U`|nil
