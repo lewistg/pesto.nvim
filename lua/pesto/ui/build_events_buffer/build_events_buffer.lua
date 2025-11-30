@@ -144,7 +144,7 @@ function BuildEventsBuffer:_load_events(build_event_tree)
 
 	---@type pesto.BuildEvent[]
 	local target_complete_events = self._build_event_tree:find_events_by_kind({ "target_completed" })
-	target_complete_events = table_util.filter_map(target_complete_events, function(target_completed_event)
+	target_complete_events = vim.tbl_filter(function(target_completed_event)
 		if not target_completed_event.id.target_completed.label then
 			return nil
 		end
@@ -163,7 +163,7 @@ function BuildEventsBuffer:_load_events(build_event_tree)
 		then
 			return target_completed_event
 		end
-	end)
+	end, target_complete_events)
 
 	---@type pesto.BazelTargetResult[]
 	local successful_bazel_target_results = {}

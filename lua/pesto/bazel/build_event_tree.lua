@@ -33,10 +33,10 @@ end
 ---@return pesto.BuildEvent[]
 function BuildEventTree:find_child_event_by_kinds(build_event, event_kinds)
 	local event_kind_set = table_util.make_set(event_kinds)
-	local child_ids = table_util.filter(build_event.children or {}, function(id)
+	local child_ids = vim.tbl_filter(function(id)
 		local kind = table_util.some_key(id) --[[@as pesto.BuildEventKind]]
 		return event_kind_set[kind] ~= nil
-	end)
+	end, build_event.children or {})
 
 	---@type pesto.BuildEvent[]
 	local child_events = {}

@@ -33,20 +33,6 @@ function M.concat(list1, list2)
 end
 
 ---@generic T
----@param list T[]
----@param fn fun(t: T): boolean
----@return T[]
-function M.filter(list, fn)
-	local filtered_list = {}
-	for _, value in ipairs(list) do
-		if fn(value) then
-			table.insert(filtered_list, value)
-		end
-	end
-	return filtered_list
-end
-
----@generic T
 ---@param list1 T[]
 ---@param list2 T[]
 ---@return T[]
