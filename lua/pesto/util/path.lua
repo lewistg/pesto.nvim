@@ -134,11 +134,18 @@ function Path.get_relative(path_1, path_2)
 	end
 	local absolute_path_2 = path_2.is_absolute and path_2 or path_2:resolve()
 
-	local deepest_common_ancestor_segments = table_util.zip(absolute_path_1._segments, absolute_path_2._segments)
-	deepest_common_ancestor_segments = table_util.take_while(deepest_common_ancestor_segments, function(segments)
-		return segments[1] == segments[2]
-	end)
-	deepest_common_ancestor_segments, _ = table_util.unzip(deepest_common_ancestor_segments)
+	---@type string[]
+	local deepest_common_ancestor_segments = {}
+	for i, segment_1 in ipairs(absolute_path_1._segments) do
+		if i > #absolute_path_2._segments then
+			break
+		end
+		local segment_2 = absolute_path_2._segments[i]
+		if segment_1 ~= segment_2 then
+			break
+		end
+		table.insert(deepest_common_ancestor_segments, segment_1)
+	end
 
 	local num_upward_navigations = #absolute_path_1._segments - #deepest_common_ancestor_segments
 
