@@ -14,11 +14,11 @@ end
 ---@return table[]
 function BuildEventJsonLoader:load_raw(bep_json_file)
 	local lines = vim.fn.readfile(tostring(bep_json_file))
-	return table_util.map(lines, function(line)
+	return vim.tbl_map(function(line)
 		local raw_event = vim.json.decode(line)
 		raw_event = self:_normalize_keys(raw_event)
 		return raw_event
-	end)
+	end, lines)
 end
 
 ---@param bep_json_file string|Path

@@ -33,8 +33,7 @@ function TargetListSection:new(params)
 		end_row = 1,
 	})
 
-	o._target_sections = table_util.map(
-		params.targets,
+	o._target_sections = vim.tbl_map(
 		---@param target {label: string, logs: pesto.TargetActionLogs[]}
 		function(target)
 			---@type pesto.BufferSection
@@ -49,7 +48,8 @@ function TargetListSection:new(params)
 				buffer_section = buffer_section,
 			}
 			return TargetSection:new(target_section_params)
-		end
+		end,
+		params.targets
 	)
 
 	return o

@@ -5,19 +5,6 @@ local iter_util = require("pesto.util.iter_util")
 ---@generic T
 ---@generic U
 ---@param list T[]
----@param fn fun(t: `T`): `U`
----@return U[]
-function M.map(list, fn)
-	local ret = {}
-	for _, item in ipairs(list) do
-		table.insert(ret, fn(item))
-	end
-	return ret
-end
-
----@generic T
----@generic U
----@param list T[]
 ---@param fn fun(t: T): U[]
 ---@return U[]
 function M.flat_map(list, fn)

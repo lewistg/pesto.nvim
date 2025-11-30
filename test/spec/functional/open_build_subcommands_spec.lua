@@ -37,9 +37,9 @@ describe("open BUILD file subcommands", function()
 		-- There should be two windows open now
 		assert.are.same(2, #tab_info[1].windows)
 
-		local tab_win_infos = table_util.map(tab_info[1].windows, function(win_id)
+		local tab_win_infos = vim.tbl_map(function(win_id)
 			return vim.rpcrequest(nvim_chan, "nvim_call_function", "getwininfo", { win_id })[1]
-		end)
+		end, tab_info[1].windows)
 
 		-- Sorted left to right, top to bottom
 		table.sort(tab_win_infos, function(win_info_a, win_info_b)

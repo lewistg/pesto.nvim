@@ -106,17 +106,17 @@ function BazelSubcommand:_complete_build(opts)
 		elseif bazel_label.target_name ~= nil then
 			-- Working on the target name part
 			local target_name_candidates = self:_get_target_name_completion_candidates(bazel_label.target_name)
-			return table_util.map(target_name_candidates, function(target_name)
+			return vim.tbl_map(function(target_name)
 				return "//" .. bazel_label.package_name .. ":" .. target_name
-			end)
+			end, target_name_candidates)
 		end
 		return {}
 	elseif vim.startswith(opts.arg_lead, ":") then
 		local target_lead = opts.arg_lead:sub(2)
 		local target_names = self:_get_target_name_completion_candidates(target_lead)
-		return table_util.map(target_names, function(target_name)
+		return vim.tbl_map(function(target_name)
 			return ":" .. target_name
-		end)
+		end, target_names)
 	end
 	return {}
 end
@@ -150,9 +150,9 @@ function BazelSubcommand:_get_dir_completion_candidates(base_path, dir_name_pref
 		name_pattern = "^" .. dir_name_prefix .. ".*"
 	end
 	local dirs = fs_util.get_dirs(base_path, name_pattern)
-	return table_util.map(dirs, function(dir)
+	return vim.tbl_map(function(dir)
 		return Path:new(dir)
-	end)
+	end, dirs)
 end
 
 ---@param opts SubcommandCompleteOpts

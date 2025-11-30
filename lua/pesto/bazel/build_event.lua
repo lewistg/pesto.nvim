@@ -412,14 +412,14 @@ function BuildEvent.get_id_key(build_event_id)
 	local function get_key(value)
 		local sorted_keys = table_util.get_keys(value)
 		table.sort(sorted_keys)
-		local values = table_util.map(sorted_keys, function(k)
+		local values = vim.tbl_map(function(k)
 			local v = value[k]
 			if type(v) == "table" then
 				return get_key(v)
 			else
 				return tostring(v)
 			end
-		end)
+		end, sorted_keys)
 		return table.concat(values, "_")
 	end
 	return specific_id_type .. ":" .. get_key(build_event_id)

@@ -37,18 +37,18 @@ function BuildEventsBuffer:new(build_event_tree, build_event_file_loader)
 
 	local failure_bazel_target_results, successful_bazel_target_results = o:_load_events(build_event_tree)
 	---@type {label: string, logs: pesto.TargetActionLogs[]}[]
-	local failure_labels = table_util.map(failure_bazel_target_results, function(result)
+	local failure_labels = vim.tbl_map(function(result)
 		return {
 			label = result.label,
 			logs = result.failed_actions_logs,
 		}
-	end)
+	end, failure_bazel_target_results)
 	---@type {label: string, logs: pesto.TargetActionLogs[]}[]
-	local successful_labels = table_util.map(successful_bazel_target_results, function(result)
+	local successful_labels = vim.tbl_map(function(result)
 		return {
 			label = result.label,
 		}
-	end)
+	end, successful_bazel_target_results)
 
 	o._buf_id = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_option(o._buf_id, "filetype", BuildEventsBuffer.FILE_TYPE)

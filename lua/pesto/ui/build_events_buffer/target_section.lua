@@ -80,9 +80,9 @@ function TargetSection:set_lines()
 			local lines = {}
 			if log_load_result.value ~= nil then
 				if #log_load_result.value > 0 then
-					local indented_log_lines = table_util.map(log_load_result.value, function(line)
+					local indented_log_lines = vim.tbl_map(function(line)
 						return indent .. line
-					end)
+					end, log_load_result.value)
 					local divider_line = indent .. "---"
 					table.insert(lines, indent .. name)
 					table.insert(lines, divider_line)
