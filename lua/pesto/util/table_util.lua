@@ -18,18 +18,10 @@ function M.flat_map(list, fn)
 end
 
 ---@generic T
----@param list1 T[]
----@param list2 T[]
+---@param ... T[]
 ---@return T[]
-function M.concat(list1, list2)
-	local concated_list = {}
-	for _, value in ipairs(list1) do
-		table.insert(concated_list, value)
-	end
-	for _, value in ipairs(list2) do
-		table.insert(concated_list, value)
-	end
-	return concated_list
+function M.concat(...)
+	return vim.tbl_flatten({ ... })
 end
 
 ---@generic T
