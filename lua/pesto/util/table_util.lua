@@ -32,19 +32,6 @@ function M.reduce(list, fn, initial_value)
 	return acc
 end
 
----@generic T
----@param list T[]
----@param predicate_fn fun(t: T): boolean
----@return T|nil, number|nil
-function M.find(list, predicate_fn)
-	for i, value in ipairs(list) do
-		if predicate_fn(value) then
-			return value, i
-		end
-	end
-	return nil, nil
-end
-
 ---@generic K
 ---@generic V
 ---@param entries {key: K,  value: V}
