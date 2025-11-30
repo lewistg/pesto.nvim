@@ -156,7 +156,7 @@ function Path.get_relative(path_1, path_2)
 		i = i + 1
 	end
 
-	for segment in table_util.slice_iter(absolute_path_2._segments, #deepest_common_ancestor_segments + 1) do
+	for _, segment in ipairs(vim.list_slice(absolute_path_2._segments, #deepest_common_ancestor_segments + 1)) do
 		table.insert(segments, segment)
 	end
 

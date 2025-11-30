@@ -30,25 +30,6 @@ function M.reduce(list, fn, initial_value)
 	return acc
 end
 
----@generic T
----@param list T[]
----@param i number
----@param j number|nil
----@return fun(): T|nil
-function M.slice_iter(list, i, j)
-	i = math.max(1, i)
-	if j == nil then
-		j = #list
-	end
-	return function()
-		if i <= #list and i <= j then
-			local next = list[i]
-			i = i + 1
-			return next
-		end
-	end
-end
-
 ---@generic T: table
 ---@param t T
 ---@return T
