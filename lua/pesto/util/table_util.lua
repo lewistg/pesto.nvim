@@ -1,7 +1,5 @@
 local M = {}
 
-local iter_util = require("pesto.util.iter_util")
-
 ---@generic T
 ---@generic U
 ---@param fn fun(t: T): U[]
@@ -30,15 +28,6 @@ function M.reduce(list, fn, initial_value)
 		acc = fn(acc, next_value)
 	end
 	return acc
-end
-
----@generic T
----@param list T[]
----@param i number
----@param j number|nil
----@return T[]
-function M.slice(list, i, j)
-	return iter_util.to_list(M.slice_iter(list, i, j))
 end
 
 ---@generic T

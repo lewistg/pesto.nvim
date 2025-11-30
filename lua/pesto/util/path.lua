@@ -16,7 +16,7 @@ end
 Path.__tostring = function(path)
 	if path._is_absolute and path._segments[1] == Path.SEPARATOR then
 		-- avoid a leading "//"
-		return Path.SEPARATOR .. table.concat(table_util.slice(path._segments, 2), Path.SEPARATOR)
+		return Path.SEPARATOR .. table.concat(vim.list_slice(path._segments, 2), Path.SEPARATOR)
 	else
 		return table.concat(path._segments, Path.SEPARATOR)
 	end
@@ -115,7 +115,7 @@ function Path:get_dirname()
 			return Path:new(".")
 		end
 	else
-		local segments = table_util.slice(self._segments, 1, #self._segments - 1)
+		local segments = vim.list_slice(self._segments, 1, #self._segments - 1)
 		local ret = Path:new({
 			segments = segments,
 			is_absolute = self._is_absolute,

@@ -81,7 +81,7 @@ function M.make_cli(subcommands)
 
 		if subcommand then
 			subcommand.execute({
-				fargs = table_util.slice(opts.fargs, 2),
+				fargs = vim.list_slice(opts.fargs, 2),
 				buf_nr = vim.api.nvim_get_current_buf(),
 			})
 		elseif string.len(subcommand_name) > 0 then
