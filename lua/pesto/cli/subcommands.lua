@@ -111,9 +111,10 @@ function M.make_subcommands(deps)
 	}
 
 	---@type {[string]: Subcommand}
-	local SUBCOMMANDS_BY_NAME = table_util.to_map(vim.tbl_map(function(subcommand)
-		return { subcommand.name, subcommand }
-	end, subcommands))
+	local SUBCOMMANDS_BY_NAME = {}
+	for _, subcommand in ipairs(subcommands) do
+		SUBCOMMANDS_BY_NAME[subcommand.name] = subcommand
+	end
 
 	---@type string[]
 	local SUBCOMMAND_NAMES = vim.tbl_keys(SUBCOMMANDS_BY_NAME)

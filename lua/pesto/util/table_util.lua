@@ -32,18 +32,6 @@ function M.reduce(list, fn, initial_value)
 	return acc
 end
 
----@generic K
----@generic V
----@param entries {key: K,  value: V}
----@return {[K]: V}
-function M.to_map(entries)
-	local map = {}
-	for _, entry in ipairs(entries) do
-		map[entry[1]] = entry[2]
-	end
-	return map
-end
-
 ---@generic T
 ---@param list T[]
 ---@param i number
