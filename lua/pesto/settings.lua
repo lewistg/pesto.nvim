@@ -71,8 +71,8 @@ end
 ---@return `T`
 function Settings:_resolve_setting(key)
 	local buf_id = vim.api.nvim_get_current_buf()
-	return table_util.dig(vim.b, { buf_id, Settings.SETTINGS_KEY, key })
-		or table_util.dig(vim.g, { Settings.SETTINGS_KEY, key })
+	return vim.tbl_get(vim.b, buf_id, Settings.SETTINGS_KEY, key)
+		or vim.tbl_get(vim.g, Settings.SETTINGS_KEY, key)
 		or default_raw_settings[key]
 end
 
