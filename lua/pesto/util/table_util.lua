@@ -57,17 +57,6 @@ function M.to_map(entries)
 	return map
 end
 
----@generic K
----@generic V
----@param map {[K]: V}
-function M.get_keys(map)
-	local keys = {}
-	for key, _ in pairs(map) do
-		table.insert(keys, key)
-	end
-	return keys
-end
-
 ---@generic T
 ---@param list T[]
 ---@param i number

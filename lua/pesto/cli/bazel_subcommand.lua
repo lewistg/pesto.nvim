@@ -167,7 +167,7 @@ function BazelSubcommand:_complete(opts)
 	local i, j = opts.subcommand_line:find("[^-%s][^%s]*", command_end + 1)
 	if not i or (opts.cursor_pos >= i and opts.cursor_pos <= j) then
 		local completions =
-			cli_util.get_completion_candidates(opts.arg_lead, table_util.get_keys(self._subcommand_completions))
+			cli_util.get_completion_candidates(opts.arg_lead, vim.tbl_keys(self._subcommand_completions))
 		return completions
 	end
 

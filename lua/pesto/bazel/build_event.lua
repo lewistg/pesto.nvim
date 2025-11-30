@@ -410,7 +410,7 @@ function BuildEvent.get_id_key(build_event_id)
 	end
 	---@param value table
 	local function get_key(value)
-		local sorted_keys = table_util.get_keys(value)
+		local sorted_keys = vim.tbl_keys(value)
 		table.sort(sorted_keys)
 		local values = vim.tbl_map(function(k)
 			local v = value[k]

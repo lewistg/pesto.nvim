@@ -116,7 +116,7 @@ function M.make_subcommands(deps)
 	end, subcommands))
 
 	---@type string[]
-	local SUBCOMMAND_NAMES = table_util.get_keys(SUBCOMMANDS_BY_NAME)
+	local SUBCOMMAND_NAMES = vim.tbl_keys(SUBCOMMANDS_BY_NAME)
 
 	return {
 		SUBCOMMANDS_BY_NAME = SUBCOMMANDS_BY_NAME,
