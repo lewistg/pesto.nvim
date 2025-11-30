@@ -4,17 +4,11 @@ local iter_util = require("pesto.util.iter_util")
 
 ---@generic T
 ---@generic U
----@param list T[]
 ---@param fn fun(t: T): U[]
+---@param list T[]
 ---@return U[]
-function M.flat_map(list, fn)
-	local ret = {}
-	for _, item in ipairs(list) do
-		for _, mapped_item in ipairs(fn(item)) do
-			table.insert(ret, mapped_item)
-		end
-	end
-	return ret
+function M.flat_map(fn, list)
+	return vim.tbl_flatten(vim.tbl_map(fn, list))
 end
 
 ---@generic T

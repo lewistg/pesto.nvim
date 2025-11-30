@@ -97,9 +97,9 @@ function TargetSection:set_lines()
 			return lines
 		end
 
-		local log_line_promises = table_util.flat_map(self._logs, function(logs)
+		local log_line_promises = table_util.flat_map(function(logs)
 			return { logs.stdout or LazyPromise.resolved({}), logs.stderr or LazyPromise.resolved({}) }
-		end)
+		end, self._logs)
 
 		LazyPromise.all_settled(
 			log_line_promises,

@@ -96,13 +96,13 @@ function BazelSubcommand:_complete_build(opts)
 
 			---@type Path[]
 			local dir_candidates = self:_get_dir_completion_candidates(base_path, dir_name_prefix)
-			return table_util.flat_map(dir_candidates, function(dir)
+			return table_util.flat_map(function(dir)
 				local relative_path = Path.get_relative(project_root_dir, base_path:join(dir))
 				return {
 					"//" .. tostring(relative_path) .. "/",
 					"//" .. tostring(relative_path) .. ":",
 				}
-			end)
+			end, dir_candidates)
 		elseif bazel_label.target_name ~= nil then
 			-- Working on the target name part
 			local target_name_candidates = self:_get_target_name_completion_candidates(bazel_label.target_name)
