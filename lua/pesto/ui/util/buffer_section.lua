@@ -1,5 +1,3 @@
-local buffer_util = require("pesto.util.buffer")
-
 ---@class pesto.LineEdit
 ---@field start_row number
 ---@field end_row number
@@ -104,6 +102,7 @@ function BufferSection:edit_lines(rel_line_edit)
 		lines = rel_line_edit.lines
 	end
 
+	local buffer_util = require("pesto.util.buffer")
 	buffer_util.with_temp_options(self._buf_id, { modifiable = true }, function()
 		vim.api.nvim_buf_set_lines(self._buf_id, start_row, end_row, false, lines)
 	end)

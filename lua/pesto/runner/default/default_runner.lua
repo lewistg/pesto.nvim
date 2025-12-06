@@ -54,7 +54,6 @@ function DefaultRunner.__call(self, opts)
 					build_terminal_manager:close_terminal_buf(build_term_buf_id)
 				end)
 			else
-				local logger = require("pesto.logger")
 				logger.warn("Failed to load build event tree")
 			end
 		end

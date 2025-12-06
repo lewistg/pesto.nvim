@@ -1,5 +1,3 @@
-local table_util = require("pesto.util.table_util")
-
 ---@class Path
 ---@field private _segments string[]
 ---@field private _is_absolute boolean
@@ -45,6 +43,7 @@ function Path:join(relative_path)
 	if relative_path:is_absolute() then
 		return relative_path
 	end
+	local table_util = require("pesto.util.table_util")
 	local segments = table_util.concat(self._segments, relative_path._segments)
 	return Path:new({ segments = segments, is_absolute = self:is_absolute() })
 end

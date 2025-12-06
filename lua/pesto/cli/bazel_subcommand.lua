@@ -1,15 +1,5 @@
 local M = {}
 
-local bazel_package = require("pesto.bazel").package
-local bazel_repo = require("pesto.bazel").repo
-local cli_util = require("pesto.util.cli")
-local fs_util = require("pesto.util.file_system")
-local runner = require("pesto.runner.runner")
-local table_util = require("pesto.util.table_util")
-local logger = require("pesto.logger")
-local Path = require("pesto.util.path")
-local bazel_build_event_util = require("pesto.cli.bazel_build_event_util")
-
 ---@class BazelSubcommand: Subcommand
 ---@field private _settings pesto.Settings
 ---@field private _subcommand_completions {[string]: SubcommandCompleteFn}
@@ -53,6 +43,7 @@ end
 ---@param opts SubcommandCompleteOpts
 ---@return string[]
 function BazelSubcommand:_complete_build(opts)
+	local bazel_repo = require("pesto.bazel.repo")
 	if not bazel_repo.is_in_bazel_repo(opts.buf_nr) then
 		return {}
 	end
@@ -69,6 +60,7 @@ function BazelSubcommand:_complete_build(opts)
 		if not raw_project_root_dir then
 			return {}
 		end
+		local Path = require("pesto.util.path")
 		local project_root_dir = Path:new(raw_project_root_dir)
 
 		if bazel_label.target_name == "" then
@@ -96,6 +88,7 @@ function BazelSubcommand:_complete_build(opts)
 
 			---@type Path[]
 			local dir_candidates = self:_get_dir_completion_candidates(base_path, dir_name_prefix)
+			local table_util = require("pesto.util.table_util")
 			return table_util.flat_map(function(dir)
 				local relative_path = Path.get_relative(project_root_dir, base_path:join(dir))
 				return {
@@ -123,13 +116,19 @@ end
 
 ---@param target_name_lead string
 function BazelSubcommand:_get_target_name_completion_candidates(target_name_lead)
+	local bazel_repo = require("pesto.bazel.repo")
 	local raw_build_file_path = bazel_repo.find_build_file()
 	if raw_build_file_path == nil then
 		require("pesto.logger").debug("failed to find BUILD or BUILD.bazel file for the current buffer")
 		return {}
 	end
+	local Path = require("pesto.util.path")
 	local build_file = Path:new(raw_build_file_path)
+
+	local bazel_package = require("pesto.bazel.package")
 	local target_names = bazel_package.guess_target_names(build_file)
+
+	local cli_util = require("pesto.util.cli")
 	return cli_util.get_completion_candidates(target_name_lead, target_names)
 end
 
@@ -149,8 +148,10 @@ function BazelSubcommand:_get_dir_completion_candidates(base_path, dir_name_pref
 	else
 		name_pattern = "^" .. dir_name_prefix .. ".*"
 	end
+	local fs_util = require("pesto.util.file_system")
 	local dirs = fs_util.get_dirs(base_path, name_pattern)
 	return vim.tbl_map(function(dir)
+		local Path = require("pesto.util.path")
 		return Path:new(dir)
 	end, dirs)
 end
@@ -166,6 +167,7 @@ function BazelSubcommand:_complete(opts)
 	-- these are startup flags.
 	local i, j = opts.subcommand_line:find("[^-%s][^%s]*", command_end + 1)
 	if not i or (opts.cursor_pos >= i and opts.cursor_pos <= j) then
+		local cli_util = require("pesto.util.cli")
 		local completions =
 			cli_util.get_completion_candidates(opts.arg_lead, vim.tbl_keys(self._subcommand_completions))
 		return completions
@@ -192,9 +194,11 @@ function BazelSubcommand:_execute(opts)
 	-- There should be at least one farg value (the name of the subcommand)
 	assert(#opts.fargs >= 1)
 
+	local runner = require("pesto.runner.runner")
 	local context = runner.get_run_bazel_context()
 	local bazel_command = vim.deepcopy(opts.fargs)
 	if self._settings:get_enable_bep_integration() then
+		local bazel_build_event_util = require("pesto.cli.bazel_build_event_util")
 		bazel_build_event_util.inject_bep_option(bazel_command, self._settings)
 	end
 	table.insert(bazel_command, 1, "bazel")

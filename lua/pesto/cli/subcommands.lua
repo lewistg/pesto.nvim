@@ -1,10 +1,5 @@
 local M = {}
 
-local bazel = require("pesto.bazel")
-local build_event_util = require("pesto.cli.bazel_build_event_util")
-local runner = require("pesto.runner.runner")
-local table_util = require("pesto.util.table_util")
-
 ---@class Subcommands
 ---@field SUBCOMMANDS_BY_NAME {[string]: Subcommand}
 ---@field SUBCOMMAND_NAMES string[]
@@ -30,7 +25,8 @@ local table_util = require("pesto.util.table_util")
 
 ---@param open_cmd "vsplit"|"split"
 local function open_build_file(open_cmd)
-	local build_file_path = bazel.repo.find_build_file()
+	local bazel_repo = require("pesto.bazel.repo")
+	local build_file_path = bazel_repo.find_build_file()
 	if build_file_path == nil then
 		vim.notify("Pesto: failed to find BUILD or BUILD.bazel file for current file", vim.log.levels.ERROR)
 	else
@@ -50,7 +46,8 @@ end
 
 ---@type SubcommandExecuteFn
 local function execute_yank_package_label_subcommand()
-	local package_label = bazel.repo.get_package_label()
+	local bazel_repo = require("pesto.bazel.repo")
+	local package_label = bazel_repo.get_package_label()
 	vim.fn.setreg("@", package_label .. "\n")
 end
 
@@ -62,6 +59,7 @@ local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
 		---@type string
 		local filename = vim.api.nvim_buf_get_name(0)
 		filename = vim.fs.basename(filename)
+		local runner = require("pesto.runner.runner")
 		---@type RunBazelContext
 		local context = runner.get_run_bazel_context()
 		---@type string[]

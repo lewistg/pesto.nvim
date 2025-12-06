@@ -1,6 +1,3 @@
-local BuildEventsBuffer = require("pesto.ui.build_events_buffer.build_events_buffer")
-local terminal_buf_info = require("pesto.runner.default.terminal_buf_info")
-
 ---@class pesto.OpenBuildEventsSummarySubcommand: Subcommand
 ---@field private _build_event_json_loader pesto.BuildEventJsonLoader
 ---@field private _build_events_buffer pesto.BuildEventsBuffer
@@ -31,6 +28,7 @@ function OpenBuildEventsSummarySubcommand:_execute(opts)
 	local build_events_file
 	if #opts.fargs < 1 then
 		local buf_id = vim.api.nvim_get_current_buf()
+		local terminal_buf_info = require("pesto.runner.default.terminal_buf_info")
 		local term_buf_info = terminal_buf_info.get_pesto_terminal_info(buf_id)
 		if term_buf_info and term_buf_info.bep_file then
 			build_events_file = term_buf_info.bep_file
@@ -52,6 +50,7 @@ function OpenBuildEventsSummarySubcommand:_execute(opts)
 	---@type BuildEventTree
 	local build_events_tree = self._build_event_json_loader:load(build_events_file)
 
+	local BuildEventsBuffer = require("pesto.ui.build_events_buffer.build_events_buffer")
 	local build_events_buffer = BuildEventsBuffer:new(build_events_tree, self._build_event_file_loader)
 	vim.api.nvim_set_current_buf(build_events_buffer:get_buf_id())
 end

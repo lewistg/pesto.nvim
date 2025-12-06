@@ -1,8 +1,5 @@
 local M = {}
 
-local logger = require("pesto.logger")
-local table_util = require("pesto.util.table_util")
-
 M.COMMAND_NAME = "Pesto"
 
 ---@class PestoCli
@@ -51,6 +48,7 @@ function M.make_cli(subcommands)
 			return get_completion_candidates(arg_lead, subcommands.SUBCOMMAND_NAMES)
 		else
 			local subcommand_name = cmd_line:sub(subcommand_start, subcommand_end)
+			local logger = require("pesto.logger")
 			logger.info("parsed subcommand: " .. subcommand_name)
 			---@type Subcommand
 			local subcommand = subcommands.SUBCOMMANDS_BY_NAME[subcommand_name]

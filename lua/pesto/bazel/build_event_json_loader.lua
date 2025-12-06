@@ -1,5 +1,3 @@
-local table_util = require("pesto.util.table_util")
-
 ---@class pesto.BuildEventJsonLoader
 local BuildEventJsonLoader = {}
 BuildEventJsonLoader.__index = BuildEventJsonLoader

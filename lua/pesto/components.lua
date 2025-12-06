@@ -111,7 +111,7 @@ components.subcommands = _subcommands --[[@as Subcommands]]
 
 local _query_drawer_manager = function()
 	local QueryDrawerManager = require("pesto.query_drawer.query_drawer_manager")
-	local logger = require("lua.pesto.logger")
+	local logger = require("pesto.logger")
 	return QueryDrawerManager:new(logger, components.settings)
 end
 components.query_drawer_manager = _query_drawer_manager --[[@as QueryDrawerManager ]]

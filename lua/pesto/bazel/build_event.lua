@@ -1,5 +1,3 @@
-local table_util = require("pesto.util.table_util")
-
 -- Types based on protobuf defintions from the official bazel repo [1].
 -- [1]: https://github.com/bazelbuild/bazel/blob/7.1.0/src/main/java/com/google/devtools/build/lib/buildeventstream/proto/build_event_stream.proto
 
@@ -395,6 +393,7 @@ BuildEvent.__index = BuildEvent
 function BuildEvent:new(raw_event)
 	---@type pesto.BuildEvent
 	local o = setmetatable(raw_event, BuildEvent)
+	local table_util = require("pesto.util.table_util")
 	o.kind = table_util.some_key(raw_event.id) --[[@as pesto.BuildEventKind]]
 	o.id_key = o.get_id_key(o.id)
 	return o
@@ -404,6 +403,7 @@ end
 ---@param build_event_id pesto.BuildEventId
 ---@return string
 function BuildEvent.get_id_key(build_event_id)
+	local table_util = require("pesto.util.table_util")
 	local specific_id_type = table_util.some_key(build_event_id)
 	if type(specific_id_type) ~= "string" then
 		error(string.format('unrecongized id type: "%s"', specific_id_type or "(type not given)"))

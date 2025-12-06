@@ -1,6 +1,3 @@
-local LazyPromise = require("pesto.util.lazy_promise")
-local table_util = require("pesto.util.table_util")
-
 ---@alias pesto.TargetActionLogs {stdout: pesto.LazyPromise|nil, stderr: pesto.LazyPromise|nil}
 
 ---@class pesto.TargetSectionParams
@@ -97,6 +94,8 @@ function TargetSection:set_lines()
 			return lines
 		end
 
+		local table_util = require("pesto.util.table_util")
+		local LazyPromise = require("pesto.util.lazy_promise")
 		local log_line_promises = table_util.flat_map(function(logs)
 			return { logs.stdout or LazyPromise.resolved({}), logs.stderr or LazyPromise.resolved({}) }
 		end, self._logs)

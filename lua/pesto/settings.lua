@@ -1,5 +1,3 @@
-local table_util = require("pesto.util.table_util")
-
 --- Maps a rule's actions' mnemonics to either a errorformat string or compiler plugin (which should in turn define a errorformat)
 ---@class pesto.ActionErrorformat
 ---@field action_mnemonic string A lua string pattern

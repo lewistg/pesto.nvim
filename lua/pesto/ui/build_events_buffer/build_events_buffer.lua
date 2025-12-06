@@ -1,9 +1,3 @@
-local BufferSection = require("pesto.ui.util.buffer_section")
-local BuildEventTree = require("pesto.bazel.build_event_tree")
-local TargetListSection = require("pesto.ui.build_events_buffer.target_list_section")
-local table_util = require("pesto.util.table_util")
-local LazyPromise = require("pesto.util.lazy_promise")
-
 ---@class pesto.BazelTargetResult
 ---@field label string
 ---@field target_kind string|nil
@@ -60,6 +54,7 @@ function BuildEventsBuffer:new(build_event_tree, build_event_file_loader)
 		end,
 	})
 
+	local BufferSection = require("pesto.ui.util.buffer_section")
 	o._root_buffer_section = BufferSection:new({
 		buf_id = o._buf_id,
 		start_row = 0,
@@ -88,6 +83,7 @@ function BuildEventsBuffer:new(build_event_tree, build_event_file_loader)
 		lines = { "" },
 	})
 
+	local TargetListSection = require("pesto.ui.build_events_buffer.target_list_section")
 	o._failed_targets_section = TargetListSection:new({
 		title = "Failed targets",
 		targets = failure_labels,
@@ -154,6 +150,7 @@ function BuildEventsBuffer:_load_events(build_event_tree)
 				label = target_completed_event.id.target_completed.label,
 			},
 		}
+		local BuildEventTree = require("pesto.bazel.build_event_tree")
 		---@type pesto.BuildEvent|nil
 		local target_configured_event = build_event_tree:find_event_by_id(id)
 		if
@@ -212,6 +209,8 @@ function BuildEventsBuffer:_get_failed_action_logs(target_completed_event)
 	local failed_action_logs = {}
 	for _, build_event in ipairs(action_completed_events) do
 		if build_event.action and not build_event.action.success then
+			local LazyPromise = require("pesto.util.lazy_promise")
+
 			---@type pesto.LazyPromise|nil
 			local stdout_logs
 			if build_event.action.stdout and build_event.action.stdout then

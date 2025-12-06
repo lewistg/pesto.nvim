@@ -1,7 +1,3 @@
-local BufferSection = require("pesto.ui.util.buffer_section")
-local TargetSection = require("pesto.ui.build_events_buffer.target_section")
-local table_util = require("pesto.util.table_util")
-
 ---@class pesto.TargetListSectionParams
 ---@field buffer_section pesto.BufferSection
 ---@field title string
@@ -36,6 +32,7 @@ function TargetListSection:new(params)
 	o._target_sections = vim.tbl_map(
 		---@param target {label: string, logs: pesto.TargetActionLogs[]}
 		function(target)
+			local BufferSection = require("pesto.ui.util.buffer_section")
 			---@type pesto.BufferSection
 			local buffer_section = BufferSection:new({})
 
@@ -47,6 +44,7 @@ function TargetListSection:new(params)
 				is_successful = false,
 				buffer_section = buffer_section,
 			}
+			local TargetSection = require("pesto.ui.build_events_buffer.target_section")
 			return TargetSection:new(target_section_params)
 		end,
 		params.targets

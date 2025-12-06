@@ -1,7 +1,5 @@
 local M = {}
 
-local bazel_repo = require("pesto.bazel").repo
-
 ---@class RunBazelContext
 ---@field workspace_dir string
 ---@field package_dir string|nil
@@ -14,6 +12,7 @@ local bazel_repo = require("pesto.bazel").repo
 
 ---@return RunBazelContext
 function M.get_run_bazel_context()
+	local bazel_repo = require("pesto.bazel.repo")
 	local build_file = bazel_repo.find_build_file()
 	local build_dir = vim.fs.dirname(build_file)
 
