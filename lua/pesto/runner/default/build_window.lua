@@ -8,7 +8,7 @@ function M.get_or_create_tab_build_window(tab_id)
 	---@type number|nil
 	local existing_build_win_id = M.find_build_window(tab_id)
 	if existing_build_win_id == nil then
-		vim.cmd("below new")
+		vim.cmd("botright below new")
 		return vim.api.nvim_get_current_win()
 	else
 		return existing_build_win_id
