@@ -18,7 +18,8 @@
 --- pair to an errorformat string or compiler plugin name. Note that
 --- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
 --- string pattern.
---See pesto.RuleActionErrorformats and pesto.ActionErrorformat.
+--- See pesto.RuleActionErrorformats and pesto.ActionErrorformat.
+---@field bytestream_client "pesto-python-remote-apis-helpers"|pesto.ByteStreamClient|nil
 
 ---@type pesto.RawSettings
 local default_raw_settings = {
@@ -49,6 +50,7 @@ local default_raw_settings = {
 			},
 		},
 	},
+	bytestream_client = nil,
 }
 
 ---@class pesto.Settings

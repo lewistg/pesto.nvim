@@ -1,0 +1,9 @@
+[project]
+name = "pesto-proto"
+version = "0.1.0"
+description = "Protobuf library"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.uv.build-backend]
+module-name = "pesto.proto"
