@@ -1,12 +1,16 @@
 local os = require("pesto.util.os")
 local uv = vim.loop
 
--- Plenary doesn't have a type annotations for their logger yet
+---Note: The log methods accept a log message string or a function that returns
+---a log message string. Prefer wrapping log messages that are expensive to
+---calculate. The log message functions are only evaluated if permitted by the
+---current log-level
+---
 ---@class Logger
----@field debug fun(message: string)
----@field info fun(message: string)
----@field warn fun(message: string)
----@field error fun(message: string)
+---@field debug fun(message: string|fun(): string)
+---@field info fun(message: string|fun(): string)
+---@field warn fun(message: string|fun(): string)
+---@field error fun(message: string|fun(): string)
 local M = {}
 
 local MAX_LOG_SIZE_IN_BYTES = 2 ^ 20 * 10
@@ -40,6 +44,7 @@ local function get_call_location()
 end
 
 for log_level, numeric_log_level in pairs(LOG_LEVEL) do
+	---@param message string|fun(): string
 	M[log_level] = function(message)
 		---@type number
 		local log_level_setting = vim.tbl_get(
@@ -49,6 +54,13 @@ for log_level, numeric_log_level in pairs(LOG_LEVEL) do
 		if numeric_log_level < log_level_setting then
 			return
 		end
+		---@type string
+		local final_message = ""
+		if type(message) == "function" then
+			final_message = message()
+		else
+			final_message = message
+		end
 		local call_location = get_call_location()
 		local time = vim.fn.strftime("%c")
 		local log_message = string.format(
@@ -57,7 +69,7 @@ for log_level, numeric_log_level in pairs(LOG_LEVEL) do
 			time,
 			call_location.file,
 			call_location.line_nu,
-			message
+			final_message
 		)
 		uv.fs_write(log_file, log_message)
 	end
