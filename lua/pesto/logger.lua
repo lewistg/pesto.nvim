@@ -7,6 +7,7 @@ local uv = vim.loop
 ---current log-level
 ---
 ---@class Logger
+---@field trace fun(message: string|fun(): string)
 ---@field debug fun(message: string|fun(): string)
 ---@field info fun(message: string|fun(): string)
 ---@field warn fun(message: string|fun(): string)
@@ -15,6 +16,7 @@ local M = {}
 
 local MAX_LOG_SIZE_IN_BYTES = 2 ^ 20 * 10
 local LOG_LEVEL = {
+	["trace"] = -1,
 	["debug"] = 0,
 	["info"] = 1,
 	["warn"] = 2,
@@ -75,6 +77,7 @@ for log_level, numeric_log_level in pairs(LOG_LEVEL) do
 	end
 end
 
+M.log_dir = log_dir
 M.log_path = log_path
 
 return M
