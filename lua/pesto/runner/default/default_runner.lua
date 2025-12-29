@@ -49,10 +49,15 @@ function DefaultRunner.__call(self, opts)
 
 			local build_tree = build_finished_event:get_build_event_tree()
 			if build_tree then
-				quickfix_loader:load_quickfix(build_tree, function()
+				local status, error = pcall(quickfix_loader.load_quickfix, quickfix_loader, build_tree, function()
 					vim.cmd.copen()
 					build_terminal_manager:close_terminal_buf(build_term_buf_id)
 				end)
+				if not status then
+					local message = "Pesto: Error loading quickfix: " .. error
+					vim.notify(message, vim.log.levels.ERROR)
+					logger.error(message)
+				end
 			else
 				logger.warn("Failed to load build event tree")
 			end

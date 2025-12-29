@@ -49,4 +49,15 @@ function M.make_set(ts)
 	return t_set
 end
 
+---@generic T
+---@param dict_table {[string]: T}
+---@param key string
+---@param default_value T
+function M.get_or_set(dict_table, key, default_value)
+	if dict_table[key] == nil then
+		dict_table = default_value
+	end
+	return dict_table[key]
+end
+
 return M

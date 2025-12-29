@@ -38,10 +38,29 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 
 	local workspace_dir = self:_get_workspace_directory(build_event_tree)
 
+	---@type string|nil
+	local remote_cache_uri
 	---@type boolean
 	local called_on_first_quickfix_loaded = false
 	for rule_kind, actions in pairs(stderr_uris) do
 		for action_type, stderr_uri in pairs(actions) do
+			local BuildEventFileLoader = require("pesto.bazel.build_event_file_loader")
+			if BuildEventFileLoader.is_byte_stream_uri(stderr_uri) then
+				logger.debug("Logs for some failed actions appear to be stored remotely. Getting remote cache URI.")
+				local BuildEventsTreeQueries = require("pesto.bazel.build_event_tree_queries")
+				local build_event_tree_queries = BuildEventsTreeQueries:new(build_event_tree)
+				local remote_cache_option = build_event_tree_queries:find_command_line_option(
+					"canonical",
+					"remote_cache"
+				) or build_event_tree_queries:find_command_line_option("canonical", "remote_executor")
+				if not remote_cache_option then
+					error('Failed to find "remote_cache" command line option')
+				else
+					logger.info(string.format("Extracted remote cache URI: %s", remote_cache_option.option_value))
+				end
+				remote_cache_uri = remote_cache_option.option_value
+			end
+
 			logger.debug(
 				string.format(
 					"Loading errors from failed action. rule_kind=%s, action_mnemonic=%s, stderr_uri=%s",
@@ -50,14 +69,14 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 					stderr_uri
 				)
 			)
-			self._build_event_file_loader:maybe_download_file(stderr_uri, function(file_path)
-				logger.debug(string.format("Loaded stderr file. file_path=%s", file_path))
+			self._build_event_file_loader:maybe_download_file(stderr_uri, function(stderr_lines)
+				logger.debug(string.format("Loaded stderr logs. uri=%s", stderr_uri))
 				local action_errorformat = self:_get_errorformat(rule_kind, action_type)
 				if action_errorformat then
 					local error_scratch_buf_nr = self:_get_scratch_buf_nr()
 					self:_set_errorformat_settings(error_scratch_buf_nr, action_errorformat)
 					vim.api.nvim_buf_call(error_scratch_buf_nr, function()
-						self:_append_quickfix_items(workspace_dir, file_path, vim.o.errorformat)
+						self:_append_quickfix_items(workspace_dir, stderr_lines, vim.o.errorformat)
 					end)
 				end
 				if not called_on_first_quickfix_loaded then
@@ -66,15 +85,15 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 				end
 			end, function(error)
 				logger.error(string.format("Error loading action stderr file %s: %s", stderr_uri, error))
-			end)
+			end, remote_cache_uri)
 		end
 	end
 end
 
 ---@param workspace_dir string absolute path to the Bazel workspace's root
----@param stderr_file string path to failed Bazel action's stderr output
+---@param stderr_lines string[] path to failed Bazel action's stderr output
 ---@param errorformat string errorformat string (see :help errorformat)
-function QuickfixLoader:_append_quickfix_items(workspace_dir, stderr_file, errorformat)
+function QuickfixLoader:_append_quickfix_items(workspace_dir, stderr_lines, errorformat)
 	-- Neovim's CWD may not be the workspace root. In my experience the file
 	-- paths a Bazel compiler action outputs to stderr are relative to the
 	-- workspace root. To get Neovim to handle these paths correctly when
@@ -84,11 +103,10 @@ function QuickfixLoader:_append_quickfix_items(workspace_dir, stderr_file, error
 	local enter_workspace_prefix_pattern = "pesto.nvim - Entering workspace root: "
 	local errorformat_with_enter_dir = "%D" .. enter_workspace_prefix_pattern .. "%f," .. errorformat
 
-	local lines = vim.fn.readfile(stderr_file)
-	table.insert(lines, 1, string.format(enter_workspace_prefix_pattern .. "%s", workspace_dir))
+	table.insert(stderr_lines, 1, string.format(enter_workspace_prefix_pattern .. "%s", workspace_dir))
 
 	vim.fn.setqflist({}, "a", {
-		lines = lines,
+		lines = stderr_lines,
 		efm = errorformat_with_enter_dir,
 	})
 end
@@ -140,6 +158,30 @@ function QuickfixLoader:_get_failed_action_stderr(build_event_tree)
 		end
 	end
 	return stderr_uris
+end
+
+---@param build_event_tree BuildEventTree
+---@return string|nil
+function QuickfixLoader:_get_remote_cache_uri(build_event_tree)
+	local events = build_event_tree:find_events_by_kind({ "structured_command_line" })
+
+	---@type pesto.Option[]|nil
+	local command_options
+	for _, event in ipairs(events) do
+		if vim.tbl_get(event, "command_line_label") == "canonical" then
+			for _, section in ipairs(vim.tbl_get(event, "sections") or {}) do
+				if vim.tbl_get(section, "section_label") == "command options" then
+					command_options = vim.tbl_get(section, "option_list") or {}
+				end
+			end
+		end
+	end
+	for _, option in ipairs(command_options or {}) do
+		if vim.tbl_get(option, "option_name") == "remote_cache" then
+			return vim.tbl_get(option, "option_value")
+		end
+	end
+	return nil
 end
 
 ---@param rule_kind string
