@@ -4,6 +4,9 @@ local M = {}
 ---@param candidates table[string]
 ---@return string[]
 function M.get_completion_candidates(arg_lead, candidates)
+	if arg_lead == "*" then
+		return candidates
+	end
 	local arg_lead_len = string.len(arg_lead)
 	--@type string[]
 	local matching_candidates

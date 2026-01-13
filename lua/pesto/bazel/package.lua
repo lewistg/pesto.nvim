@@ -3,7 +3,7 @@ local M = {}
 local MAX_TARGET_CACHE = 100
 local build_file_target_cache = {}
 
-local NAME_PATTERN = '^%s*name%s=%s"([^"]*)"%s*,?$'
+local NAME_PATTERN = '^%s*name%s*=%s*"([^"]*)"%s*,?$'
 
 --- This method extracts the name attribute value in apparent rule calls such as this:
 --- ```
@@ -21,6 +21,7 @@ function M.guess_target_names(build_file)
 	if not status then
 		return {}
 	end
+
 	---@type string[]
 	local names = {}
 	for _, line in ipairs(lines) do
