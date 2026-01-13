@@ -1,0 +1,35 @@
+[project]
+name = "pesto"
+version = "0.1.0"
+description = "Scripts to help pesto.nvim consume Bazel's gRPC-based remote APIs"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "grpcio>=1.76.0",
+    "grpcio-tools>=1.76.0",
+    "protobuf>=6.33.2",
+    "pesto-proto",
+]
+
+[project.scripts]
+pesto-fetch-byte-streams = "pesto.fetch_byte_streams.main:main"
+
+[build-system]
+requires = ["uv_build >= 0.9.11, <0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "pesto.fetch_byte_streams"
+
+[tool.uv.sources]
+pesto-proto = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "packages/proto",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.10",
+]

@@ -159,6 +159,26 @@
 ---@field exec_request pesto.ExecRequestId|nil
 
 -- ===============================================================
+-- CommandLine
+-- See: https://github.com/bazelbuild/bazel/blob/master/src/main/protobuf/command_line.proto
+-- ===============================================================
+---@class pesto.Option
+---@field combined_form string
+---@field option_name string
+---@field option_value string
+
+---@class pesto.OptionList
+---@field option pesto.Option[]
+
+---@class pesto.CommandLineSection
+---@field chunk_list string[]
+---@field option_list pesto.OptionList
+
+---@class pesto.CommandLine
+---@field command_line_label string
+---@field sections pesto.CommandLineSection[]
+
+-- ===============================================================
 -- BuildEvent payloads
 -- ===============================================================
 
@@ -360,8 +380,7 @@
 ---@field aborted pesto.Aborted|nil
 ---@field started pesto.BuildStarted|nil
 ---@field unstructured_command_line pesto.UnstructuredCommandLine|nil
--- TODO
---@field structured_command_line CommandLine|nil
+---@field structured_command_line pesto.CommandLine|nil
 ---@field options_parsed pesto.OptionsParsed|nil
 ---@field workspace_status pesto.WorkspaceStatus|nil
 ---@field fetch pesto.Fetch|nil

@@ -13,11 +13,13 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field build_event_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
 ---@field build_terminal_manager pesto.BuildTerminalManager
+---@field byte_stream_client pesto.ByteStreamClient
 ---@field default_runner pesto.DefaultRunner
 ---@field functional_test_helper pesto.FunctionalTestHelper
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
 ---@field quick_fix_loader pesto.QuickfixLoader
+---@field remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
 ---@field run_bazel_fn RunBazelFn
 ---@field settings pesto.Settings
 ---@field subcommands Subcommands
@@ -35,7 +37,7 @@ components.build_event_json_loader = _build_event_json_loader --[[@as pesto.Buil
 
 ---@return pesto.BuildEventFileLoader
 local function _build_event_file_loader()
-	return require("pesto.bazel.build_event_file_loader"):new()
+	return require("pesto.bazel.build_event_file_loader"):new(components.byte_stream_client)
 end
 components.build_event_file_loader = _build_event_file_loader --[[@as pesto.BuildEventFileLoader]]
 
@@ -50,6 +52,13 @@ local function _bazel_sub_command()
 	return BazelSubcommand:new(components.settings, components.run_bazel_fn)
 end
 components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
+
+---@return pesto.ByteStreamClient
+local function _byte_stream_client()
+	local ByteStreamClient = require("pesto.bazel.byte_stream_client")
+	return ByteStreamClient:new(components.remote_apis_helpers_command_builder)
+end
+components.byte_stream_client = _byte_stream_client --[[@as pesto.ByteStreamClient]]
 
 ---@return pesto.DefaultRunner
 local function _default_runner()
@@ -87,6 +96,12 @@ local _quick_fix_loader = function()
 	return require("pesto.runner.default.quickfix_loader"):new(components.build_event_file_loader, components.settings)
 end
 components.quick_fix_loader = _quick_fix_loader --[[ @as pesto.QuickfixLoader ]]
+
+---@return pesto.RemoteApisHelpersCommandBuilder
+local _remote_apis_helpers_command_builder = function()
+	return require("pesto.bazel.remote_apis_helpers"):new()
+end
+components.remote_apis_helpers_command_builder = _remote_apis_helpers_command_builder --[[ @as pesto.RemoteApisHelpersCommandBuilder ]]
 
 ---@return RunBazelFn
 local _run_bazel_fn = function()

@@ -72,6 +72,17 @@ describe("CLI completion", function()
 				"//foo/foo1:",
 			},
 		},
+		{
+			open_file = Path:new("foo/foo1/foo2/foo3/foo1.sh"),
+			prefix_keys = "Pesto bazel build //foo/foo1/foo2/foo3:*",
+			expected_command_line = "Pesto bazel build //foo/foo1/foo2/foo3:foo1",
+			expected_completions = {
+				"//foo/foo1/foo2/foo3:foo1",
+				"//foo/foo1/foo2/foo3:foo1_spec",
+				"//foo/foo1/foo2/foo3:foo2",
+				"//foo/foo1/foo2/foo3:foo3",
+			},
+		},
 	}
 
 	for i, test_case in ipairs(test_cases) do
