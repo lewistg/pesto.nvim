@@ -52,7 +52,7 @@ function M.make_cli(subcommands)
 			logger.info("parsed subcommand: " .. subcommand_name)
 			---@type Subcommand
 			local subcommand = subcommands.SUBCOMMANDS_BY_NAME[subcommand_name]
-			if subcommand.complete then
+			if subcommand and subcommand.complete then
 				logger.info("parsed completing: " .. subcommand_name)
 				local subcmd_line = cmd_line:sub(subcommand_start)
 				local subcmd_cursor_pos = cursor_pos - subcommand_start + 1
