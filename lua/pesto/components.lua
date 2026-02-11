@@ -10,6 +10,7 @@ local LazyTable = require("pesto.util.lazy_table")
 -- plugin's global set of components.
 ---@class Components
 ---@field bazel_sub_command BazelSubcommand
+---@field bazel_basic_completion pesto.BazelBasicCompletion
 ---@field build_event_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
 ---@field build_terminal_manager pesto.BuildTerminalManager
@@ -29,6 +30,12 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
 
+---@return pesto.BazelBasicCompletion
+local function _bazel_basic_completion()
+	return require("pesto.cli.bazel_basic_completion"):new()
+end
+components.bazel_basic_completion = _bazel_basic_completion --[[@as pesto.BazelBasicCompletion]]
+
 ---@return pesto.BuildEventJsonLoader
 local function _build_event_json_loader()
 	return require("pesto.bazel.build_event_json_loader"):new()
@@ -47,9 +54,10 @@ local function _build_terminal_manager()
 end
 components.build_terminal_manager = _build_terminal_manager --[[@as pesto.BuildTerminalManager]]
 
+---@return BazelSubcommand
 local function _bazel_sub_command()
 	local BazelSubcommand = require("pesto.cli.bazel_subcommand")
-	return BazelSubcommand:new(components.settings, components.run_bazel_fn)
+	return BazelSubcommand:new(components.settings, components.bazel_basic_completion, components.run_bazel_fn)
 end
 components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
 

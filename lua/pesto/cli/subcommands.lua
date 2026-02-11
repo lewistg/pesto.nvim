@@ -18,7 +18,10 @@ local M = {}
 
 ---@alias SubcommandExecuteFn fun(opts: SubcommandExecuteOpts)
 
----@class Subcommand
+---@class pesto.SubcommandCompletion
+---@field complete SubcommandCompleteFn?
+
+---@class Subcommand: pesto.SubcommandCompletion
 ---@field name string
 ---@field complete SubcommandCompleteFn?
 ---@field execute SubcommandExecuteFn
