@@ -143,4 +143,40 @@ function M.find_current_token(bash_command_tokens, cursor_pos)
 	return bash_command_tokens[#bash_command_tokens], #bash_command_tokens
 end
 
+--- Converts completions from a bash command line completions to a Neovim command line completions
+---@param bash_command_tokens pesto.BashCommandToken
+---@param cursor_pos number 0-indexed
+---@param completions string[]
+---@return string[] nvim_completions
+function M.bash_completions_to_nvim_completions(bash_command_tokens, cursor_pos, completions)
+	local current_token, index = M.find_current_token(bash_command_tokens, cursor_pos)
+	if current_token.type == "whitespace" then
+		return completions
+	elseif current_token.type == "word" then
+		---@type pesto.BashCommandToken[]
+		local prefix_words = {}
+
+		if COMP_WORDBREAKS[current_token.value] then
+			table.insert(prefix_words, current_token)
+		end
+
+		local i = index - 1
+		while i >= 1 and bash_command_tokens[i].type == "word" do
+			table.insert(prefix_words, bash_command_tokens[i])
+			i = i - 1
+		end
+
+		local prefix = table.concat(vim.tbl_map(function(token)
+			return token.value
+		end, vim.fn.reverse(prefix_words)))
+
+		return vim.tbl_map(function(completion)
+			return prefix .. completion
+		end, completions)
+	else
+		assert(false, string.format("unrecognized token type: %s", current_token.type))
+	end
+	return {}
+end
+
 return M

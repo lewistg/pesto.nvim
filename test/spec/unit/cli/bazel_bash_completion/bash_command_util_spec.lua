@@ -221,3 +221,31 @@ describe("bash_command_util.find_current_token", function()
 		assert.are.same(token_index, 2)
 	end)
 end)
+
+describe("bash_command_util.bash_completions_to_nvim_completions", function()
+	it("handles a basic case where there's no COMP_WORDBREAKS in the current word", function()
+		local test_util = require("pesto.cli.bazel_bash_completion.test.test_util")
+		local command, cursor_pos = test_util.parse_command_test_case("bazel bu| //foo:bar")
+
+		local bash_command_util = require("pesto.cli.bazel_bash_completion.bash_command_util")
+		local tokens = bash_command_util.tokenize(command)
+		local bash_completions = { "build" }
+		local nvim_completions =
+			bash_command_util.bash_completions_to_nvim_completions(tokens, cursor_pos, bash_completions)
+
+		assert.are.same({ "build" }, nvim_completions)
+	end)
+
+	it("handles a case where there's a COMP_WORDBREAKS in the current word", function()
+		local test_util = require("pesto.cli.bazel_bash_completion.test.test_util")
+		local command, cursor_pos = test_util.parse_command_test_case("bazel build //foo:|")
+
+		local bash_command_util = require("pesto.cli.bazel_bash_completion.bash_command_util")
+		local tokens = bash_command_util.tokenize(command)
+		local bash_completions = { "bar" }
+		local nvim_completions =
+			bash_command_util.bash_completions_to_nvim_completions(tokens, cursor_pos, bash_completions)
+
+		assert.are.same({ "//foo:bar" }, nvim_completions)
+	end)
+end)
