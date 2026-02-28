@@ -170,9 +170,13 @@ function M.bash_completions_to_nvim_completions(bash_command_tokens, cursor_pos,
 			return token.value
 		end, vim.fn.reverse(prefix_words)))
 
-		return vim.tbl_map(function(completion)
+		local nvim_completions = vim.tbl_map(function(completion)
 			return prefix .. completion
 		end, completions)
+
+		table.sort(nvim_completions)
+
+		return nvim_completions
 	else
 		assert(false, string.format("unrecognized token type: %s", current_token.type))
 	end

@@ -10,6 +10,8 @@ local LazyTable = require("pesto.util.lazy_table")
 -- plugin's global set of components.
 ---@class Components
 ---@field bazel_sub_command BazelSubcommand
+---@field bazel_bash_completion pesto.BazelBashCompletion
+---@field bazel_bash_completion_client pesto.BazelBashCompletionClient
 ---@field bazel_basic_completion pesto.BazelBasicCompletion
 ---@field build_event_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
@@ -30,11 +32,26 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
 
+---@return pesto.BazelBashCompletion
+local function _bazel_bash_completion()
+	return require("pesto.cli.bazel_bash_completion.bazel_bash_completion"):new(
+		components.bazel_bash_completion_client,
+		components.settings
+	)
+end
+components.bazel_bash_completion = _bazel_bash_completion --[[@as pesto.BazelBashCompletion]]
+
 ---@return pesto.BazelBasicCompletion
 local function _bazel_basic_completion()
 	return require("pesto.cli.bazel_basic_completion"):new()
 end
 components.bazel_basic_completion = _bazel_basic_completion --[[@as pesto.BazelBasicCompletion]]
+
+---@return pesto.BazelBashCompletionClient
+local function _bazel_bash_completion_client()
+	return require("pesto.cli.bazel_bash_completion.bazel_bash_completion_client"):new()
+end
+components.bazel_bash_completion_client = _bazel_bash_completion_client --[[@as pesto.BazelBashCompletionClient]]
 
 ---@return pesto.BuildEventJsonLoader
 local function _build_event_json_loader()
@@ -57,7 +74,12 @@ components.build_terminal_manager = _build_terminal_manager --[[@as pesto.BuildT
 ---@return BazelSubcommand
 local function _bazel_sub_command()
 	local BazelSubcommand = require("pesto.cli.bazel_subcommand")
-	return BazelSubcommand:new(components.settings, components.bazel_basic_completion, components.run_bazel_fn)
+	return BazelSubcommand:new(
+		components.settings,
+		components.bazel_basic_completion,
+		components.bazel_bash_completion,
+		components.run_bazel_fn
+	)
 end
 components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
 

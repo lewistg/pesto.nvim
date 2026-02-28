@@ -1,7 +1,7 @@
 local busted_fixtures = require("busted.fixtures")
 local Path = require("pesto.util.path")
 
-describe("CLI completion", function()
+describe("CLI completion with 'bash' mode", function()
 	local nvim_chan
 	local bazel_repo_dir = Path:new(busted_fixtures.path("bazel_repo_fixture"))
 	local env_vars = vim.fn.environ()
@@ -20,6 +20,12 @@ describe("CLI completion", function()
 
 	setup(function()
 		nvim_chan = vim.fn.jobstart({ "nvim", "--embed", "--headless" }, job_opts)
+		local quickfix_items = vim.rpcrequest(
+			nvim_chan,
+			"nvim_exec_lua",
+			"require('pesto.components').functional_test_helper:extend_global_table('pesto', { cli_completion = { mode = 'bash' } })",
+			{}
+		)
 	end)
 
 	teardown(function()
@@ -40,7 +46,7 @@ describe("CLI completion", function()
 		},
 		{
 			prefix_keys = "Pesto bazel ",
-			expected_command_line = "Pesto bazel build",
+			expected_command_line = "Pesto bazel analyze-profile ",
 			expected_completions = { "build", "run", "test" },
 		},
 		{
@@ -56,7 +62,7 @@ describe("CLI completion", function()
 			},
 		},
 		{
-			prefix_keys = "Pesto bazel build //foo/*",
+			prefix_keys = "Pesto bazel build //foo/",
 			expected_command_line = "Pesto bazel build //foo/foo1/",
 			expected_completions = {
 				"//foo/foo1/",
@@ -66,7 +72,7 @@ describe("CLI completion", function()
 		{
 			open_file = Path:new("foo/foo1/foo2/foo3/foo1.sh"),
 			prefix_keys = "Pesto bazel build :",
-			expected_command_line = "Pesto bazel build :foo1",
+			expected_command_line = "Pesto bazel build :foo1 ",
 			expected_completions = {
 				"//foo/foo1/",
 				"//foo/foo1:",
@@ -74,8 +80,8 @@ describe("CLI completion", function()
 		},
 		{
 			open_file = Path:new("foo/foo1/foo2/foo3/foo1.sh"),
-			prefix_keys = "Pesto bazel build //foo/foo1/foo2/foo3:*",
-			expected_command_line = "Pesto bazel build //foo/foo1/foo2/foo3:foo1",
+			prefix_keys = "Pesto bazel build //foo/foo1/foo2/foo3:",
+			expected_command_line = "Pesto bazel build //foo/foo1/foo2/foo3:foo1 ",
 			expected_completions = {
 				"//foo/foo1/foo2/foo3:foo1",
 				"//foo/foo1/foo2/foo3:foo1_spec",
@@ -93,8 +99,11 @@ describe("CLI completion", function()
 			vim.rpcrequest(nvim_chan, "nvim_feedkeys", ":" .. test_case.prefix_keys, "t", false)
 			vim.rpcrequest(nvim_chan, "nvim_feedkeys", TAB_KEY, "t", false)
 
-			local command_line = vim.rpcrequest(nvim_chan, "nvim_call_function", "getcmdline", {})
-			assert.are.same(test_case.expected_command_line, command_line)
+			local result = vim.wait(1000, function()
+				local command_line = vim.rpcrequest(nvim_chan, "nvim_call_function", "getcmdline", {})
+				return test_case.expected_command_line == command_line
+			end)
+			assert.is_true(result)
 		end)
 	end
 end)

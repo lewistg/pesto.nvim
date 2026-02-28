@@ -3,6 +3,8 @@
 # This script gets bash command line completions. The Bazel's bash completion
 # script is rather large, so this script works as a daemon.
 #
+# Keep in sync with lua/pesto/cli/bazel_bash_completion/bazel_bash_completion_client.lua
+#
 # See: The "Programmable Completion" section in `man bash`.
 #
 # Arguments:

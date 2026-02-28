@@ -8,6 +8,15 @@
 ---@field rule_kind string A lua string pattern
 ---@field action_errorformats pesto.ActionErrorformat[]
 
+---@alias pesto.CliCompletionMode
+---| "lua"
+---| "bash"
+---| "automatic"
+
+---@class pesto.CliCompletionSettings
+---@field mode pesto.CliCompletionMode
+---@field bash_timeout number|nil Number of milliseconds to wait for bazel's bash completion script to reply
+
 ---@class pesto.RawSettings
 ---@field bazel_command string Name of bazel binary
 ---@field bazel_runner RunBazelFn Runs the bazel command
@@ -20,6 +29,7 @@
 --- string pattern.
 --- See pesto.RuleActionErrorformats and pesto.ActionErrorformat.
 ---@field bytestream_client "pesto-python-remote-apis-helpers"|pesto.ByteStreamClient|nil
+---@field cli_completion pesto.CliCompletionSettings
 
 ---@type pesto.RawSettings
 local default_raw_settings = {
@@ -51,6 +61,10 @@ local default_raw_settings = {
 		},
 	},
 	bytestream_client = nil,
+	cli_completion = {
+		mode = "automatic",
+		bash_timeout = 15000,
+	},
 }
 
 ---@class pesto.Settings
@@ -107,6 +121,11 @@ end
 ---@return pesto.RuleActionErrorformats
 function Settings:get_errorformats(rule_kind, action_mnemonic)
 	return self:_resolve_setting("errorformats")
+end
+
+---@return pesto.CliCompletionSettings
+function Settings:get_cli_completion_settings()
+	return self:_resolve_setting("cli_completion")
 end
 
 return Settings

@@ -1,6 +1,7 @@
 ---@class BazelSubcommand: Subcommand
 ---@field private _settings pesto.Settings
 ---@field private _basic_completion pesto.BazelBasicCompletion
+---@field private _bash_completion pesto.BazelBashCompletion
 ---@field private _run_bazel_fn RunBazelFn
 local BazelSubcommand = {}
 BazelSubcommand.__index = BazelSubcommand
@@ -9,13 +10,15 @@ BazelSubcommand.name = "bazel"
 
 ---@param settings pesto.Settings
 ---@param bazel_basic_completion pesto.BazelBasicCompletion
+---@param bazel_bash_completion pesto.BazelBashCompletion
 ---@param run_bazel_fn RunBazelFn
-function BazelSubcommand:new(settings, bazel_basic_completion, run_bazel_fn)
+function BazelSubcommand:new(settings, bazel_basic_completion, bazel_bash_completion, run_bazel_fn)
 	local o = setmetatable({}, BazelSubcommand)
 
 	o._settings = settings
 
 	o._basic_completion = bazel_basic_completion
+	o._bash_completion = bazel_bash_completion
 
 	o._run_bazel_fn = run_bazel_fn
 
@@ -32,7 +35,21 @@ end
 ---@param opts SubcommandCompleteOpts
 ---@return string[]
 function BazelSubcommand:_complete(opts)
-	return self._basic_completion:complete(opts)
+	---@type pesto.SubcommandCompletion
+	local completion_strategy
+	local completion_mode = self._settings:get_cli_completion_settings().mode
+	if completion_mode == "lua" then
+		completion_strategy = self._basic_completion
+	elseif completion_mode == "bash" then
+		completion_strategy = self._bash_completion
+	elseif completion_mode == "automatic" then
+		completion_strategy = self._bash_completion
+	end
+
+	local logger = require("pesto.logger")
+	logger.trace(string.format("attempting completion: mode=%s", completion_mode))
+
+	return completion_strategy:complete(opts)
 end
 
 ---@param opts SubcommandExecuteOpts
