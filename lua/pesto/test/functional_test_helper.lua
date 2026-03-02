@@ -56,4 +56,13 @@ function FunctionalTestHelper:get_quickfix_buf_id(tab_id)
 	end
 end
 
+---@param global_var string
+---@param tbl table
+function FunctionalTestHelper:extend_global_table(global_var, tbl)
+	if vim.g[global_var] == nil then
+		vim.g[global_var] = {}
+	end
+	vim.g[global_var] = vim.tbl_deep_extend("force", vim.g[global_var], tbl)
+end
+
 return FunctionalTestHelper
