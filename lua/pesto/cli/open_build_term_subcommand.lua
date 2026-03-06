@@ -1,18 +1,18 @@
 local M = {}
 
 ---@class pesto.OpenBuildTermSubcommand: Subcommand
----@field private _build_terminal_manager pesto.BuildTerminalManager
+---@field private _build_window_manager pesto.BuildWindowManager
 local OpenBuildTermSubcommand = {}
 OpenBuildTermSubcommand.__index = OpenBuildTermSubcommand
 
 OpenBuildTermSubcommand.name = "open-build-term"
 
----@param build_terminal_manager pesto.BuildTerminalManager
+---@param build_build_manager pesto.BuildWindowManager
 ---@return pesto.OpenBuildTermSubcommand
-function OpenBuildTermSubcommand:new(build_terminal_manager)
+function OpenBuildTermSubcommand:new(build_build_manager)
 	local o = setmetatable({}, OpenBuildTermSubcommand)
 
-	o._build_terminal_manager = build_terminal_manager
+	o._build_window_manager = build_build_manager
 	o.execute = function(opts)
 		o:_execute(opts)
 	end
@@ -23,11 +23,8 @@ end
 ---@param opts SubcommandExecuteOpts
 function OpenBuildTermSubcommand:_execute(opts)
 	---@type number|nil
-	local buf_id = self._build_terminal_manager:get_tab_id(0)
-	if buf_id ~= nil then
-		local win_id = require("pesto.runner.default.build_window").get_or_create_tab_build_window(0)
-		vim.api.nvim_win_set_buf(win_id, buf_id)
-	else
+	local buf_id = self._build_window_manager:open_build_term()
+	if buf_id == nil then
 		vim.notify(
 			"Pesto: No build terminal to open. One way to trigger a build is with `:Pesto compile-one-dep`.",
 			vim.log.levels.WARN

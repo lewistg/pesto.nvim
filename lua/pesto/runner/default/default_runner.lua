@@ -1,18 +1,21 @@
 ---@class pesto.DefaultRunner
 ---@field private _settings pesto.Settings
----@field private _build_terminal_manager pesto.BuildTerminalManager
+---@field private _build_window_manager pesto.BuildWindowManager
+---@field private _build_event_json_loader pesto.BuildEventJsonLoader
 ---@field private _quickfix_loader pesto.QuickfixLoader
 local DefaultRunner = {}
 DefaultRunner.__index = DefaultRunner
 
 ---@param settings pesto.Settings
----@param build_terminal_manager pesto.BuildTerminalManager
+---@param build_window_manager pesto.BuildWindowManager
+---@param build_event_json_loader pesto.BuildEventJsonLoader
 ---@param quickfix_loader pesto.QuickfixLoader
-function DefaultRunner:new(settings, build_terminal_manager, quickfix_loader)
+function DefaultRunner:new(settings, build_window_manager, build_event_json_loader, quickfix_loader)
 	local o = setmetatable({}, DefaultRunner)
 
 	o._settings = settings
-	o._build_terminal_manager = build_terminal_manager
+	o._build_window_manager = build_window_manager
+	o._build_event_json_loader = build_event_json_loader
 	o._quickfix_loader = quickfix_loader
 
 	return o
@@ -20,62 +23,42 @@ end
 
 ---@param opts RunBazelOpts
 function DefaultRunner.__call(self, opts)
+	local bazel_build_event_util = require("pesto.cli.bazel_build_event_util")
+
+	---@type string|nil
+	local bep_file = nil
 	if self._settings:get_enable_bep_integration() then
-		require("pesto.cli.bazel_build_event_util").inject_bep_option(opts.bazel_command, self._settings)
+		bazel_build_event_util.inject_bep_option(opts.bazel_command, self._settings)
+		bep_file = bazel_build_event_util.extract_bep_option(opts.bazel_command)
 	end
 
-	local quickfix_loader = self._quickfix_loader
-	local build_terminal_manager = self._build_terminal_manager
-	local build_term_buf_id
-	build_term_buf_id = self._build_terminal_manager:run_bazel(
-		opts,
-		---@param build_finished_event pesto.BuildFinishedEvent
-		function(build_finished_event)
-			local logger = require("pesto.logger")
-			logger.info("Build finished. Loading quickfix")
+	local bazel_command = table.concat(opts.bazel_command, " ")
+	local term_command =
+		string.format("(cd %s && %s)", opts.context.package_dir or opts.context.workspace_dir, bazel_command)
 
-			-- Wrapping these vim.notify calls in a vim.schedule seems to
-			-- prevent (perhaps) a textlock issue that blocks us from
-			-- immediately opening the quickfix window.
-			if build_finished_event.exit_code == 0 then
-				vim.schedule(function()
-					vim.notify("Pesto: Build succeeded", vim.log.levels.INFO)
-				end)
-			else
-				vim.schedule(function()
-					vim.notify("Pesto: Build failed", vim.log.levels.ERROR)
-				end)
+	---@type BuildEventTree|nil
+	local build_event_tree = nil
+
+	self._build_window_manager:start_new_build({
+		term_command = term_command,
+		auto_open = self._settings:get_auto_open_build_term(),
+		on_exit = function(is_current)
+			if not is_current then
+				return
 			end
-
-			local build_tree = build_finished_event:get_build_event_tree()
-			if build_tree then
-				local status, error = pcall(quickfix_loader.load_quickfix, quickfix_loader, build_tree, function()
+			if bep_file then
+				---@diagnostic disable-next-line: invisible
+				build_event_tree = self._build_event_json_loader:load(bep_file)
+				---@diagnostic disable-next-line: invisible
+				self._quickfix_loader:load_quickfix(build_event_tree, function()
 					vim.cmd.copen()
-					build_terminal_manager:close_terminal_buf(build_term_buf_id)
 				end)
-				if not status then
-					local message = "Pesto: Error loading quickfix: " .. error
-					vim.notify(message, vim.log.levels.ERROR)
-					logger.error(message)
-				end
-			else
-				logger.warn("Failed to load build event tree")
 			end
-		end
-	)
-
-	---@type number|nil
-	local win_id
-
-	local build_window = require("pesto.runner.default.build_window")
-	if self._settings:get_auto_open_build_term() then
-		win_id = build_window.get_or_create_tab_build_window(0)
-	else
-		win_id = build_window.find_build_window(0)
-	end
-	if win_id ~= nil then
-		vim.api.nvim_win_set_buf(win_id, build_term_buf_id)
-	end
+		end,
+		get_build_event_tree = function()
+			return build_event_tree
+		end,
+	})
 end
 
 return DefaultRunner

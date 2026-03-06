@@ -16,8 +16,12 @@ describe("open BUILD file subcommands", function()
 		},
 	}
 
+	---@type pesto.FunctionalTestHelper
+	local functional_test_helper
+
 	before_each(function()
 		nvim_chan = vim.fn.jobstart({ "nvim", "--embed", "--headless" }, job_opts)
+		functional_test_helper = require("pesto.test.functional_test_helper"):new(nvim_chan)
 	end)
 
 	after_each(function()
@@ -27,7 +31,7 @@ describe("open BUILD file subcommands", function()
 	it("compile-one-dep builds some dependency for the currently open source file", function()
 		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { "hello-world/main.c" } }, {})
 
-		local subcommand = { "bazel", "compile-one-dep" }
+		local subcommand = { "compile-one-dep" }
 		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "Pesto", args = subcommand }, {})
 
 		-- There should be two windows open in the current tab
@@ -38,28 +42,12 @@ describe("open BUILD file subcommands", function()
 		assert.are.same(2, #tab_info[1].windows)
 
 		--- One of the windows should be the build window
-		local build_win_id = vim.rpcrequest(
-			nvim_chan,
-			"nvim_exec_lua",
-			"return require('pesto.runner.default.build_window').find_build_window()",
-			{}
-		)
-
-		assert.are_not.equal(vim.NIL, build_win_id)
-
-		local build_win_buf_id = vim.rpcrequest(nvim_chan, "nvim_win_get_buf", build_win_id)
+		local build_win_ids = functional_test_helper:find_build_windows()
+		assert.are.equal(1, #build_win_ids)
 
 		local wait_status = vim.fn.wait(10 * 1000, function()
-			local build_info = vim.rpcrequest(nvim_chan, "nvim_cmd", {
-				cmd = "lua",
-				args = {
-					string.format(
-						"return require('pesto.runner.default.terminal_buf_info').get_pesto_terminal_info(%s)",
-						build_win_buf_id
-					),
-				},
-			}, {})
-			return build_info.exit_code == 0
+			return functional_test_helper:get_build_exit_code() == 0
 		end)
+		assert.are.equal(0, wait_status)
 	end)
 end)
