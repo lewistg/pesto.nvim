@@ -1,3 +1,6 @@
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
 sh_binary(
     name = "foo1",
     srcs = ["foo1.sh"]

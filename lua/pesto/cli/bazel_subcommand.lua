@@ -60,10 +60,7 @@ function BazelSubcommand:_execute(opts)
 	local runner = require("pesto.runner.runner")
 	local context = runner.get_run_bazel_context()
 	local bazel_command = vim.deepcopy(opts.fargs)
-	if self._settings:get_enable_bep_integration() then
-		local bazel_build_event_util = require("pesto.cli.bazel_build_event_util")
-		bazel_build_event_util.inject_bep_option(bazel_command, self._settings)
-	end
+
 	table.insert(bazel_command, 1, "bazel")
 
 	self._run_bazel_fn({

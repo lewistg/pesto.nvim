@@ -15,10 +15,10 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field bazel_basic_completion pesto.BazelBasicCompletion
 ---@field build_event_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
----@field build_terminal_manager pesto.BuildTerminalManager
+---@field build_window_manager pesto.BuildWindowManager
 ---@field byte_stream_client pesto.ByteStreamClient
 ---@field default_runner pesto.DefaultRunner
----@field functional_test_helper pesto.FunctionalTestHelper
+---@field functional_test_hooks pesto.FunctionalTestHooks
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
 ---@field quick_fix_loader pesto.QuickfixLoader
@@ -65,11 +65,11 @@ local function _build_event_file_loader()
 end
 components.build_event_file_loader = _build_event_file_loader --[[@as pesto.BuildEventFileLoader]]
 
----@return pesto.BuildTerminalManager
-local function _build_terminal_manager()
-	return require("pesto.runner.default.terminal_buffer_manager"):new(components.build_event_json_loader)
+---@return pesto.BuildWindowManager
+local function _build_window_manager()
+	return require("pesto.runner.default.build_window_manager"):new(components.build_event_file_loader)
 end
-components.build_terminal_manager = _build_terminal_manager --[[@as pesto.BuildTerminalManager]]
+components.build_window_manager = _build_window_manager --[[@as pesto.BuildWindowManager]]
 
 ---@return BazelSubcommand
 local function _bazel_sub_command()
@@ -94,21 +94,22 @@ components.byte_stream_client = _byte_stream_client --[[@as pesto.ByteStreamClie
 local function _default_runner()
 	return require("pesto.runner.default.default_runner"):new(
 		components.settings,
-		components.build_terminal_manager,
+		components.build_window_manager,
+		components.build_event_json_loader,
 		components.quick_fix_loader
 	)
 end
 components.default_runner = _default_runner --[[@as pesto.DefaultRunner]]
 
----@return pesto.FunctionalTestHelper
-local function _functional_test_helper()
-	return require("pesto.test.functional_test_helper"):new(components.build_terminal_manager)
+---@return pesto.FunctionalTestHooks
+local function _functional_test_hooks()
+	return require("pesto.test.functional_test_hooks"):new(components.build_window_manager)
 end
-components.functional_test_helper = _functional_test_helper --[[@as pesto.FunctionalTestHelper]]
+components.functional_test_hooks = _functional_test_hooks --[[@as pesto.FunctionalTestHooks]]
 
 ---@return pesto.OpenBuildTermSubcommand
 local function _open_build_term_subcommand()
-	return require("pesto.cli.open_build_term_subcommand"):new(components.build_terminal_manager)
+	return require("pesto.cli.open_build_term_subcommand"):new(components.build_window_manager)
 end
 components.open_build_term_subcommand = _open_build_term_subcommand --[[@as pesto.OpenBuildTermSubcommand]]
 
@@ -163,10 +164,7 @@ components.query_drawer_manager = _query_drawer_manager --[[@as QueryDrawerManag
 
 ---@return pesto.OpenBuildEventsSummarySubcommand
 local _open_build_events_summary_subcommand = function()
-	return require("pesto.cli.open_build_events_summary_subcommand"):new(
-		components.build_event_json_loader,
-		components.build_event_file_loader
-	)
+	return require("pesto.cli.open_build_events_summary_subcommand"):new(components.build_window_manager)
 end
 components.open_build_events_summary_subcommand = _open_build_events_summary_subcommand --[[@as pesto.OpenBuildEventsSummarySubcommand]]
 
