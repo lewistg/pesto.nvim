@@ -59,6 +59,9 @@ function BuildWindowManager:start_new_build(opts)
 
 	self:_mark_buffer_as_build_win_buf(build_info.term_buf_id)
 
+	---@type boolean
+	local scrolled_to_bottom = false
+
 	vim.api.nvim_buf_call(build_info.term_buf_id, function()
 		build_info.job_id = vim.fn.termopen(opts.term_command, {
 			on_exit = function(_job_id, exit_code, event_type)
@@ -84,6 +87,19 @@ function BuildWindowManager:start_new_build(opts)
 						vim.notify("Pesto: Build failed", vim.log.levels.ERROR)
 					end)
 				end
+			end,
+			on_stdout = function()
+				if scrolled_to_bottom then
+					return
+				end
+				for _, win_id in ipairs(self:find_build_windows(0)) do
+					vim.api.nvim_win_call(win_id, function()
+                        -- Move the cursor to the bottom. Doing this one time
+                        -- should cause the buffer to tail the output
+						vim.cmd.normal("G")
+					end)
+				end
+				scrolled_to_bottom = true
 			end,
 		})
 	end)
