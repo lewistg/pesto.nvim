@@ -25,12 +25,7 @@ describe("open BUILD file subcommands", function()
 		vim.fn.jobstop(nvim_chan)
 	end)
 
-	it("compile-one-dep builds some dependency for the currently open source file", function()
-		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { "hello-world/main.c" } }, {})
-
-		local subcommand = { "compile-one-dep" }
-		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "Pesto", args = subcommand }, {})
-
+	local function verify_compile_one_dep()
 		-- There should be two windows open in the current tab
 		local curr_tab_page_nr = vim.rpcrequest(nvim_chan, "nvim_call_function", "tabpagenr", { "$" })
 		local tab_info = vim.rpcrequest(nvim_chan, "nvim_call_function", "gettabinfo", { curr_tab_page_nr })
@@ -46,5 +41,38 @@ describe("open BUILD file subcommands", function()
 			return functional_test_helper:get_build_exit_code() == 0
 		end)
 		assert.are.equal(0, wait_status)
+	end
+
+	it("compile-one-dep builds some dependency for the currently open source file", function()
+		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { "hello-world/main.c" } }, {})
+
+		local subcommand = { "compile-one-dep" }
+		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "Pesto", args = subcommand }, {})
+
+		verify_compile_one_dep()
 	end)
+
+	it(
+		"compile-one-dep builds some dependency for the currently open source file even when the package is in an ancestor directory",
+		function()
+			local src_dir = vim.fs.joinpath(bazel_repo_dir, "java/src/main/java/com/example")
+			vim.rpcrequest(
+				nvim_chan,
+				"nvim_cmd",
+				{ cmd = "edit", args = { vim.fs.joinpath(src_dir, "Main.java") } },
+				{}
+			)
+
+			local build_file =
+				vim.rpcrequest(nvim_chan, "nvim_exec_lua", "return require('pesto.bazel.repo').find_build_file(0)", {})
+
+			-- Make sure the build file is in a different directory (should be an ancestor)
+			assert.are_not.equal(src_dir, vim.fs.dirname(build_file))
+
+			local subcommand = { "compile-one-dep" }
+			vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "Pesto", args = subcommand }, {})
+
+			verify_compile_one_dep()
+		end
+	)
 end)

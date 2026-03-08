@@ -59,12 +59,14 @@ end
 local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
 	---@type SubcommandExecuteFn
 	local function execute()
-		---@type string
-		local filename = vim.api.nvim_buf_get_name(0)
-		filename = vim.fs.basename(filename)
 		local runner = require("pesto.runner.runner")
 		---@type RunBazelContext
 		local context = runner.get_run_bazel_context()
+
+		---@type string
+		local filename = vim.api.nvim_buf_get_name(0)
+		filename = vim.fs.relpath(context.package_dir or context.workspace_dir, filename) or filename
+
 		---@type string[]
 		local bazel_command = { "bazel", "build", "--compile_one_dependency", filename }
 
