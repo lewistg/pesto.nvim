@@ -18,14 +18,13 @@ describe("CLI completion with 'bash' mode", function()
 	local ESCAPE_KEY = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
 	local TAB_KEY = vim.api.nvim_replace_termcodes("<Tab>", true, false, true)
 
+	---@type pesto.FunctionalTestHelper
+	local functional_test_helper
+
 	setup(function()
 		nvim_chan = vim.fn.jobstart({ "nvim", "--embed", "--headless" }, job_opts)
-		local quickfix_items = vim.rpcrequest(
-			nvim_chan,
-			"nvim_exec_lua",
-			"require('pesto.components').functional_test_helper:extend_global_table('pesto', { cli_completion = { mode = 'bash' } })",
-			{}
-		)
+		functional_test_helper = require("pesto.test.functional_test_helper"):new(nvim_chan)
+		functional_test_helper:set_completion_mode("bash")
 	end)
 
 	teardown(function()

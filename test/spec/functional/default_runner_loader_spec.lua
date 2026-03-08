@@ -22,13 +22,6 @@ describe("default runner loader", function()
 		vim.fn.jobstop(nvim_chan)
 	end)
 
-	--- Navigate to
-	---@param quickfix_buf_id number 0 for the current buffer
-	---@param error_index number
-	local function jump_via_quickfix_item(quickfix_buf_id, error_index)
-		local quickfix_lines = vim.rpcrequest(nvim_chan, "nvim_buf_get_lines", quickfix_buf_id, 0, -2, false)
-	end
-
 	it("loads errors into the quickfix window", function()
 		-- Note: hello-error/main.c has an  error
 		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { "hello-error/main.c" } }, {})
@@ -44,7 +37,7 @@ describe("default runner loader", function()
 			local exit_code = vim.rpcrequest(
 				nvim_chan,
 				"nvim_exec_lua",
-				"return require('pesto.components').functional_test_helper:get_build_exit_code()",
+				"return require('pesto.components').functional_test_hooks:get_build_exit_code()",
 				{}
 			)
 			assert.is_true(exit_code == vim.NIL or exit_code == expected_exit_code)
@@ -70,7 +63,7 @@ describe("default runner loader", function()
 		local quickfix_items = vim.rpcrequest(
 			nvim_chan,
 			"nvim_exec_lua",
-			"return require('pesto.components').functional_test_helper:get_quickfix_items()",
+			"return require('pesto.components').functional_test_hooks:get_quickfix_items()",
 			{}
 		)
 
@@ -84,7 +77,7 @@ describe("default runner loader", function()
 					nvim_chan,
 					"nvim_exec_lua",
 					string.format(
-						"return require('pesto.components').functional_test_helper:jump_via_quickfix_item(0, %d)",
+						"return require('pesto.components').functional_test_hooks:jump_via_quickfix_item(0, %d)",
 						quickfix_entry.lnum - 1
 					),
 					{}
