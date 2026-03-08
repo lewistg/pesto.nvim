@@ -1,7 +1,7 @@
 describe("pesto.BuildEventTreeQueries", function()
 	local busted_fixtures = require("busted.fixtures")
-	local bazel_repo_dir = require("pesto.util.path"):new(busted_fixtures.path("build_event_tree_spec_fixtures"))
-	local broken_build_remote_cache_bep_path = bazel_repo_dir:join("broken-build-remote-cache-bep.json")
+	local bazel_repo_dir = busted_fixtures.path("build_event_tree_spec_fixtures")
+	local broken_build_remote_cache_bep_path = vim.fs.joinpath(bazel_repo_dir, "broken-build-remote-cache-bep.json")
 
 	it("BuildEventTree:find_command_line_option finds command line options", function()
 		local bep_json_loader = require("pesto.bazel.build_event_json_loader"):new()

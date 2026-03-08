@@ -1,14 +1,10 @@
-local busted_fixtures = require("busted.fixtures")
-local Path = require("pesto.util.path")
-local table_util = require("pesto.util.table_util")
-
 describe("open BUILD file subcommands", function()
 	local nvim_chan
-	local bazel_repo_dir = Path:new(busted_fixtures.path("bazel_repo_fixture"))
 	local env_vars = vim.fn.environ()
+	local busted_fixtures = require("busted.fixtures")
 	local job_opts = {
 		rpc = true,
-		cwd = tostring(bazel_repo_dir),
+		cwd = busted_fixtures.path("bazel_repo_fixture"),
 		env = {
 			XDG_CONFIG_HOME = env_vars["XDG_CONFIG_HOME"],
 			XDG_STATE_HOME = env_vars["XDG_STATE_HOME"],
@@ -32,7 +28,7 @@ describe("open BUILD file subcommands", function()
 	local function test_bazel_command(bazel_args)
 		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { "foo/foo1/foo2/foo3/foo3.sh" } }, {})
 
-		local subcommand = table_util.concat({ "bazel" }, bazel_args)
+		local subcommand = vim.iter({ "bazel", bazel_args }):flatten():totable()
 		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "Pesto", args = subcommand }, {})
 
 		-- There should be two windows open in the current tab

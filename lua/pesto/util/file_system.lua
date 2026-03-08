@@ -8,18 +8,17 @@ function M.get_dirs(path, name_pattern)
 	return iter_util.to_list(M.get_dirs_iter(path, name_pattern))
 end
 
----@param path Path
+---@param path string
 ---@param name_pattern string|nil
 ---@return fun(): string|nil
 function M.get_dirs_iter(path, name_pattern)
 	if name_pattern == "" then
 		name_pattern = nil
 	end
-	local uv = vim.loop
-	local userdata = uv.fs_scandir(tostring(path))
+	local userdata = vim.uv.fs_scandir(path)
 	return function()
 		while true do
-			local name, type = uv.fs_scandir_next(userdata)
+			local name, type = vim.uv.fs_scandir_next(userdata)
 			if not name then
 				return nil
 			end

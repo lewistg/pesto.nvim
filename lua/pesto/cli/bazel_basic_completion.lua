@@ -73,12 +73,10 @@ function BazelBasicCompletion:complete_subcommand(opts)
 			return {}
 		end
 
-		local raw_project_root_dir = bazel_repo.find_project_root_dir(opts.buf_nr)
-		if not raw_project_root_dir then
+		local project_root_dir = bazel_repo.find_project_root_dir(opts.buf_nr)
+		if not project_root_dir then
 			return {}
 		end
-		local Path = require("pesto.util.path")
-		local project_root_dir = Path:new(raw_project_root_dir)
 
 		if bazel_label.target_name == "" then
 			-- Path part of the label is still incomplete
@@ -88,26 +86,26 @@ function BazelBasicCompletion:complete_subcommand(opts)
 				bazel_label.package_name = bazel_label.package_name:sub(1, bazel_label.package_name:len() - 1)
 			end
 
-			---@type Path
-			local path_so_far = Path:new(bazel_label.package_name)
+			---@type string
+			local path_so_far = bazel_label.package_name
 
-			---@type Path
+			---@type string
 			local base_path
 			---@type string|nil
 			local dir_name_prefix
 			if vim.endswith(bazel_label.package_name, "/") then
 				base_path = path_so_far
 			else
-				base_path = path_so_far:get_dirname()
-				dir_name_prefix = tostring(path_so_far:get_basename())
+				base_path = vim.fs.dirname(path_so_far)
+				dir_name_prefix = vim.fs.basename(path_so_far)
 			end
-			base_path = project_root_dir:join(base_path)
+			base_path = vim.fs.joinpath(project_root_dir, base_path)
 
-			---@type Path[]
+			---@type string[]
 			local dir_candidates = self:_get_dir_completion_candidates(base_path, dir_name_prefix)
 			local table_util = require("pesto.util.table_util")
 			return table_util.flat_map(function(dir)
-				local relative_path = Path.get_relative(project_root_dir, base_path:join(dir))
+				local relative_path = vim.fs.relpath(project_root_dir, vim.fs.joinpath(base_path, dir))
 				return {
 					"//" .. tostring(relative_path) .. "/",
 					"//" .. tostring(relative_path) .. ":",
@@ -131,9 +129,9 @@ function BazelBasicCompletion:complete_subcommand(opts)
 	return {}
 end
 
----@param base_path Path
+---@param base_path string
 ---@param dir_name_prefix string|nil
----@return Path[]
+---@return string[]
 function BazelBasicCompletion:_get_dir_completion_candidates(base_path, dir_name_prefix)
 	if vim.startswith(dir_name_prefix or "", ".") then
 		-- dot files are ignored
@@ -148,26 +146,20 @@ function BazelBasicCompletion:_get_dir_completion_candidates(base_path, dir_name
 		name_pattern = "^" .. dir_name_prefix .. ".*"
 	end
 	local fs_util = require("pesto.util.file_system")
-	local dirs = fs_util.get_dirs(base_path, name_pattern)
-	return vim.tbl_map(function(dir)
-		local Path = require("pesto.util.path")
-		return Path:new(dir)
-	end, dirs)
+	return vim.iter(fs_util.get_dirs_iter(base_path, name_pattern)):totable()
 end
 
 ---@param target_name_lead string
 function BazelBasicCompletion:_get_target_name_completion_candidates(target_name_lead)
 	local bazel_repo = require("pesto.bazel.repo")
-	local raw_build_file_path = bazel_repo.find_build_file()
-	if raw_build_file_path == nil then
+	local build_file_path = bazel_repo.find_build_file()
+	if build_file_path == nil then
 		require("pesto.logger").debug("failed to find BUILD or BUILD.bazel file for the current buffer")
 		return {}
 	end
-	local Path = require("pesto.util.path")
-	local build_file = Path:new(raw_build_file_path)
 
 	local bazel_package = require("pesto.bazel.package")
-	local target_names = bazel_package.guess_target_names(build_file)
+	local target_names = bazel_package.guess_target_names(build_file_path)
 
 	local cli_util = require("pesto.util.cli")
 	return cli_util.get_completion_candidates(target_name_lead, target_names)

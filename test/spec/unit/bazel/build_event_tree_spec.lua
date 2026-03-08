@@ -1,7 +1,7 @@
 describe("pesto.BuildEventTree", function()
 	local busted_fixtures = require("busted.fixtures")
-	local bazel_repo_dir = require("pesto.util.path"):new(busted_fixtures.path("build_event_tree_spec_fixtures"))
-	local clean_compile_build_events_path = bazel_repo_dir:join("clean-compile.json")
+	local bazel_repo_dir = busted_fixtures.path("build_event_tree_spec_fixtures")
+	local clean_compile_build_events_path = vim.fs.joinpath(bazel_repo_dir, "clean-compile.json")
 
 	it("BuildEventTree:new constructs the tree from raw build events", function()
 		local bep_json_loader = require("pesto.bazel.build_event_json_loader"):new()

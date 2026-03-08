@@ -1,14 +1,11 @@
-local busted_fixtures = require("busted.fixtures")
-local Path = require("pesto.util.path")
-local table_util = require("pesto.util.table_util")
-
 describe("open BUILD file subcommands", function()
 	local nvim_chan
-	local bazel_repo_dir = Path:new(busted_fixtures.path("bazel_repo_fixture"))
 	local env_vars = vim.fn.environ()
+	local busted_fixtures = require("busted.fixtures")
+	local bazel_repo_dir = busted_fixtures.path("bazel_repo_fixture")
 	local job_opts = {
 		rpc = true,
-		cwd = tostring(bazel_repo_dir),
+		cwd = bazel_repo_dir,
 		env = {
 			XDG_CONFIG_HOME = env_vars["XDG_CONFIG_HOME"],
 			XDG_STATE_HOME = env_vars["XDG_STATE_HOME"],
@@ -26,9 +23,9 @@ describe("open BUILD file subcommands", function()
 
 	---@param subcommand "sp-build"|"vs-build"
 	local function split_command_test(subcommand)
-		local source_file_relative_path = Path:new("foo/foo1/foo2/foo3/foo3.sh")
+		local source_file_relative_path = "foo/foo1/foo2/foo3/foo3.sh"
 
-		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { tostring(source_file_relative_path) } }, {})
+		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "edit", args = { source_file_relative_path } }, {})
 		vim.rpcrequest(nvim_chan, "nvim_cmd", { cmd = "Pesto", args = { subcommand } }, {})
 
 		local curr_tab_page_nr = vim.rpcrequest(nvim_chan, "nvim_call_function", "tabpagenr", { "$" })
@@ -63,10 +60,10 @@ describe("open BUILD file subcommands", function()
 		local right_buf_info =
 			vim.rpcrequest(nvim_chan, "nvim_call_function", "getbufinfo", { tab_win_infos[2].bufnr })[1]
 
-		local build_file_path = bazel_repo_dir:join("foo/foo1/foo2/foo3/BUILD")
+		local build_file_path = vim.fs.joinpath(bazel_repo_dir, "foo/foo1/foo2/foo3/BUILD")
 		assert.are.same(tostring(build_file_path), left_buf_info.name)
 
-		local source_file_path = bazel_repo_dir:join(source_file_relative_path)
+		local source_file_path = vim.fs.joinpath(bazel_repo_dir, source_file_relative_path)
 		assert.are.same(tostring(source_file_path), right_buf_info.name)
 	end
 

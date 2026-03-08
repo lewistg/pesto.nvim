@@ -1,12 +1,10 @@
 describe("default runner loader", function()
 	local nvim_chan
-	local Path = require("pesto.util.path")
 	local busted_fixtures = require("busted.fixtures")
-	local bazel_repo_dir = Path:new(busted_fixtures.path("bazel_repo_fixture"))
 	local env_vars = vim.fn.environ()
 	local job_opts = {
 		rpc = true,
-		cwd = tostring(bazel_repo_dir),
+		cwd = busted_fixtures.path("bazel_repo_fixture"),
 		env = {
 			XDG_CONFIG_HOME = env_vars["XDG_CONFIG_HOME"],
 			XDG_STATE_HOME = env_vars["XDG_STATE_HOME"],
