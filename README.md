@@ -12,6 +12,10 @@ It aims to make the edit-build-test cycle more seamless.
   - A build summary window shows a high-level overview of successful and failed targets
 * Quick navigation to BUILD or BUILD.bazel files
 
+## Requirements
+
+* Neovim 0.11.0 or later
+
 ## Configuration
 
 ### Action errorformat
