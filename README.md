@@ -23,7 +23,10 @@ How then do we pick which `errorformat` to use with `vim.fn.setqflist`?
 In pesto.nvim's configuration we are able to map rule kind and action mnemonic pairs to an `errorformat` configuration (`(rule_kind, action_mnemonic) -> errrorformat`).
 pesto.nvim will resolve which `errorformat` to use based on this mapping.
 
-> **Note:** This errorformat configuration touches on some Bazel concepts that may be unfamiliar to casual Bazel users. 
+
+> [!NOTE]
+>
+> This errorformat configuration touches on some Bazel concepts that may be unfamiliar to casual Bazel users. 
 > If that's you, then here is a quick rundown:
 > * Most of the time a Bazel build involves the execution of rule targets. 
 > * Rule targets spawn actions, such as invoking a compiler.

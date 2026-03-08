@@ -94,8 +94,8 @@ function BuildWindowManager:start_new_build(opts)
 				end
 				for _, win_id in ipairs(self:find_build_windows(0)) do
 					vim.api.nvim_win_call(win_id, function()
-                        -- Move the cursor to the bottom. Doing this one time
-                        -- should cause the buffer to tail the output
+						-- Move the cursor to the bottom. Doing this one time
+						-- should cause the buffer to tail the output
 						vim.cmd.normal("G")
 					end)
 				end
