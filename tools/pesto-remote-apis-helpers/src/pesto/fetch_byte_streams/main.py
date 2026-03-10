@@ -42,6 +42,8 @@ logger = logging.getLogger(__name__)
 
 BYTE_STREAM_URI_PATTERN = re.compile("bytestream://(?P<name>.+)", re.IGNORECASE)
 
+HEADER_PATTERN = re.compile("(?P<key>[^=]+)=(?P<value>.+)")
+
 parser = argparse.ArgumentParser(
     prog="pesto-fetch-byte-streams",
     description="Helper tool for pesto.nvim plugin. Downloads byestream resources from remote cache.",
@@ -63,10 +65,38 @@ parser.add_argument(
     help="Log file. If not specified, logs are written to stderr.",
 )
 parser.add_argument(
+    "-H",
+    "--request-header",
+    action="append",
+    nargs="?",
+    help="Headers sent with download requests. Essentially the same as bazel's --remote_header option",
+)
+parser.add_argument(
     "byte_streams",
     nargs="*",
     help="List of byte stream URIs. If a single '-' is provided then byte streams are read from stdin.",
 )
+
+
+def parse_header(header):
+    match = HEADER_PATTERN.search(header)
+    if match:
+        key = match.group("key")
+        value = match.group("value")
+        return (key, value)
+
+
+def parse_headers(headers):
+    parsed_headers = [
+        parsed_header
+        for h in headers
+        if ((parsed_header := parse_header(h)) is not None)
+    ]
+
+    if len(parsed_headers) != len(headers):
+        logger.warning(f"wasn't able to parse some headers")
+
+    return parsed_headers
 
 
 async def add_bytestream_uris(queue, byte_stream_uris):
@@ -90,7 +120,9 @@ async def add_bytestream_uris(queue, byte_stream_uris):
         queue.shutdown()
 
 
-async def fetch_byte_streams(worker_id, byte_stream_stub, byte_stream_uris):
+async def fetch_byte_streams(
+    worker_id, byte_stream_stub, byte_stream_uris, extra_headers=[]
+):
     while True:
         try:
             uri = await byte_stream_uris.get()
@@ -108,7 +140,9 @@ async def fetch_byte_streams(worker_id, byte_stream_stub, byte_stream_uris):
             request = bytestream_pb2.ReadRequest(
                 resource_name="/" + match.group("name")
             )
-            async for read_response in byte_stream_stub.Read(request):
+            async for read_response in byte_stream_stub.Read(
+                request, metadata=extra_headers
+            ):
                 json_string = MessageToJson(read_response, indent=None)
                 print(f"{uri}\t{json_string}", flush=True)
                 logger.info(f"[worker={worker_id}] fetched byte stream response")
@@ -152,6 +186,8 @@ async def async_main():
         exit(1)
     logger.info(f"successfully opened channel to {args.uri}")
 
+    extra_headers = parse_headers(args.request_header or [])
+
     async with (
         grpc_channel as channel,
         asyncio.TaskGroup() as tg,
@@ -164,7 +200,14 @@ async def async_main():
         )
 
         download_tasks = [
-            tg.create_task(fetch_byte_streams(i, byte_stream_stub, byte_stream_uris))
+            tg.create_task(
+                fetch_byte_streams(
+                    i,
+                    byte_stream_stub,
+                    byte_stream_uris,
+                    extra_headers=extra_headers,
+                )
+            )
             for i in range(0, args.num_workers)
         ]
 
