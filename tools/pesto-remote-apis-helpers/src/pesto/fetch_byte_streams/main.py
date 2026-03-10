@@ -6,6 +6,9 @@ This tool outputs lines of the following format:
 ```
 
 Example usages:
+
+(Run from project's root directory, `pesto-remote-apis-helpers`.)
+
 ```
 # Read an explicit list of bytestream URIs
 $ uv run pesto-fetch-bytestreams \
