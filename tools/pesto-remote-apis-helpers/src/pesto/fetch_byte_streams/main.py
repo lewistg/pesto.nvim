@@ -141,7 +141,7 @@ async def async_main():
             case "grpc":
                 grpc_channel = grpc.aio.insecure_channel(parsed_url.netloc)
             case "grpcs":
-                grpc_channel = grpc.aio.insecure_channel(
+                grpc_channel = grpc.aio.secure_channel(
                     parsed_url.netloc, grpc.ssl_channel_credentials()
                 )
             case _:
