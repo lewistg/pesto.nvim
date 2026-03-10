@@ -30,13 +30,16 @@ end
 -- given buffer.
 --
 ---@param buf_nr number|nil
----@return string The package label
+---@return string|nil label The package label
 function M.get_package_label(buf_nr)
 	local build_file_path = M.find_build_file(buf_nr)
+	if build_file_path == nil then
+		return nil
+	end
 	local package_dir_path = vim.fn.fnamemodify(build_file_path, ":p:h")
 	local root_dir_path = M.find_project_root_dir()
-	local package_label = string.gsub(package_dir_path, "^" .. root_dir_path .. "//?", "//")
-	return package_label
+	local package_label = vim.fs.relpath(root_dir_path, package_dir_path)
+	return "//" .. package_label
 end
 
 -- Finds the corresponding build file for the source file in the given buffer.

@@ -51,6 +51,9 @@ end
 local function execute_yank_package_label_subcommand()
 	local bazel_repo = require("pesto.bazel.repo")
 	local package_label = bazel_repo.get_package_label()
+	if package_label == nil then
+		return
+	end
 	vim.fn.setreg("@", package_label .. "\n")
 end
 
