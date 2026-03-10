@@ -1,4 +1,4 @@
-"""Entry point for `pesto-fetch-bytestreams` CLI helper tool.
+"""Entry point for `pesto-fetch-byte-streams` CLI helper tool.
 
 This tool outputs lines of the following format:
 ```
@@ -11,7 +11,7 @@ Example usages:
 
 ```
 # Read an explicit list of bytestream URIs
-$ uv run pesto-fetch-bytestreams \
+$ uv run pesto-fetch-byte-streams \
     --uri grpc://localhost:8980 \
     bytestream://blobs/477b2a3983637d7633933691800642a388a38e1dd81ebe12304a603dc3b3dfba/226
 ```
@@ -19,7 +19,7 @@ $ uv run pesto-fetch-bytestreams \
 ```
 # Read bytestream URIs from stdin. This is the form pesto.nvim uses.
 $ echo "bytestream://blobs/477b2a3983637d7633933691800642a388a38e1dd81ebe12304a603dc3b3dfba/226" \
-    | uv run pesto-fetch-bytestreams \
+    | uv run pesto-fetch-byte-streams \
     --uri grpc://localhost:8980 \
     -
 ```
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 BYTE_STREAM_URI_PATTERN = re.compile("bytestream://(?P<name>.+)", re.IGNORECASE)
 
 parser = argparse.ArgumentParser(
-    prog="pesto-fetch-bytestreams",
+    prog="pesto-fetch-byte-streams",
     description="Helper tool for pesto.nvim plugin. Downloads byestream resources from remote cache.",
 )
 parser.add_argument(
