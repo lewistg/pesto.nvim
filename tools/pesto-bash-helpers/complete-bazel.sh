@@ -167,8 +167,7 @@ function serve() {
 
 function main() {
     local command="$1"
-
-    local bazel_completion_script="${2:-"/etc/bash_completion.d/bazel"}"
+    local bazel_completion_script="$2"
 
     LOGGING_ENABLED="${3:-"false"}"
     readonly LOGGING_ENABLED
