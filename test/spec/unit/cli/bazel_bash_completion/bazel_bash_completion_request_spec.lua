@@ -28,7 +28,6 @@ describe("bazel_bash_completion_request.get_completion_request", function()
 			"comp_word:",
 			"comp_point:12",
 			"comp_cword:2",
-			"",
 		}
 
 		assert.are.same(expected_request, request)
@@ -65,7 +64,6 @@ describe("bazel_bash_completion_request.get_completion_request", function()
 			"comp_word:bar",
 			"comp_point:11",
 			"comp_cword:1",
-			"",
 		}
 
 		assert.are.same(expected_request, request)

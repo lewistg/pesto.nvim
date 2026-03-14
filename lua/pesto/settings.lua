@@ -16,6 +16,7 @@
 ---@class pesto.CliCompletionSettings
 ---@field mode pesto.CliCompletionMode
 ---@field bash_timeout number|nil Number of milliseconds to wait for bazel's bash completion script to reply
+---@field bash_completion_script string|nil Absolute path to the bash completion script
 
 ---@class pesto.RawSettings
 ---@field bazel_command string Name of bazel binary

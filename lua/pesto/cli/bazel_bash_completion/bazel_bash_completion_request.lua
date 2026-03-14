@@ -90,8 +90,6 @@ function M.get_bazel_bash_completion_request(nvim_complete_opts, bash_command_to
 
 	table.insert(completion_request, bash_completion_args.comp_cword(tostring(cword)))
 
-	table.insert(completion_request, "")
-
 	return completion_request
 end
 
