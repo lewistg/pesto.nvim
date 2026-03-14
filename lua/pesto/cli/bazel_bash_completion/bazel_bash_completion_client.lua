@@ -114,14 +114,15 @@ function BazelBashCompletionClient:_start_completion_server()
 	logger.info("starting bash completion server")
 
 	local cli_options = self._settings:get_cli_completion_settings()
+
+	assert(cli_options.bash_completion_script ~= nil, "bash_completion_script is not defined")
+
 	---@type string[]
 	local server_command = {
 		self._bash_completion_server_script_path,
 		"serve",
+		cli_options.bash_completion_script,
 	}
-	if cli_options.bash_completion_script ~= nil then
-		table.insert(server_command, cli_options.bash_completion_script)
-	end
 
 	local job_util = require("pesto.util.job_util")
 	return vim.system(server_command, {

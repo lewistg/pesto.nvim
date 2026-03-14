@@ -65,6 +65,7 @@ local default_raw_settings = {
 	cli_completion = {
 		mode = "automatic",
 		bash_timeout = 15000,
+		bash_completion_script = "/etc/bash_completion.d/bazel",
 	},
 }
 
