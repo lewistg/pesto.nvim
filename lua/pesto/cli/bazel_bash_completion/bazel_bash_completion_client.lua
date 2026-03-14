@@ -7,9 +7,9 @@
 ---@field timeout number
 
 ---@class pesto.BazelBashCompletionClient
----@field private _bash_completion_server_channel number|nil
+---@field private _settings pesto.Settings
+---@field private _bash_completion_server_system_object vim.SystemObj|nil
 ---@field private _current_response_line_handler fun(line: string)|nil
-
 local BazelBashCompletionClient = {}
 BazelBashCompletionClient.__index = BazelBashCompletionClient
 
@@ -17,11 +17,13 @@ BazelBashCompletionClient.TIMEOUT_ERROR = {
 	message = "bash completion timed out",
 }
 
+---@param settings pesto.Settings
 ---@return pesto.BazelBashCompletionClient
-function BazelBashCompletionClient:new()
+function BazelBashCompletionClient:new(settings)
 	local o = setmetatable({}, BazelBashCompletionClient)
 
-	o._bash_completion_server_channel = nil
+	o._settings = settings
+	o._bash_completion_server_system_object = nil
 	o._current_response_line_handler = nil
 
 	---@type string
@@ -35,8 +37,8 @@ function BazelBashCompletionClient:new()
 end
 
 function BazelBashCompletionClient:reset()
-	if self._bash_completion_server_channel ~= nil then
-		vim.fn.chansend(self._bash_completion_server_channel, { "reset" })
+	if self._bash_completion_server_system_object ~= nil then
+		self._bash_completion_server_system_object:write("reset\n")
 	end
 end
 
@@ -52,9 +54,11 @@ function BazelBashCompletionClient:get_completions(options)
 
 	local logger = require("pesto.logger")
 
-	if self._bash_completion_server_channel == nil then
-		self._bash_completion_server_channel = self:_start_completion_server()
-		logger.info(string.format("Started bash completion server. channel=%d", self._bash_completion_server_channel))
+	if self._bash_completion_server_system_object == nil then
+		self._bash_completion_server_system_object = self:_start_completion_server()
+		logger.info(
+			string.format("Started bash completion server. pid=%d", self._bash_completion_server_system_object.pid)
+		)
 	end
 
 	---@type string[]|nil
@@ -70,13 +74,14 @@ function BazelBashCompletionClient:get_completions(options)
 		self._current_response_line_handler = nil
 	end)
 
+	local request_lines = table.concat(options.request, "\\n")
+
 	-- Submit the completion request
 	logger.trace(function()
-		local lines = table.concat(options.request, "\\n")
-		return "request lines: " .. lines
+		return "request lines: " .. request_lines
 	end)
 
-	vim.fn.chansend(self._bash_completion_server_channel, options.request)
+	self._bash_completion_server_system_object:write(options.request)
 
 	local interval = 64
 	vim.wait(options.timeout, function()
@@ -91,52 +96,62 @@ function BazelBashCompletionClient:get_completions(options)
 		err = BazelBashCompletionClient.TIMEOUT_ERROR
 	end
 
-	vim.fn.jobstop(self._bash_completion_server_channel)
-	self._bash_completion_server_channel = nil
+	if self._bash_completion_server_system_object ~= nil then
+		logger.trace(
+			"killing completion server after timeout pid: " .. tostring(self._bash_completion_server_system_object.pid)
+		)
+		self._bash_completion_server_system_object:kill(9)
+		self._bash_completion_server_system_object = nil
+	end
 
 	error(err)
 end
 
----@return number
+---@return vim.SystemObj
 function BazelBashCompletionClient:_start_completion_server()
 	local logger = require("pesto.logger")
 
 	logger.info("starting bash completion server")
 
-	---@type string|nil
-	local partial_line = ""
-
-	---@param line string
-	local function on_stdout_line(line)
-		logger.trace(function()
-			return string.format('received line from completion server: "%s"', line)
-		end)
-		if self._current_response_line_handler then
-			self._current_response_line_handler(line)
-		end
+	local cli_options = self._settings:get_cli_completion_settings()
+	---@type string[]
+	local server_command = {
+		self._bash_completion_server_script_path,
+		"serve",
+	}
+	if cli_options.bash_completion_script ~= nil then
+		table.insert(server_command, cli_options.bash_completion_script)
 	end
 
-	return vim.fn.jobstart({
-		self._bash_completion_server_script_path,
-	}, {
-		on_stdout = function(chan_id, chunks)
-			if not self:_is_request_in_progress() then
-				logger.error("received unprompted output from bash completion server")
+	local job_util = require("pesto.util.job_util")
+	return vim.system(server_command, {
+		text = true,
+		stdin = true,
+		clear_env = true,
+		stdout = job_util.system_get_on_line_completed(function(err, line)
+			if err then
+				logger.error("bash completion server error: " .. err)
 				return
 			end
-			if #chunks > 1 then
-				on_stdout_line(partial_line .. chunks[1])
-				partial_line = chunks[#chunks]
+			logger.trace(function()
+				return string.format('received line from completion server: "%s"', line)
+			end)
+			if self._current_response_line_handler and line ~= nil then
+				self._current_response_line_handler(line)
 			end
-			for i = 2, #chunks - 1 do
-				on_stdout_line(chunks[i])
+		end),
+		stderr = function(_, data)
+			if data == nil then
+				return
 			end
+			logger.error("stderr output from completion script: " .. data)
 		end,
-		on_stderr = function(chan_id, chunks) end,
-		on_exit = function(job_id, code)
-			logger.trace(string.format("bash completion server exited with code %d", code))
-		end,
-	})
+	}, function(system_completed)
+		vim.schedule(function()
+			logger.info(string.format("bash completion server exited with code %d", system_completed.code))
+		end)
+		self._current_response_line_handler = nil
+	end)
 end
 
 ---@param on_response fun(words: string[])
@@ -156,13 +171,13 @@ function BazelBashCompletionClient:_get_new_response_handler(on_response, on_err
 			local _, _, raw_len = line:find("^compreply_len:(%d+)$")
 			compreply_len = tonumber(raw_len)
 			if compreply_len == nil then
-				on_error("failed to parse response")
+				on_error(string.format('failed to parse "%s" as compreply_len', line))
 				-- cancel the request
 			end
 		else
 			local _, _, word = line:find("^compreply:(.*)$")
 			if word == nil then
-				on_error("failed to parse response")
+				on_error(string.format('failed to parse "%s" as compreply', line))
 				-- cancel the request
 			end
 			table.insert(compreply_words, word)
