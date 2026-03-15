@@ -1,3 +1,7 @@
+---@class pesto.BazelBashCompletionClientHealthCheckResult
+---@field completion_script string
+---@field loads boolean
+
 --- Sends and receives bash command line completion requests to the
 --- tools/pesto-bash-helpers/complete-bazel.sh helper script.
 ---@class pesto.BazelBashCompletionRequestOptions
@@ -193,6 +197,46 @@ end
 
 function BazelBashCompletionClient:_is_request_in_progress()
 	return self._current_response_line_handler ~= nil
+end
+
+---@return pesto.BazelBashCompletionClientHealthCheckResult
+function BazelBashCompletionClient:check_health()
+	local cli_options = self._settings:get_cli_completion_settings()
+
+	---@type string[]
+	local server_command = {
+		self._bash_completion_server_script_path,
+		"check-health",
+		cli_options.bash_completion_script,
+	}
+
+	local system_completed = vim.system(server_command, { text = true, clear_env = true }):wait()
+	local loads = system_completed.code == 0
+
+	if not loads then
+		local logger = require("pesto.logger")
+		if system_completed.stderr == nil or system_completed.stderr == "" then
+			logger.error(
+				string.format(
+					"Completion script did not load and did not emit any stderr output. script: %s",
+					self._bash_completion_server_script_path
+				)
+			)
+		else
+			logger.error(
+				string.format(
+					"Completion script failed to load. script: %s, stderr: %s",
+					self._bash_completion_server_script_path,
+					system_completed.stderr
+				)
+			)
+		end
+	end
+
+	return {
+		completion_script = cli_options.bash_completion_script,
+		loads = loads,
+	}
 end
 
 return BazelBashCompletionClient
