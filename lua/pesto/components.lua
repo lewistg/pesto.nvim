@@ -48,7 +48,7 @@ components.bazel_basic_completion = _bazel_basic_completion --[[@as pesto.BazelB
 
 ---@return pesto.BazelBashCompletionClient
 local function _bazel_bash_completion_client()
-	return require("pesto.cli.bazel_bash_completion.bazel_bash_completion_client"):new()
+	return require("pesto.cli.bazel_bash_completion.bazel_bash_completion_client"):new(components.settings)
 end
 components.bazel_bash_completion_client = _bazel_bash_completion_client --[[@as pesto.BazelBashCompletionClient]]
 

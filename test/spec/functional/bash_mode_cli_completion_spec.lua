@@ -95,11 +95,13 @@ describe("CLI completion with 'bash' mode", function()
 			vim.rpcrequest(nvim_chan, "nvim_feedkeys", ":" .. test_case.prefix_keys, "t", false)
 			vim.rpcrequest(nvim_chan, "nvim_feedkeys", TAB_KEY, "t", false)
 
-			local result = vim.wait(1000, function()
+			vim.wait(1000, function()
 				local command_line = vim.rpcrequest(nvim_chan, "nvim_call_function", "getcmdline", {})
 				return test_case.expected_command_line == command_line
 			end)
-			assert.is_true(result)
+
+			local command_line = vim.rpcrequest(nvim_chan, "nvim_call_function", "getcmdline", {})
+			assert.are.same(test_case.expected_command_line, command_line)
 		end)
 	end
 end)

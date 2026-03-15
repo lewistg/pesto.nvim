@@ -1,4 +1,3 @@
-local os = require("pesto.util.os")
 local uv = vim.loop
 
 ---Note: The log methods accept a log message string or a function that returns
@@ -27,8 +26,7 @@ local DEFAULT_LOG_LEVEL = "info"
 
 local log_dir = vim.F.if_nil(vim.F.npcall(vim.fn.stdpath, "log"), vim.fn.stdpath("cache"))
 log_dir = vim.fs.normalize(log_dir)
-local log_path = log_dir .. "/pesto.nvim.log"
-log_path:gsub("/", os.path_sep)
+local log_path = vim.fs.joinpath(log_dir, "pesto.nvim.log")
 
 local log_stat = uv.fs_stat(log_path)
 if log_stat and log_stat.size > MAX_LOG_SIZE_IN_BYTES then
@@ -64,7 +62,7 @@ for log_level, numeric_log_level in pairs(LOG_LEVEL) do
 			final_message = message
 		end
 		local call_location = get_call_location()
-		local time = vim.fn.strftime("%c")
+		local time = os.date()
 		local log_message = string.format(
 			"[%s] %s %s:%d: %s\n",
 			string.upper(log_level),
