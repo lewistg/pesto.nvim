@@ -16,6 +16,7 @@
 ---@class pesto.CliCompletionSettings
 ---@field mode pesto.CliCompletionMode
 ---@field bash_timeout number|nil Number of milliseconds to wait for bazel's bash completion script to reply
+---@field bash_completion_script string|nil Absolute path to the bash completion script
 
 ---@class pesto.RawSettings
 ---@field bazel_command string Name of bazel binary
@@ -64,6 +65,7 @@ local default_raw_settings = {
 	cli_completion = {
 		mode = "automatic",
 		bash_timeout = 15000,
+		bash_completion_script = "/etc/bash_completion.d/bazel",
 	},
 }
 
@@ -85,9 +87,12 @@ end
 ---@return `T`
 function Settings:_resolve_setting(key)
 	local buf_id = vim.api.nvim_get_current_buf()
-	return vim.tbl_get(vim.b, buf_id, Settings.SETTINGS_KEY, key)
-		or vim.tbl_get(vim.g, Settings.SETTINGS_KEY, key)
-		or default_raw_settings[key]
+	return vim.tbl_deep_extend(
+		"keep",
+		vim.tbl_get(vim.b, buf_id, Settings.SETTINGS_KEY) or {},
+		vim.tbl_get(vim.g, Settings.SETTINGS_KEY) or {},
+		default_raw_settings
+	)[key]
 end
 
 ---@return RunBazelFn
