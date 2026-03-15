@@ -22,7 +22,7 @@ local function get_completion_candidates(arg_lead, candidates)
 	return matching_candiates
 end
 
----@param subcommands {SUBCOMMAND_NAMES: string[], SUBCOMMANDS_BY_NAME: {[string]: Subcommand}}
+---@param subcommands {SUBCOMMAND_NAMES: string[], SUBCOMMANDS_BY_NAME: {[string]: pesto.Subcommand}}
 ---@return PestoCli
 function M.make_cli(subcommands)
 	-- See `:h command-completion-custom`
@@ -50,7 +50,7 @@ function M.make_cli(subcommands)
 			local subcommand_name = cmd_line:sub(subcommand_start, subcommand_end)
 			local logger = require("pesto.logger")
 			logger.info("parsed subcommand: " .. subcommand_name)
-			---@type Subcommand
+			---@type pesto.Subcommand
 			local subcommand = subcommands.SUBCOMMANDS_BY_NAME[subcommand_name]
 			if subcommand and subcommand.complete then
 				logger.info("parsed completing: " .. subcommand_name)
@@ -74,7 +74,7 @@ function M.make_cli(subcommands)
 		assert(#opts.fargs >= 1)
 
 		local subcommand_name = opts.fargs[1]
-		---@type Subcommand|nil
+		---@type pesto.Subcommand|nil
 		local subcommand = subcommands.SUBCOMMANDS_BY_NAME[subcommand_name]
 
 		if subcommand then

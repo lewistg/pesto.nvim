@@ -1,6 +1,6 @@
 --- Basic bazel CLI completion implemented in pure Lua.
 ---@class pesto.BazelBasicCompletion: pesto.SubcommandCompletion
----@field private _subcommand_completions {[string]: SubcommandCompleteFn}
+---@field private _subcommand_completions {[string]: pesto.SubcommandCompleteFn}
 local BazelBasicCompletion = {}
 BazelBasicCompletion.__index = BazelBasicCompletion
 
@@ -24,7 +24,7 @@ function BazelBasicCompletion:new()
 	return o
 end
 
----@param opts SubcommandCompleteOpts
+---@param opts pesto.SubcommandCompleteOpts
 ---@return string[]
 function BazelBasicCompletion:complete(opts)
 	local command_start, command_end, command_separator =
@@ -57,7 +57,7 @@ function BazelBasicCompletion:complete(opts)
 	return {}
 end
 
----@param opts SubcommandCompleteOpts
+---@param opts pesto.SubcommandCompleteOpts
 ---@return string[]
 function BazelBasicCompletion:complete_subcommand(opts)
 	local bazel_repo = require("pesto.bazel.repo")

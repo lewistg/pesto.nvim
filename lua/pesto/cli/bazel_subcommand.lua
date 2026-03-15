@@ -1,4 +1,4 @@
----@class BazelSubcommand: Subcommand
+---@class pesto.BazelSubcommand: pesto.Subcommand
 ---@field private _settings pesto.Settings
 ---@field private _basic_completion pesto.BazelBasicCompletion
 ---@field private _bash_completion pesto.BazelBashCompletion
@@ -32,7 +32,7 @@ function BazelSubcommand:new(settings, bazel_basic_completion, bazel_bash_comple
 	return o
 end
 
----@param opts SubcommandCompleteOpts
+---@param opts pesto.SubcommandCompleteOpts
 ---@return string[]
 function BazelSubcommand:_complete(opts)
 	---@type pesto.SubcommandCompletion
@@ -52,7 +52,7 @@ function BazelSubcommand:_complete(opts)
 	return completion_strategy:complete(opts)
 end
 
----@param opts SubcommandExecuteOpts
+---@param opts pesto.SubcommandExecuteOpts
 function BazelSubcommand:_execute(opts)
 	-- There should be at least one farg value (the name of the subcommand)
 	assert(#opts.fargs >= 1)

@@ -25,7 +25,7 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
 ---@field run_bazel_fn RunBazelFn
 ---@field settings pesto.Settings
----@field subcommands Subcommands
+---@field subcommands pesto.Subcommands
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 
 ---@type Components
@@ -142,7 +142,7 @@ local _run_bazel_fn = function()
 end
 components.run_bazel_fn = _run_bazel_fn --[[@as RunBazelFn ]]
 
----@return Subcommands
+---@return pesto.Subcommands
 local _subcommands = function()
 	return require("pesto.cli.subcommands").make_subcommands({
 		bazel_sub_command = components.bazel_sub_command,
@@ -152,7 +152,7 @@ local _subcommands = function()
 		settings = components.settings,
 	})
 end
-components.subcommands = _subcommands --[[@as Subcommands]]
+components.subcommands = _subcommands --[[@as pesto.Subcommands]]
 
 ---@return pesto.OpenBuildEventsSummarySubcommand
 local _open_build_events_summary_subcommand = function()
