@@ -90,6 +90,7 @@ end
 ---@field bazel_sub_command BazelSubcommand
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
+---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
 ---@field run_bazel_fn RunBazelFn
 ---@field settings pesto.Settings
 
@@ -100,6 +101,7 @@ function M.make_subcommands(deps)
 		-- Please keep keys alphabetized (by command name)
 		deps.bazel_sub_command,
 		get_compile_one_dep_subcommand(deps.run_bazel_fn, deps.settings),
+		deps.install_remote_apis_helpers_subcommand,
 		deps.open_build_term_subcommand,
 		{
 			name = "sp-build",

@@ -32,6 +32,20 @@ function FunctionalTestHelper:get_build_exit_code()
 	)
 end
 
+function FunctionalTestHelper:install_remote_apis_helpers()
+	return vim.rpcrequest(self.nvim_chan, "nvim_exec2", ":Pesto install-remote-apis-helpers", {})
+end
+
+---@return boolean
+function FunctionalTestHelper:are_remote_apis_helpers_installed()
+	return vim.rpcrequest(
+		self.nvim_chan,
+		"nvim_exec_lua",
+		string.format("return require('pesto.components').functional_test_hooks:are_remote_apis_helpers_installed()"),
+		{}
+	) --[[@as boolean]]
+end
+
 ---@param mode pesto.CliCompletionMode
 function FunctionalTestHelper:set_completion_mode(mode)
 	vim.rpcrequest(

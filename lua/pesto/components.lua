@@ -19,6 +19,7 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field byte_stream_client pesto.ByteStreamClient
 ---@field default_runner pesto.DefaultRunner
 ---@field functional_test_hooks pesto.FunctionalTestHooks
+---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
 ---@field quick_fix_loader pesto.QuickfixLoader
@@ -102,9 +103,20 @@ components.default_runner = _default_runner --[[@as pesto.DefaultRunner]]
 
 ---@return pesto.FunctionalTestHooks
 local function _functional_test_hooks()
-	return require("pesto.test.functional_test_hooks"):new(components.build_window_manager)
+	return require("pesto.test.functional_test_hooks"):new(
+		components.build_window_manager,
+		components.remote_apis_helpers_command_builder
+	)
 end
 components.functional_test_hooks = _functional_test_hooks --[[@as pesto.FunctionalTestHooks]]
+
+---@return pesto.InstallRemoteApisHelpersSubcommand
+local function _install_remote_apis_helpers_subcommand()
+	return require("pesto.cli.install_remote_apis_helpers_subcommand"):new(
+		components.remote_apis_helpers_command_builder
+	)
+end
+components.install_remote_apis_helpers_subcommand = _install_remote_apis_helpers_subcommand --[[@as pesto.InstallRemoteApisHelpersSubcommand]]
 
 ---@return pesto.OpenBuildTermSubcommand
 local function _open_build_term_subcommand()
@@ -146,6 +158,7 @@ components.run_bazel_fn = _run_bazel_fn --[[@as RunBazelFn ]]
 local _subcommands = function()
 	return require("pesto.cli.subcommands").make_subcommands({
 		bazel_sub_command = components.bazel_sub_command,
+		install_remote_apis_helpers_subcommand = components.install_remote_apis_helpers_subcommand,
 		open_build_events_summary_subcommand = components.open_build_events_summary_subcommand,
 		run_bazel_fn = components.run_bazel_fn,
 		open_build_term_subcommand = components.open_build_term_subcommand,

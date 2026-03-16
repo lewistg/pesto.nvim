@@ -5,15 +5,18 @@
 --- in the remote instance.
 ---@class pesto.FunctionalTestHooks
 ---@field private _build_window_manager pesto.BuildWindowManager
+---@field private _remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
 
 local FunctionalTestHooks = {}
 FunctionalTestHooks.__index = FunctionalTestHooks
 
 ---@param build_window_manager pesto.BuildWindowManager
+---@param remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
 ---@return pesto.FunctionalTestHooks
-function FunctionalTestHooks:new(build_window_manager)
+function FunctionalTestHooks:new(build_window_manager, remote_apis_helpers_command_builder)
 	local o = setmetatable({}, FunctionalTestHooks)
 	o._build_window_manager = build_window_manager
+	o._remote_apis_helpers_command_builder = remote_apis_helpers_command_builder
 	return o
 end
 
@@ -65,6 +68,15 @@ function FunctionalTestHooks:extend_global_table(global_var, tbl)
 		vim.g[global_var] = {}
 	end
 	vim.g[global_var] = vim.tbl_deep_extend("force", vim.g[global_var], tbl)
+end
+
+---@return boolean
+function FunctionalTestHooks:are_remote_apis_helpers_installed()
+	local is_installed_command = self._remote_apis_helpers_command_builder:get_is_installed_command()
+	local result = vim.system(is_installed_command, {
+		clear_env = true,
+	}):wait()
+	return result.code == 0
 end
 
 return FunctionalTestHooks
