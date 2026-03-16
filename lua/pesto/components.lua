@@ -141,7 +141,7 @@ components.quick_fix_loader = _quick_fix_loader --[[ @as pesto.QuickfixLoader ]]
 
 ---@return pesto.RemoteApisHelpersCommandBuilder
 local _remote_apis_helpers_command_builder = function()
-	return require("pesto.bazel.remote_apis_helpers"):new()
+	return require("pesto.bazel.remote_apis_helpers_command_builder"):new()
 end
 components.remote_apis_helpers_command_builder = _remote_apis_helpers_command_builder --[[ @as pesto.RemoteApisHelpersCommandBuilder ]]
 
