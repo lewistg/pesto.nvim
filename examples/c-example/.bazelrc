@@ -1,0 +1,7 @@
+# If you follow [Buildfarm's][1] [Quick Start][2] guide, you'll have a RBE running locally on port 8980.
+# Uncomment this line to run builds with this "remote" executor.
+#
+# [1]: https://buildfarm.github.io/buildfarm/
+# [2]: https://buildfarm.github.io/buildfarm/docs/quick_start/
+#
+# build --remote_executor=grpc://localhost:8980
