@@ -19,6 +19,32 @@ For example, instead of parsing Bazel's stderr progress logs, pesto.nvim integra
 
 * Neovim 0.11.0 or later
 
+## Quick Start
+
+This repository includes a few example Bazel repositories in the `./examples` directory. 
+You can use them to try out `pesto.nvim`.
+Below is a suggested exercises using the example C project.
+
+If you experience an error, try checking `pesto.nvim`'s health (`:checkhealth pesto`).
+The health check should also point you to `pesto.nvim`'s log file where you may find lower-level information.
+
+1. Go into `./examples/c-example`
+2. Open up `./examples/c-example/src/main.c`
+3. Try the `:Pesto compile-one-dep` command
+    - You should see a terminal window pop up with Bazel's output.
+4. Close the build terminal and go back to `main.c`.
+5. Introduce some type of syntax error
+6. This time instead of using `compile-one-dep`, let's build using the `bazel` subcommand. Enter the following:
+    ```
+    :Pesto bazel build :<TAB>
+    ```
+    Once you hit tab, it should autocomplete to be:
+    ```
+    :Pesto bazel build :main
+    ```
+    Press `<ENTER>` to trigger the build
+    - This time you'll see the build terminal open, but afterwards the quickfix window should load with the error.
+
 ## Configuration
 
 ### Action errorformat
