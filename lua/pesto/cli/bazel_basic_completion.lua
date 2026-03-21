@@ -145,8 +145,15 @@ function BazelBasicCompletion:_get_dir_completion_candidates(base_path, dir_name
 	else
 		name_pattern = "^" .. dir_name_prefix .. ".*"
 	end
-	local fs_util = require("pesto.util.file_system")
-	return vim.iter(fs_util.get_dirs_iter(base_path, name_pattern)):totable()
+
+	return vim.iter(vim.fs.dir(base_path))
+		:filter(function(name, type)
+			return type == "directory" and name:find(name_pattern)
+		end)
+		:map(function(name, _)
+			return name
+		end)
+		:totable()
 end
 
 ---@param target_name_lead string
