@@ -9,7 +9,7 @@ local LazyTable = require("pesto.util.lazy_table")
 -- This plugin does manual dependency injection. This class contains the
 -- plugin's global set of components.
 ---@class Components
----@field bazel_sub_command BazelSubcommand
+---@field bazel_sub_command pesto.BazelSubcommand
 ---@field bazel_bash_completion pesto.BazelBashCompletion
 ---@field bazel_bash_completion_client pesto.BazelBashCompletionClient
 ---@field bazel_basic_completion pesto.BazelBasicCompletion
@@ -71,7 +71,7 @@ local function _build_window_manager()
 end
 components.build_window_manager = _build_window_manager --[[@as pesto.BuildWindowManager]]
 
----@return BazelSubcommand
+---@return pesto.BazelSubcommand
 local function _bazel_sub_command()
 	local BazelSubcommand = require("pesto.cli.bazel_subcommand")
 	return BazelSubcommand:new(
