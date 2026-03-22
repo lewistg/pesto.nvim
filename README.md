@@ -1,10 +1,10 @@
 # pesto.nvim
 
-pesto.nvim is a Bazel runner plugin for Neovim.
+`pesto.nvim` is a Bazel runner plugin for Neovim.
 It aims to make the edit-build-test cycle more seamless.
 
-Unlike generic runners, pesto.nvim has Bazel-specific capabilities.
-For example, instead of parsing Bazel's stderr progress logs, pesto.nvim integrates with the [Build Event Protocol](https://bazel.build/remote/bep) (BEP) to show a high-level summary of build targets and populate the quickfix list based on failed action logs.
+Unlike generic runners, `pesto.nvim` has Bazel-specific capabilities.
+For example, instead of parsing Bazel's stderr progress logs, `pesto.nvim` integrates with the [Build Event Protocol](https://bazel.build/remote/bep) (BEP) to show a high-level summary of build targets and populate the quickfix list based on failed action logs.
 
 ## Features
 
@@ -49,12 +49,12 @@ The health check should also point you to `pesto.nvim`'s log file where you may 
 
 ### Action errorformat
 
-Following a build, pesto.nvim parses the BEP output file, finds the failed build actions, and then uses `vim.fn.setqflist` to parse and load errors from the actions' stderr file into the quickfix list.
+Following a build, `pesto.nvim` parses the BEP output file, finds the failed build actions, and then uses `vim.fn.setqflist` to parse and load errors from the actions' stderr file into the quickfix list.
 As a multi-language build tool, it's possible Bazel will report errors coming from multiple compilers for different languages at once.
 How then do we pick which `errorformat` to use with `vim.fn.setqflist`?
 
-In pesto.nvim's configuration we are able to map rule kind and action mnemonic pairs to an `errorformat` configuration (`(rule_kind, action_mnemonic) -> errrorformat`).
-pesto.nvim will resolve which `errorformat` to use based on this mapping.
+In `pesto.nvim`'s configuration we are able to map rule kind and action mnemonic pairs to an `errorformat` configuration (`(rule_kind, action_mnemonic) -> errrorformat`).
+`pesto.nvim` will resolve which `errorformat` to use based on this mapping.
 
 
 > [!NOTE]
@@ -65,9 +65,9 @@ pesto.nvim will resolve which `errorformat` to use based on this mapping.
 > * Rule targets spawn actions, such as invoking a compiler.
 > * A rule target action has a name called the "mnemonic."
 > * An action may produce output such as compiler errors written to stderr. Bazel captures this output to stderr and saves it as a build artifact, as a file stored in the build cache.
-> * pesto.nvim discovers and processes these stderr files through the BEP output file.
+> * `pesto.nvim` discovers and processes these stderr files through the BEP output file.
 
-Here is pesto.nvim's default mapping:
+Here is `pesto.nvim`'s default mapping:
 
 ```lua
 vim.g.pesto = {
