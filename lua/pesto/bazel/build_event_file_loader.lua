@@ -1,4 +1,4 @@
----@class pesto.BuildEventFileLoader.MaybeDownloadFileOptions
+---@class pesto.BuildEventFileLoader.FetchFileOptions
 ---@field uri string The currently supported file schemes are `file` and `bytestream` (e.g., `file://...`, `bytestream://...`)
 ---@field on_load fun(lines: string[]) Callback with the log lines
 ---@field on_error fun(error: string|table) Callback if there was an error downloading the file
@@ -33,15 +33,15 @@ end
 ---@param on_load fun(lines: string[])
 ---@param on_error fun(error: string)
 function BuildEventFileLoader:load_file(file, on_load, on_error)
-	self:maybe_download_file({
+	self:fetch_file({
 		uri = file.uri,
 		on_load = on_load,
 		on_error = on_error,
 	})
 end
 
----@param opts pesto.BuildEventFileLoader.MaybeDownloadFileOptions
-function BuildEventFileLoader:maybe_download_file(opts)
+---@param opts pesto.BuildEventFileLoader.FetchFileOptions
+function BuildEventFileLoader:fetch_file(opts)
 	if opts.uri then
 		if vim.startswith(opts.uri:lower(), SCHEMES.file) then
 			local file_path = opts.uri:sub(string.len(SCHEMES.file) + 1)

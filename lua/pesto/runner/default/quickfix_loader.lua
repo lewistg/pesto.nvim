@@ -71,7 +71,7 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 					stderr_uri
 				)
 			)
-			self._build_event_file_loader:maybe_download_file({
+			self._build_event_file_loader:fetch_file({
 				uri = stderr_uri,
 				on_load = function(stderr_lines)
 					logger.debug(string.format("Loaded stderr logs. uri=%s", stderr_uri))
