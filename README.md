@@ -3,14 +3,11 @@
 `pesto.nvim` is a Bazel runner plugin for Neovim.
 It aims to make the edit-build-test cycle more seamless.
 
-Unlike generic runners, `pesto.nvim` has Bazel-specific capabilities.
-For example, instead of parsing Bazel's stderr progress logs, `pesto.nvim` integrates with the [Build Event Protocol](https://bazel.build/remote/bep) (BEP) to show a high-level summary of build targets and populate the quickfix list based on failed action logs.
-
 ## Features
 
 * A `bazel` wrapper command with autocomplete support:
   - `:Pesto bazel <bazel-subcommand> [subcommand-args]`
-* Integrates with the [Build Event Protocol](https://bazel.build/remote/bep) (BEP)
+* Integrates with the [Build Event Protocol](https://bazel.build/remote/bep)
   - Failed actions' stderr files are parsed and loaded into the quickfix list
   - A build summary window shows a high-level overview of successful and failed targets
 * Quick navigation to BUILD or BUILD.bazel files
@@ -23,7 +20,7 @@ For example, instead of parsing Bazel's stderr progress logs, `pesto.nvim` integ
 
 This repository includes a few example Bazel repositories in the `./examples` directory. 
 You can use them to try out `pesto.nvim`.
-Below is a suggested exercises using the example C project.
+Below is a suggested exercise using the example C project.
 
 If you experience an error, try checking `pesto.nvim`'s health (`:checkhealth pesto`).
 The health check should also point you to `pesto.nvim`'s log file where you may find lower-level information.
