@@ -9,6 +9,9 @@ local SCHEMES = {
 local BuildEventFileLoader = {}
 BuildEventFileLoader.__index = BuildEventFileLoader
 
+---@type table
+BuildEventFileLoader.BazelRemoteHelpersNotSetupError = {}
+
 function BuildEventFileLoader.is_byte_stream_uri(uri)
 	return vim.startswith(uri:lower(), SCHEMES.bytestream)
 end
@@ -29,8 +32,9 @@ end
 
 ---@param uri string
 ---@param on_load fun(lines: string[])
----@param on_error fun(error: string)
+---@param on_error fun(error: string|table)
 ---@param remote_cache_uri string|nil If the provided uri is a bytestream URI, then you should specify the remote_cache_uri
+---@return any|nil err
 function BuildEventFileLoader:maybe_download_file(uri, on_load, on_error, remote_cache_uri)
 	if uri then
 		if vim.startswith(uri:lower(), SCHEMES.file) then
@@ -38,7 +42,12 @@ function BuildEventFileLoader:maybe_download_file(uri, on_load, on_error, remote
 			local lines = vim.fn.readfile(file_path)
 			on_load(lines)
 		elseif vim.startswith(uri:lower(), SCHEMES.bytestream) then
-			if not remote_cache_uri then
+			if not self._byte_stream_client:are_remote_apis_helpers_installed() then
+				local logger = require("pesto.logger")
+				logger.warn(string.format("No remote cache client. Cannot download logs. uri=%s.", uri))
+				on_error(BuildEventFileLoader.BazelRemoteHelpersNotSetupError)
+				return
+			elseif not remote_cache_uri then
 				error("must specify remote cache URI when downloading byte streams")
 			end
 			self._byte_stream_client:get_byte_streams(remote_cache_uri, { uri }, on_load, function(uris)

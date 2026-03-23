@@ -3,7 +3,7 @@ describe("bazel_bash_completion_request.get_completion_request", function()
 		local test_util = require("pesto.cli.bazel_bash_completion.test.test_util")
 		local subcommand_line, cursor_pos = test_util.parse_command_test_case("bazel build |")
 
-		---@type SubcommandCompleteOpts
+		---@type pesto.SubcommandCompleteOpts
 		local subcommand_complete_opts = {
 			subcommand_line = subcommand_line,
 			cursor_pos = cursor_pos,
@@ -37,7 +37,7 @@ describe("bazel_bash_completion_request.get_completion_request", function()
 		local test_util = require("pesto.cli.bazel_bash_completion.test.test_util")
 		local subcommand_line, cursor_pos = test_util.parse_command_test_case("bazel build| //foo:bar")
 
-		---@type SubcommandCompleteOpts
+		---@type pesto.SubcommandCompleteOpts
 		local subcommand_complete_opts = {
 			subcommand_line = subcommand_line,
 			cursor_pos = cursor_pos,

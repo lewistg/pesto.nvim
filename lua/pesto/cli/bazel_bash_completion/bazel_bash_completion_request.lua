@@ -65,7 +65,7 @@ local function get_comp_line(bash_command_tokens)
 	return table.concat(token_values, "")
 end
 
----@param nvim_complete_opts SubcommandCompleteOpts
+---@param nvim_complete_opts pesto.SubcommandCompleteOpts
 ---@param bash_command_tokens pesto.BashCommandToken[]
 function M.get_bazel_bash_completion_request(nvim_complete_opts, bash_command_tokens)
 	---See tools/pesto-bash-helpers/pesto-bash-complete-bazel.sh for the

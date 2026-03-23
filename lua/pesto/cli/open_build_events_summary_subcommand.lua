@@ -1,4 +1,4 @@
----@class pesto.OpenBuildEventsSummarySubcommand: Subcommand
+---@class pesto.OpenBuildEventsSummarySubcommand: pesto.Subcommand
 ---@field private _build_window_manager pesto.BuildWindowManager
 local OpenBuildEventsSummarySubcommand = {}
 OpenBuildEventsSummarySubcommand.__index = OpenBuildEventsSummarySubcommand
@@ -18,7 +18,7 @@ function OpenBuildEventsSummarySubcommand:new(build_window_manager)
 	return o
 end
 
----@param opts SubcommandExecuteOpts
+---@param opts pesto.SubcommandExecuteOpts
 function OpenBuildEventsSummarySubcommand:_execute(opts)
 	self._build_window_manager:open_build_summary()
 end

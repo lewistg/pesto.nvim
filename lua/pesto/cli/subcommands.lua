@@ -1,30 +1,30 @@
 local M = {}
 
----@class Subcommands
----@field SUBCOMMANDS_BY_NAME {[string]: Subcommand}
+---@class pesto.Subcommands
+---@field SUBCOMMANDS_BY_NAME {[string]: pesto.Subcommand}
 ---@field SUBCOMMAND_NAMES string[]
 
----@class SubcommandCompleteOpts
+---@class pesto.SubcommandCompleteOpts
 ---@field subcommand_line string
 ---@field cursor_pos number
 ---@field arg_lead string
 ---@field buf_nr number
 
----@alias SubcommandCompleteFn fun(opts: SubcommandCompleteOpts): string[]
+---@alias pesto.SubcommandCompleteFn fun(opts: pesto.SubcommandCompleteOpts): string[]
 
----@class SubcommandExecuteOpts
+---@class pesto.SubcommandExecuteOpts
 ---@field fargs string[]
 ---@field buf_nr number
 
----@alias SubcommandExecuteFn fun(opts: SubcommandExecuteOpts)
+---@alias pesto.SubcommandExecuteFn fun(opts: pesto.SubcommandExecuteOpts)
 
 ---@class pesto.SubcommandCompletion
----@field complete SubcommandCompleteFn?
+---@field complete pesto.SubcommandCompleteFn?
 
----@class Subcommand: pesto.SubcommandCompletion
+---@class pesto.Subcommand: pesto.SubcommandCompletion
 ---@field name string
----@field complete SubcommandCompleteFn?
----@field execute SubcommandExecuteFn
+---@field complete pesto.SubcommandCompleteFn?
+---@field execute pesto.SubcommandExecuteFn
 
 ---@param open_cmd "vsplit"|"split"
 local function open_build_file(open_cmd)
@@ -37,17 +37,17 @@ local function open_build_file(open_cmd)
 	end
 end
 
----@type SubcommandExecuteFn
+---@type pesto.SubcommandExecuteFn
 local function execute_vs_build_subcommand()
 	open_build_file("vsplit")
 end
 
----@type SubcommandExecuteFn
+---@type pesto.SubcommandExecuteFn
 local function execute_sp_build_subcommand()
 	open_build_file("split")
 end
 
----@type SubcommandExecuteFn
+---@type pesto.SubcommandExecuteFn
 local function execute_yank_package_label_subcommand()
 	local bazel_repo = require("pesto.bazel.repo")
 	local package_label = bazel_repo.get_package_label()
@@ -60,7 +60,7 @@ end
 ---@param run_bazel_fn RunBazelFn
 ---@param settings pesto.Settings
 local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
-	---@type SubcommandExecuteFn
+	---@type pesto.SubcommandExecuteFn
 	local function execute()
 		local runner = require("pesto.runner.runner")
 		---@type RunBazelContext
@@ -90,16 +90,18 @@ end
 ---@field bazel_sub_command BazelSubcommand
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
+---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
 ---@field run_bazel_fn RunBazelFn
 ---@field settings pesto.Settings
 
 ---@param deps pesto.SubcommandDeps
----@return Subcommands[]
+---@return pesto.Subcommands[]
 function M.make_subcommands(deps)
 	local subcommands = {
 		-- Please keep keys alphabetized (by command name)
 		deps.bazel_sub_command,
 		get_compile_one_dep_subcommand(deps.run_bazel_fn, deps.settings),
+		deps.install_remote_apis_helpers_subcommand,
 		deps.open_build_term_subcommand,
 		{
 			name = "sp-build",
@@ -116,7 +118,7 @@ function M.make_subcommands(deps)
 		},
 	}
 
-	---@type {[string]: Subcommand}
+	---@type {[string]: pesto.Subcommand}
 	local SUBCOMMANDS_BY_NAME = {}
 	for _, subcommand in ipairs(subcommands) do
 		SUBCOMMANDS_BY_NAME[subcommand.name] = subcommand

@@ -9,7 +9,7 @@ local LazyTable = require("pesto.util.lazy_table")
 -- This plugin does manual dependency injection. This class contains the
 -- plugin's global set of components.
 ---@class Components
----@field bazel_sub_command BazelSubcommand
+---@field bazel_sub_command pesto.BazelSubcommand
 ---@field bazel_bash_completion pesto.BazelBashCompletion
 ---@field bazel_bash_completion_client pesto.BazelBashCompletionClient
 ---@field bazel_basic_completion pesto.BazelBasicCompletion
@@ -19,13 +19,14 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field byte_stream_client pesto.ByteStreamClient
 ---@field default_runner pesto.DefaultRunner
 ---@field functional_test_hooks pesto.FunctionalTestHooks
+---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
 ---@field quick_fix_loader pesto.QuickfixLoader
 ---@field remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
 ---@field run_bazel_fn RunBazelFn
 ---@field settings pesto.Settings
----@field subcommands Subcommands
+---@field subcommands pesto.Subcommands
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 
 ---@type Components
@@ -70,7 +71,7 @@ local function _build_window_manager()
 end
 components.build_window_manager = _build_window_manager --[[@as pesto.BuildWindowManager]]
 
----@return BazelSubcommand
+---@return pesto.BazelSubcommand
 local function _bazel_sub_command()
 	local BazelSubcommand = require("pesto.cli.bazel_subcommand")
 	return BazelSubcommand:new(
@@ -102,9 +103,20 @@ components.default_runner = _default_runner --[[@as pesto.DefaultRunner]]
 
 ---@return pesto.FunctionalTestHooks
 local function _functional_test_hooks()
-	return require("pesto.test.functional_test_hooks"):new(components.build_window_manager)
+	return require("pesto.test.functional_test_hooks"):new(
+		components.build_window_manager,
+		components.remote_apis_helpers_command_builder
+	)
 end
 components.functional_test_hooks = _functional_test_hooks --[[@as pesto.FunctionalTestHooks]]
+
+---@return pesto.InstallRemoteApisHelpersSubcommand
+local function _install_remote_apis_helpers_subcommand()
+	return require("pesto.cli.install_remote_apis_helpers_subcommand"):new(
+		components.remote_apis_helpers_command_builder
+	)
+end
+components.install_remote_apis_helpers_subcommand = _install_remote_apis_helpers_subcommand --[[@as pesto.InstallRemoteApisHelpersSubcommand]]
 
 ---@return pesto.OpenBuildTermSubcommand
 local function _open_build_term_subcommand()
@@ -129,7 +141,7 @@ components.quick_fix_loader = _quick_fix_loader --[[ @as pesto.QuickfixLoader ]]
 
 ---@return pesto.RemoteApisHelpersCommandBuilder
 local _remote_apis_helpers_command_builder = function()
-	return require("pesto.bazel.remote_apis_helpers"):new()
+	return require("pesto.bazel.remote_apis_helpers_command_builder"):new()
 end
 components.remote_apis_helpers_command_builder = _remote_apis_helpers_command_builder --[[ @as pesto.RemoteApisHelpersCommandBuilder ]]
 
@@ -142,17 +154,18 @@ local _run_bazel_fn = function()
 end
 components.run_bazel_fn = _run_bazel_fn --[[@as RunBazelFn ]]
 
----@return Subcommands
+---@return pesto.Subcommands
 local _subcommands = function()
 	return require("pesto.cli.subcommands").make_subcommands({
 		bazel_sub_command = components.bazel_sub_command,
+		install_remote_apis_helpers_subcommand = components.install_remote_apis_helpers_subcommand,
 		open_build_events_summary_subcommand = components.open_build_events_summary_subcommand,
 		run_bazel_fn = components.run_bazel_fn,
 		open_build_term_subcommand = components.open_build_term_subcommand,
 		settings = components.settings,
 	})
 end
-components.subcommands = _subcommands --[[@as Subcommands]]
+components.subcommands = _subcommands --[[@as pesto.Subcommands]]
 
 ---@return pesto.OpenBuildEventsSummarySubcommand
 local _open_build_events_summary_subcommand = function()

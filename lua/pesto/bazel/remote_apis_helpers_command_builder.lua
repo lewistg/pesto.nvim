@@ -12,13 +12,8 @@ end
 ---@param options {address: string, log_file?: string|nil}
 ---@return string[]
 function RemoteApisHelpersCommandBuilder:get_fetch_byte_streams_command(options)
-	if self._remote_apis_helpers_root == nil then
-		local remote_apis_helpers_root_name = "pesto-remote-apis-helpers"
-		self._remote_apis_helpers_root = vim.api.nvim_get_runtime_file("*/" .. remote_apis_helpers_root_name, false)[1]
-		if not self._remote_apis_helpers_root then
-			error("failed to find remote helpers root")
-		end
-	end
+	local remote_apis_helpers_util = require("pesto.bazel.remote_apis_helpers_util")
+	local remote_apis_helpers_root = remote_apis_helpers_util.get_remote_apis_helpers_root()
 
 	--- Keep in sync with tools/pesto-remote-apis-helpers/pyproject.toml
 	local script_name = "pesto-fetch-byte-streams"
@@ -29,13 +24,35 @@ function RemoteApisHelpersCommandBuilder:get_fetch_byte_streams_command(options)
 		"uv",
 		"run",
 		"--directory",
-		self._remote_apis_helpers_root,
+		remote_apis_helpers_root,
 		script_name,
 		"--uri",
 		options.address,
 		"--log-file",
 		log_file,
 		"-",
+	}
+end
+
+function RemoteApisHelpersCommandBuilder:get_install_command()
+	local remote_apis_helpers_util = require("pesto.bazel.remote_apis_helpers_util")
+	local remote_apis_helpers_root = remote_apis_helpers_util.get_remote_apis_helpers_root()
+	return {
+		"make",
+		"-C",
+		remote_apis_helpers_root,
+		"-B",
+	}
+end
+
+function RemoteApisHelpersCommandBuilder:get_is_installed_command()
+	local remote_apis_helpers_util = require("pesto.bazel.remote_apis_helpers_util")
+	local remote_apis_helpers_root = remote_apis_helpers_util.get_remote_apis_helpers_root()
+	return {
+		"make",
+		"-C",
+		remote_apis_helpers_root,
+		"-q",
 	}
 end
 

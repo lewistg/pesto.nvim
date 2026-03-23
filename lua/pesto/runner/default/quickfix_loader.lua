@@ -10,6 +10,7 @@ local PESTO_UNKNOWN_ACTION_RULE_KIND = "_PESTO_UNKNOWN_ACTION_RULE_KIND_"
 ---@field private _build_event_file_loader pesto.BuildEventFileLoader
 ---@field private _settings pesto.Settings
 ---@field private _error_scratch_buf_nr number|nil
+---@field private _has_sent_missing_client_notification boolean
 local QuickfixLoader = {}
 QuickfixLoader.__index = QuickfixLoader
 
@@ -21,6 +22,7 @@ function QuickfixLoader:new(build_event_file_loader, settings)
 	o._build_event_file_loader = build_event_file_loader
 	o._settings = settings
 	o._error_scratch_buf_nr = nil
+	o._has_sent_missing_client_notification = false
 	return o
 end
 
@@ -46,7 +48,7 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 		for action_type, stderr_uri in pairs(actions) do
 			local BuildEventFileLoader = require("pesto.bazel.build_event_file_loader")
 			if BuildEventFileLoader.is_byte_stream_uri(stderr_uri) then
-				logger.debug("Logs for some failed actions appear to be stored remotely. Getting remote cache URI.")
+				logger.debug("Logs for some failed actions are stored remotely. Getting remote cache URI.")
 				local BuildEventsTreeQueries = require("pesto.bazel.build_event_tree_queries")
 				local build_event_tree_queries = BuildEventsTreeQueries:new(build_event_tree)
 				local remote_cache_option = build_event_tree_queries:find_command_line_option(
@@ -83,8 +85,25 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 					on_first_quickfix_loaded()
 					called_on_first_quickfix_loaded = true
 				end
-			end, function(error)
-				logger.error(string.format("Error loading action stderr file %s: %s", stderr_uri, error))
+			end, function(err)
+				if
+					err == BuildEventFileLoader.BazelRemoteHelpersNotSetupError
+					and not self._has_sent_missing_client_notification
+				then
+					vim.notify(
+						table.concat({
+							"Pesto: Cannot load quickfix",
+							"",
+							"Failed action logs are stored remotely, and a download client has not been configured.",
+							"Run `:Pesto install-remote-apis-helpers` to use Pesto's default client.",
+							"For more information see `:help pesto-bazel-remote-apis-helpers`.",
+						}, "\n"),
+						vim.log.levels.WARN
+					)
+					self._has_sent_missing_client_notification = true
+				else
+					logger.error(string.format("Error loading action stderr file %s: %s", stderr_uri, tostring(err)))
+				end
 			end, remote_cache_uri)
 		end
 	end
@@ -129,7 +148,6 @@ end
 ---@param build_event_tree BuildEventTree
 ---@return table<_TargetRuleKind, table<_ActionType, string>>
 function QuickfixLoader:_get_failed_action_stderr(build_event_tree)
-	local BuildEvent = require("pesto.bazel.build_event")
 	---@type table<_TargetRuleKind, table<_ActionType, string>>
 	local stderr_uris = {}
 	for _, target_configured_event in ipairs(build_event_tree:find_events_by_kind({ "target_configured" })) do

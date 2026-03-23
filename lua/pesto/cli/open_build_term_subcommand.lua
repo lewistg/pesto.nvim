@@ -1,6 +1,6 @@
 local M = {}
 
----@class pesto.OpenBuildTermSubcommand: Subcommand
+---@class pesto.OpenBuildTermSubcommand: pesto.Subcommand
 ---@field private _build_window_manager pesto.BuildWindowManager
 local OpenBuildTermSubcommand = {}
 OpenBuildTermSubcommand.__index = OpenBuildTermSubcommand
@@ -20,7 +20,7 @@ function OpenBuildTermSubcommand:new(build_build_manager)
 	return o
 end
 
----@param opts SubcommandExecuteOpts
+---@param opts pesto.SubcommandExecuteOpts
 function OpenBuildTermSubcommand:_execute(opts)
 	---@type number|nil
 	local buf_id = self._build_window_manager:open_build_term()

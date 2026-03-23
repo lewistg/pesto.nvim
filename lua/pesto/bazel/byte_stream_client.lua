@@ -9,10 +9,12 @@
 ---@field uri string
 ---@field read_response pesto.google.bytestream.ReadResponse|nil
 
+--- The default byte stream client
 ---@class pesto.ByteStreamClient
 ---@field private _remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
 ---@field private _pending_read_job_ids number[]
 ---@field private _concurrent_downloads number
+---@field private _remote_apis_helpers_installed boolean|nil
 local ByteStreamClient = {}
 ByteStreamClient.__index = ByteStreamClient
 
@@ -24,6 +26,24 @@ function ByteStreamClient:new(remote_apis_helpers_command_builder)
 	local o = setmetatable({}, ByteStreamClient)
 	o._remote_apis_helpers_command_builder = remote_apis_helpers_command_builder
 	return o
+end
+
+---@return boolean
+function ByteStreamClient:are_remote_apis_helpers_installed()
+	if not self._remote_apis_helpers_installed then
+		local logger = require("pesto.logger")
+		logger.info("Checking Bazel Remote APIs helpers installation")
+		local is_installed_command = self._remote_apis_helpers_command_builder:get_is_installed_command()
+		local result = vim.system(is_installed_command, {
+			clear_env = true,
+		}):wait()
+		logger.info(
+			string.format("is_installed_command='%s', result=%d", table.concat(is_installed_command, " "), result.code)
+		)
+		local is_installed = result.code == 0
+		self._remote_apis_helpers_installed = is_installed
+	end
+	return self._remote_apis_helpers_installed
 end
 
 ---@param byte_stream_service_uri string

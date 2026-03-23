@@ -1,4 +1,4 @@
----@class OpenBuildEventsSummarySubcommand: Subcommand
+---@class pesto.OpenBuildEventsSummarySubcommand: pesto.Subcommand
 ---@field private _build_event_json_loader pesto.BuildEventJsonLoader
 ---@field private _build_events_buffer pesto.BuildEventsBuffer
 ---@field private _build_event_file_loader pesto.BuildEventFileLoader
@@ -22,7 +22,7 @@ function OpenBuildEventsSummarySubcommand:new(build_event_json_loader, build_eve
 	return o
 end
 
----@param opts SubcommandExecuteOpts
+---@param opts pesto.SubcommandExecuteOpts
 function OpenBuildEventsSummarySubcommand:_execute(opts)
 	if #opts.fargs < 1 then
 		vim.notify(string.format("Missing file name argument"), vim.log.levels.ERROR)
