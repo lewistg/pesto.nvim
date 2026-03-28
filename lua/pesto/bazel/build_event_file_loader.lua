@@ -56,9 +56,14 @@ function BuildEventFileLoader:fetch_file(opts)
 			elseif not opts.remote_cache_uri then
 				error("must specify remote cache URI when downloading byte streams")
 			end
-			self._byte_stream_client:get_byte_streams(opts.remote_cache_uri, { opts.uri }, opts.on_load, function(uris)
-				opts.on_error(string.format("failed to download uri: %s", uris[1]))
-			end)
+			self._byte_stream_client:get_byte_streams({
+				byte_stream_service_uri = opts.remote_cache_uri,
+				byte_stream_uris = { opts.uri },
+				on_download = opts.on_load,
+				on_done = function(uris)
+					opts.on_error(string.format("failed to download uri: %s", uris[1]))
+				end,
+			})
 		end
 	end
 end

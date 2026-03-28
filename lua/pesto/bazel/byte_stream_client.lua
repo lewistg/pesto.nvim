@@ -1,5 +1,8 @@
----@class pesto.ReadByteStreamsOptions
----@field uris string[] URIs of the form "bytestream://...". These are commonly pulled out of a BEP log files.
+---@class pesto.GetByteStreamsOptions
+---@field byte_stream_service_uri string
+---@field byte_stream_uris string[]
+---@field on_download fun(lines: string[], uri: string)
+---@field on_done fun(failed_uris: string[])
 
 --- See: https://github.com/googleapis/googleapis/blob/master/google/bytestream/bytestream.proto
 ---@class pesto.google.bytestream.ReadResponse
@@ -46,27 +49,24 @@ function ByteStreamClient:are_remote_apis_helpers_installed()
 	return self._remote_apis_helpers_installed
 end
 
----@param byte_stream_service_uri string
----@param byte_stream_uris string[]
----@param on_download fun(lines: string[], uri: string)
----@param on_done fun(failed_uris: string[])
+---@param opts pesto.GetByteStreamsOptions
 ---@return number Job ID for downloads
-function ByteStreamClient:get_byte_streams(byte_stream_service_uri, byte_stream_uris, on_download, on_done)
+function ByteStreamClient:get_byte_streams(opts)
 	---@type { [string]: pesto.google.bytestream.ReadResponse[] }
 	local byte_stream_read_responses = {}
 
 	local table_util = require("pesto.util.table_util")
 
 	---@type {[string]: boolean}
-	local pending_uris_set = table_util.make_set(byte_stream_uris)
+	local pending_uris_set = table_util.make_set(opts.byte_stream_uris)
 
 	---@type thread|nil
 	local enqueue_requests = nil
 
 	---@type string[]
 	local command = self._remote_apis_helpers_command_builder:get_fetch_byte_streams_command({
-		address = byte_stream_service_uri,
-		byte_stream_uris = byte_stream_uris,
+		address = opts.byte_stream_service_uri,
+		byte_stream_uris = opts.byte_stream_uris,
 	})
 	---@type string[]
 	local line_chunks = {}
@@ -117,7 +117,7 @@ function ByteStreamClient:get_byte_streams(byte_stream_service_uri, byte_stream_
 			vim.schedule(function()
 				for _, uri_key in ipairs(finished_stream_uris) do
 					local str = self:_get_compelete_lines(byte_stream_read_responses[uri_key])
-					on_download(str, uri_key)
+					opts.on_download(str, uri_key)
 					byte_stream_read_responses[uri_key] = nil
 					pending_uris_set[uri_key] = nil
 				end
@@ -142,12 +142,12 @@ function ByteStreamClient:get_byte_streams(byte_stream_service_uri, byte_stream_
 			for uri, _ in pairs(pending_uris_set) do
 				table.insert(failed_uris, uri)
 			end
-			on_done(failed_uris)
+			opts.on_done(failed_uris)
 		end,
 	})
 
 	---@type string[]
-	local byte_stream_uri_buffer = { unpack(byte_stream_uris) }
+	local byte_stream_uri_buffer = { unpack(opts.byte_stream_uris) }
 	---@type number
 	local next_uri_index = 1
 	enqueue_requests = coroutine.create(function()

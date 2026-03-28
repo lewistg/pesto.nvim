@@ -42,11 +42,16 @@ describe("pesto.ByteStreamClient", function()
 		---@type string[]
 		local byte_stream_uris = vim.tbl_keys(expected_byte_stream_lines)
 
-		byte_stream_client:get_byte_streams(byte_stream_service_uri, byte_stream_uris, function(lines, uri)
-			responses[uri] = lines
-		end, function(failed_uris)
-			finished = (#failed_uris == 0)
-		end)
+		byte_stream_client:get_byte_streams({
+			byte_stream_service_uri = byte_stream_service_uri,
+			byte_stream_uris = byte_stream_uris,
+			on_download = function(lines, uri)
+				responses[uri] = lines
+			end,
+			on_done = function(failed_uris)
+				finished = (#failed_uris == 0)
+			end,
+		})
 
 		vim.wait(200, function()
 			return finished
