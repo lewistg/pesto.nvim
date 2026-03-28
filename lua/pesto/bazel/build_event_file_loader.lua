@@ -3,6 +3,7 @@
 ---@field on_load fun(lines: string[]) Callback with the log lines
 ---@field on_error fun(error: string|table) Callback if there was an error downloading the file
 ---@field remote_cache_uri string|nil Will likely be of the form `grpc(s?)://...`. This parameter is required if the `uri` is a bytestream.
+---@field remote_headers string[]|nil
 
 local SCHEMES = {
 	file = "file://",
@@ -63,6 +64,7 @@ function BuildEventFileLoader:fetch_file(opts)
 				on_done = function(uris)
 					opts.on_error(string.format("failed to download uri: %s", uris[1]))
 				end,
+				request_headers = opts.remote_headers or {},
 			})
 		end
 	end

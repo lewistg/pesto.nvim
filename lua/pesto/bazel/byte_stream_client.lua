@@ -1,6 +1,7 @@
 ---@class pesto.GetByteStreamsOptions
 ---@field byte_stream_service_uri string
 ---@field byte_stream_uris string[]
+---@field request_headers string[]|nil
 ---@field on_download fun(lines: string[], uri: string)
 ---@field on_done fun(failed_uris: string[])
 
@@ -67,6 +68,7 @@ function ByteStreamClient:get_byte_streams(opts)
 	local command = self._remote_apis_helpers_command_builder:get_fetch_byte_streams_command({
 		address = opts.byte_stream_service_uri,
 		byte_stream_uris = opts.byte_stream_uris,
+		headers = opts.request_headers,
 	})
 	---@type string[]
 	local line_chunks = {}

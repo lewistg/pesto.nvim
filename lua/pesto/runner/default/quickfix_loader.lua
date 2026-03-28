@@ -42,6 +42,8 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 
 	---@type string|nil
 	local remote_cache_uri
+	---@type string[]|nil
+	local remote_headers
 	---@type boolean
 	local called_on_first_quickfix_loaded = false
 	for rule_kind, actions in pairs(stderr_uris) do
@@ -61,6 +63,13 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 					logger.info(string.format("Extracted remote cache URI: %s", remote_cache_option.option_value))
 				end
 				remote_cache_uri = remote_cache_option.option_value
+
+				local remote_header = build_event_tree_queries:find_command_line_option("canonical", "remote_header")
+				if remote_header then
+					-- Do not log the header value; it's kind of sensitive value
+					logger.trace("Extracted remote remote header")
+					remote_headers = { remote_header.option_value }
+				end
 			end
 
 			logger.debug(
@@ -111,6 +120,7 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 					end
 				end,
 				remote_cache_uri = remote_cache_uri,
+				remote_headers = remote_headers,
 			})
 		end
 	end
