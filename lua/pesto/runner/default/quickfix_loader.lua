@@ -56,7 +56,7 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 				local remote_cache_option = build_event_tree_queries:find_command_line_option(
 					"canonical",
 					"remote_cache"
-				) or build_event_tree_queries:find_command_line_option("canonical", "remote_executor")
+				)[1] or build_event_tree_queries:find_command_line_option("canonical", "remote_executor")[1]
 				if not remote_cache_option then
 					error('Failed to find "remote_cache" command line option')
 				else
@@ -64,11 +64,15 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 				end
 				remote_cache_uri = remote_cache_option.option_value
 
-				local remote_header = build_event_tree_queries:find_command_line_option("canonical", "remote_header")
-				if remote_header then
+				remote_headers = build_event_tree_queries:find_command_line_option("canonical", "remote_header")
+				if #remote_headers > 0 then
 					-- Do not log the header value; it's kind of sensitive value
-					logger.trace("Extracted remote remote header")
-					remote_headers = { remote_header.option_value }
+					logger.trace(string.format("Extracted remote %d header(s)", #remote_headers))
+					remote_headers = vim.iter(remote_headers)
+						:map(function(h)
+							return h.option_value
+						end)
+						:totable()
 				end
 			end
 
