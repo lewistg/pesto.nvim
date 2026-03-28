@@ -42,6 +42,8 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 
 	---@type string|nil
 	local remote_cache_uri
+	---@type string[]|nil
+	local remote_headers
 	---@type boolean
 	local called_on_first_quickfix_loaded = false
 	for rule_kind, actions in pairs(stderr_uris) do
@@ -54,13 +56,24 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 				local remote_cache_option = build_event_tree_queries:find_command_line_option(
 					"canonical",
 					"remote_cache"
-				) or build_event_tree_queries:find_command_line_option("canonical", "remote_executor")
+				)[1] or build_event_tree_queries:find_command_line_option("canonical", "remote_executor")[1]
 				if not remote_cache_option then
 					error('Failed to find "remote_cache" command line option')
 				else
 					logger.info(string.format("Extracted remote cache URI: %s", remote_cache_option.option_value))
 				end
 				remote_cache_uri = remote_cache_option.option_value
+
+				remote_headers = build_event_tree_queries:find_command_line_option("canonical", "remote_header")
+				if #remote_headers > 0 then
+					-- Do not log the header value; it's kind of sensitive value
+					logger.trace(string.format("Extracted remote %d header(s)", #remote_headers))
+					remote_headers = vim.iter(remote_headers)
+						:map(function(h)
+							return h.option_value
+						end)
+						:totable()
+				end
 			end
 
 			logger.debug(
@@ -71,40 +84,48 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 					stderr_uri
 				)
 			)
-			self._build_event_file_loader:maybe_download_file(stderr_uri, function(stderr_lines)
-				logger.debug(string.format("Loaded stderr logs. uri=%s", stderr_uri))
-				local action_errorformat = self:_get_errorformat(rule_kind, action_type)
-				if action_errorformat then
-					local error_scratch_buf_nr = self:_get_scratch_buf_nr()
-					self:_set_errorformat_settings(error_scratch_buf_nr, action_errorformat)
-					vim.api.nvim_buf_call(error_scratch_buf_nr, function()
-						self:_append_quickfix_items(workspace_dir, stderr_lines, vim.o.errorformat)
-					end)
-				end
-				if not called_on_first_quickfix_loaded then
-					on_first_quickfix_loaded()
-					called_on_first_quickfix_loaded = true
-				end
-			end, function(err)
-				if
-					err == BuildEventFileLoader.BazelRemoteHelpersNotSetupError
-					and not self._has_sent_missing_client_notification
-				then
-					vim.notify(
-						table.concat({
-							"Pesto: Cannot load quickfix",
-							"",
-							"Failed action logs are stored remotely, and a download client has not been configured.",
-							"Run `:Pesto install-remote-apis-helpers` to use Pesto's default client.",
-							"For more information see `:help pesto-bazel-remote-apis-helpers`.",
-						}, "\n"),
-						vim.log.levels.WARN
-					)
-					self._has_sent_missing_client_notification = true
-				else
-					logger.error(string.format("Error loading action stderr file %s: %s", stderr_uri, tostring(err)))
-				end
-			end, remote_cache_uri)
+			self._build_event_file_loader:fetch_file({
+				uri = stderr_uri,
+				on_load = function(stderr_lines)
+					logger.debug(string.format("Loaded stderr logs. uri=%s", stderr_uri))
+					local action_errorformat = self:_get_errorformat(rule_kind, action_type)
+					if action_errorformat then
+						local error_scratch_buf_nr = self:_get_scratch_buf_nr()
+						self:_set_errorformat_settings(error_scratch_buf_nr, action_errorformat)
+						vim.api.nvim_buf_call(error_scratch_buf_nr, function()
+							self:_append_quickfix_items(workspace_dir, stderr_lines, vim.o.errorformat)
+						end)
+					end
+					if not called_on_first_quickfix_loaded then
+						on_first_quickfix_loaded()
+						called_on_first_quickfix_loaded = true
+					end
+				end,
+				on_error = function(err)
+					if
+						err == BuildEventFileLoader.BazelRemoteHelpersNotSetupError
+						and not self._has_sent_missing_client_notification
+					then
+						vim.notify(
+							table.concat({
+								"Pesto: Cannot load quickfix",
+								"",
+								"Failed action logs are stored remotely, and a download client has not been configured.",
+								"Run `:Pesto install-remote-apis-helpers` to use Pesto's default client.",
+								"For more information see `:help pesto-bazel-remote-apis-helpers`.",
+							}, "\n"),
+							vim.log.levels.WARN
+						)
+						self._has_sent_missing_client_notification = true
+					else
+						logger.error(
+							string.format("Error loading action stderr file %s: %s", stderr_uri, tostring(err))
+						)
+					end
+				end,
+				remote_cache_uri = remote_cache_uri,
+				remote_headers = remote_headers,
+			})
 		end
 	end
 end

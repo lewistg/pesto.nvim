@@ -9,7 +9,7 @@ function RemoteApisHelpersCommandBuilder:new()
 	return o
 end
 
----@param options {address: string, log_file?: string|nil}
+---@param options {address: string, headers: string[]|nil, log_file?: string|nil}
 ---@return string[]
 function RemoteApisHelpersCommandBuilder:get_fetch_byte_streams_command(options)
 	local remote_apis_helpers_util = require("pesto.bazel.remote_apis_helpers_util")
@@ -20,7 +20,15 @@ function RemoteApisHelpersCommandBuilder:get_fetch_byte_streams_command(options)
 	local logger = require("pesto.logger")
 	local log_file = logger.log_dir .. "/" .. script_name .. ".log"
 
-	return {
+	---@type string[]
+	local header_options = vim.iter(options.headers or {})
+		:map(function(header)
+			return { "-H", header }
+		end)
+		:flatten()
+		:totable()
+
+	return vim.iter({
 		"uv",
 		"run",
 		"--directory",
@@ -28,10 +36,13 @@ function RemoteApisHelpersCommandBuilder:get_fetch_byte_streams_command(options)
 		script_name,
 		"--uri",
 		options.address,
+		header_options,
 		"--log-file",
 		log_file,
 		"-",
-	}
+	})
+		:flatten()
+		:totable()
 end
 
 function RemoteApisHelpersCommandBuilder:get_install_command()
