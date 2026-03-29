@@ -87,7 +87,7 @@ local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
 end
 
 ---@class pesto.SubcommandDeps
----@field bazel_sub_command BazelSubcommand
+---@field bazel_sub_command pesto.BazelSubcommand
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
