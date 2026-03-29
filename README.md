@@ -1,4 +1,4 @@
-# pesto.nvim
+# pesto.nvim: Neovim Bazel plugin
 
 `pesto.nvim` is a Bazel runner plugin for Neovim.
 It aims to make the edit-build-test cycle more seamless.
@@ -16,7 +16,7 @@ It aims to make the edit-build-test cycle more seamless.
 
 * Neovim 0.11.0 or later
 
-## Quick Start
+## Quick start
 
 This repository includes a few example Bazel repositories in the `./examples` directory. 
 You can use them to try out `pesto.nvim`.
