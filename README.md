@@ -1,3 +1,8 @@
+> [!WARNING]
+> **Work in progress**
+>
+> This plugin is currently under active development.
+
 # pesto.nvim: Neovim Bazel plugin
 
 `pesto.nvim` is a Bazel runner plugin for Neovim.
