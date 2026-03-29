@@ -45,7 +45,7 @@ function M.check()
 	end
 
 	local logger = require("pesto.logger")
-	vim.health.info(string.format("Log file: %s", logger.log_path))
+	vim.health.info(string.format("Log file: %s", logger.LOG_FILE_PATH))
 
 	check_bazel_bash_completion()
 end

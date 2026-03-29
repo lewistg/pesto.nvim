@@ -1,5 +1,3 @@
-local uv = vim.loop
-
 ---Note: The log methods accept a log message string or a function that returns
 ---a log message string. Prefer wrapping log messages that are expensive to
 ---calculate. The log message functions are only evaluated if permitted by the
@@ -13,7 +11,6 @@ local uv = vim.loop
 ---@field error fun(message: string|fun(): string)
 local M = {}
 
-local MAX_LOG_SIZE_IN_BYTES = 2 ^ 20 * 10
 local LOG_LEVEL = {
 	["trace"] = -1,
 	["debug"] = 0,
@@ -24,16 +21,9 @@ local LOG_LEVEL = {
 
 local DEFAULT_LOG_LEVEL = "info"
 
-local log_dir = vim.F.if_nil(vim.F.npcall(vim.fn.stdpath, "log"), vim.fn.stdpath("cache"))
-log_dir = vim.fs.normalize(log_dir)
-local log_path = vim.fs.joinpath(log_dir, "pesto.nvim.log")
-
-local log_stat = uv.fs_stat(log_path)
-if log_stat and log_stat.size > MAX_LOG_SIZE_IN_BYTES then
-	uv.fs_rename(log_path, log_path .. ".old")
-end
-
-local log_file = uv.fs_open(log_path, "a", 438)
+local temp_dir = require("pesto.util.temp_dirs")
+M.LOG_FILE_PATH = vim.fs.joinpath(temp_dir.LOGS_DIR, "pesto.nvim.log")
+local LOG_FILE = vim.uv.fs_open(M.LOG_FILE_PATH, "w+", tonumber("644", 8))
 
 local function get_call_location()
 	local info = debug.getinfo(3, "Sl")
@@ -71,11 +61,8 @@ for log_level, numeric_log_level in pairs(LOG_LEVEL) do
 			call_location.line_nu,
 			final_message
 		)
-		uv.fs_write(log_file, log_message)
+		vim.uv.fs_write(LOG_FILE, log_message)
 	end
 end
-
-M.log_dir = log_dir
-M.log_path = log_path
 
 return M

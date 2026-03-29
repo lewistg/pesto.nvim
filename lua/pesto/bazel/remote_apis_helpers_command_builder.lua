@@ -15,10 +15,10 @@ function RemoteApisHelpersCommandBuilder:get_fetch_byte_streams_command(options)
 	local remote_apis_helpers_util = require("pesto.bazel.remote_apis_helpers_util")
 	local remote_apis_helpers_root = remote_apis_helpers_util.get_remote_apis_helpers_root()
 
+	local temp_dir = require("pesto.util.temp_dirs")
 	--- Keep in sync with tools/pesto-remote-apis-helpers/pyproject.toml
 	local script_name = "pesto-fetch-byte-streams"
-	local logger = require("pesto.logger")
-	local log_file = logger.log_dir .. "/" .. script_name .. ".log"
+	local log_file = vim.fs.joinpath(temp_dir.LOGS_DIR, script_name .. ".log")
 
 	---@type string[]
 	local header_options = vim.iter(options.headers or {})

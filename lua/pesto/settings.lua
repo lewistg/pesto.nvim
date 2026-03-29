@@ -100,16 +100,6 @@ function Settings:get_bazel_runner()
 	return self:_resolve_setting("bazel_runner")
 end
 
----@return string Directory where temp files may be written
-function Settings:get_temp_dir()
-	return vim.fn.stdpath("run") .. "/pesto.nvim"
-end
-
----@return string Temporary directory where build event files are written
-function Settings:get_bep_temp_dir()
-	return self:get_temp_dir() .. "/bep"
-end
-
 ---Indicates whether or not the bep integration is enabled. When enabled, the
 ---`--build_event_json_file=<string>` bazel flag is automatically injected into
 ---the bazel command. The argument to `--build_event_json_file` will be a well
