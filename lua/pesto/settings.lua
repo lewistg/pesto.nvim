@@ -16,7 +16,11 @@
 ---@class pesto.CliCompletionSettings
 ---@field mode pesto.CliCompletionMode
 ---@field bash_timeout number|nil Number of milliseconds to wait for bazel's bash completion script to reply
----@field bash_completion_script string|nil Absolute path to the bash completion script
+---
+--- Absolute path to the bash completion script. If the setting is not defined,
+--- then Pesto falls back to searching for the completion scripts defined in
+--- pesto.Settings.DEFAULT_BASH_COMPLETION_SCRIPTS.
+---@field bash_completion_script string|nil
 
 ---@class pesto.RawSettings
 ---@field bazel_command string Name of bazel binary
@@ -65,7 +69,7 @@ local default_raw_settings = {
 	cli_completion = {
 		mode = "automatic",
 		bash_timeout = 15000,
-		bash_completion_script = "/etc/bash_completion.d/bazel",
+		bash_completion_script = nil,
 	},
 }
 
@@ -74,6 +78,12 @@ local Settings = {}
 Settings.__index = Settings
 
 Settings.SETTINGS_KEY = "pesto"
+
+---@type string[]
+Settings.DEFAULT_BASH_COMPLETION_SCRIPTS = {
+	vim.fs.joinpath("/etc/bash_completion.d", "bazel"),
+	vim.fs.joinpath("/etc/bash_completion.d", "bazel-completion"),
+}
 
 ---@return pesto.Settings
 function Settings:new()

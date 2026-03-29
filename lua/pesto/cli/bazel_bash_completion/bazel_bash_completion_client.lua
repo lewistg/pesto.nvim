@@ -14,6 +14,7 @@
 ---@field private _settings pesto.Settings
 ---@field private _bash_completion_server_system_object vim.SystemObj|nil
 ---@field private _current_response_line_handler fun(line: string)|nil
+---@field private _bash_completion_script string|-1|nil
 local BazelBashCompletionClient = {}
 BazelBashCompletionClient.__index = BazelBashCompletionClient
 
@@ -117,15 +118,14 @@ function BazelBashCompletionClient:_start_completion_server()
 
 	logger.info("starting bash completion server")
 
-	local cli_options = self._settings:get_cli_completion_settings()
-
-	assert(cli_options.bash_completion_script ~= nil, "bash_completion_script is not defined")
+	local bash_completion_script = self:_get_bash_completion_script()
+	assert(bash_completion_script ~= nil, "bash_completion_script is not defined")
 
 	---@type string[]
 	local server_command = {
 		self._bash_completion_server_script_path,
 		"serve",
-		cli_options.bash_completion_script,
+		bash_completion_script,
 	}
 
 	local job_util = require("pesto.util.job_util")
@@ -201,13 +201,13 @@ end
 
 ---@return pesto.BazelBashCompletionClientHealthCheckResult
 function BazelBashCompletionClient:check_health()
-	local cli_options = self._settings:get_cli_completion_settings()
+	local bash_completion_script = self:_get_bash_completion_script()
 
 	---@type string[]
 	local server_command = {
 		self._bash_completion_server_script_path,
 		"check-health",
-		cli_options.bash_completion_script,
+		bash_completion_script,
 	}
 
 	local system_completed = vim.system(server_command, { text = true, clear_env = true }):wait()
@@ -234,9 +234,47 @@ function BazelBashCompletionClient:check_health()
 	end
 
 	return {
-		completion_script = cli_options.bash_completion_script,
+		completion_script = bash_completion_script,
 		loads = loads,
 	}
+end
+
+---@private
+---@return string|nil
+function BazelBashCompletionClient:_get_bash_completion_script()
+	if self._bash_completion_script == nil then
+		local logger = require("pesto.logger")
+		logger.trace("finding the bash completion script")
+
+		local cli_options = self._settings:get_cli_completion_settings()
+		---@type string[]
+		local bash_completion_scripts
+		if cli_options.bash_completion_script ~= nil then
+			bash_completion_scripts = { cli_options.bash_completion_script }
+		else
+			local Settings = require("pesto.settings")
+			bash_completion_scripts = Settings.DEFAULT_BASH_COMPLETION_SCRIPTS
+		end
+
+		logger.trace(string.format("bash completion search paths: %s", table.concat(bash_completion_scripts, ",")))
+		for _, path in ipairs(bash_completion_scripts) do
+			if vim.fn.filereadable(path) == 1 then
+				logger.trace(string.format("found completion script: %s", path))
+				self._bash_completion_script = path
+				break
+			end
+		end
+		if self._bash_completion_script == nil then
+			logger.error("failed to find bash completion script")
+			self._bash_completion_script = -1
+		end
+	end
+	if self._bash_completion_script == -1 then
+		-- We already searched, and didnt' find a script
+		return nil
+	else
+		return self._bash_completion_script --[[@as string|nil]]
+	end
 end
 
 return BazelBashCompletionClient
