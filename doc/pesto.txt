@@ -1,0 +1,15 @@
+*pesto.txt*                                              Neovim plugin for Bazel
+*Pesto* *pesto* *pesto.nvim*
+
+--------------------------------------------------------------------------------
+
+Intro                                                              *pesto-intro*
+
+Pesto is a Bazel runner plugin for Neovim. It aims to make the edit-build-test
+cycle more seamless.
+
+--------------------------------------------------------------------------------
+
+Config                                                            *pesto-config*
+
+
