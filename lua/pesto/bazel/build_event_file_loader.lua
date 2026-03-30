@@ -30,7 +30,7 @@ function BuildEventFileLoader:new(byte_stream_client)
 	return o
 end
 
----@param file pesto.File
+---@param file pesto.bep.File
 ---@param on_load fun(lines: string[])
 ---@param on_error fun(error: string)
 function BuildEventFileLoader:load_file(file, on_load, on_error)

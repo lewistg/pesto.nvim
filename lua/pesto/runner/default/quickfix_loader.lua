@@ -204,7 +204,7 @@ end
 function QuickfixLoader:_get_remote_cache_uri(build_event_tree)
 	local events = build_event_tree:find_events_by_kind({ "structured_command_line" })
 
-	---@type pesto.Option[]|nil
+	---@type pesto.bep.Option[]|nil
 	local command_options
 	for _, event in ipairs(events) do
 		if vim.tbl_get(event, "command_line_label") == "canonical" then

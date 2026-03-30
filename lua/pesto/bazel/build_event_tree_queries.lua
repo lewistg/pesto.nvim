@@ -14,9 +14,9 @@ end
 
 ---@param command_line_label string
 ---@param option_name string
----@return pesto.Option[]
+---@return pesto.bep.Option[]
 function BuildEventTreeQueries:find_command_line_option(command_line_label, option_name)
-	---@type pesto.BuildEvent
+	---@type pesto.bep.BuildEvent
 	local command_line_event = nil
 	for _, event in ipairs(self._build_event_tree:find_events_by_kind({ "structured_command_line" })) do
 		if vim.tbl_get(event, "structured_command_line", "command_line_label") == command_line_label then
@@ -29,7 +29,7 @@ function BuildEventTreeQueries:find_command_line_option(command_line_label, opti
 		return {}
 	end
 
-	---@type pesto.CommandLineSection|nil
+	---@type pesto.bep.CommandLineSection|nil
 	local command_line_section
 	for _, section in ipairs(vim.tbl_get(command_line_event, "structured_command_line", "sections") or {}) do
 		local section_label = vim.tbl_get(section, "section_label")

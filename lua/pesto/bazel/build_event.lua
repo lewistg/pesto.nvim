@@ -5,100 +5,100 @@
 -- BuildEventIdIds
 -- ===============================================================
 
----@class pesto.UnknownBuildEventId
+---@class pesto.bep.UnknownBuildEventId
 ---@field details string|nil
 
----@class pesto.ProgressId
+---@class pesto.bep.ProgressId
 ---@field opaque_count number|nil
 
----@class pesto.BuildStartedId
+---@class pesto.bep.BuildStartedId
 
----@class pesto.UnstructuredCommandLineId
+---@class pesto.bep.UnstructuredCommandLineId
 
----@class pesto.StructuredCommandLineId
+---@class pesto.bep.StructuredCommandLineId
 ---@field command_line_label string|nil
 
----@class pesto.WorkspaceStatusId
+---@class pesto.bep.WorkspaceStatusId
 
----@class pesto.OptionsParsedId
+---@class pesto.bep.OptionsParsedId
 
----@alias pesto.Downloader 0|1|2
+---@alias pesto.bep.Downloader 0|1|2
 
----@class pesto.FetchId
+---@class pesto.bep.FetchId
 ---@field url string|nil
----@field downloader pesto.Downloader|nil
+---@field downloader pesto.bep.Downloader|nil
 
----@class pesto.PatternExpandedId
+---@class pesto.bep.PatternExpandedId
 ---@field pattern string|nil
 
----@class pesto.WorkspaceConfigId
+---@class pesto.bep.WorkspaceConfigId
 
----@class pesto.BuildMetadataId
+---@class pesto.bep.BuildMetadataId
 
----@class pesto.TargetConfiguredId
+---@class pesto.bep.TargetConfiguredId
 ---@field label string|nil
 ---@field aspect string|nil
 
----@class pesto.NamedSetOfFilesId
+---@class pesto.bep.NamedSetOfFilesId
 
----@class pesto.ConfigurationId
+---@class pesto.bep.ConfigurationId
 ---@field id string
 
----@class pesto.TargetCompletedId
+---@class pesto.bep.TargetCompletedId
 ---@field label string|nil
----@field configuration pesto.ConfigurationId|nil
+---@field configuration pesto.bep.ConfigurationId|nil
 
----@class pesto.ActionCompletedId
+---@class pesto.bep.ActionCompletedId
 ---@field primary_output string|nil
 ---@field label string|nil
----@field configuration pesto.ConfigurationId|nil
+---@field configuration pesto.bep.ConfigurationId|nil
 
----@class pesto.UnconfiguredLabelId
+---@class pesto.bep.UnconfiguredLabelId
 ---@field label string|nil
 
----@class pesto.ConfiguredLabelId
+---@class pesto.bep.ConfiguredLabelId
 ---@field lable string|nil
----@field configuration pesto.ConfigurationId|nil
+---@field configuration pesto.bep.ConfigurationId|nil
 
----@class pesto.TestResultId
+---@class pesto.bep.TestResultId
 ---@field label string|nil
----@field configuration pesto.ConfigurationId|nil
+---@field configuration pesto.bep.ConfigurationId|nil
 ---@field run number|nil
 ---@field shard number|nil
 ---@field attempt number|nil
 
----@class pesto.TestProgressId
+---@class pesto.bep.TestProgressId
 ---@field label string|nil
----@field configuration pesto.ConfigurationId|nil
+---@field configuration pesto.bep.ConfigurationId|nil
 ---@field run number|nil
 ---@field shard number|nil
 ---@field attempt number|nil
 ---@field opaque_count number|nil
 
----@class pesto.TestSummaryId
+---@class pesto.bep.TestSummaryId
 ---@field label string|nil
----@field configuration pesto.ConfigurationId|nil
+---@field configuration pesto.bep.ConfigurationId|nil
 
----@class pesto.TargetSummaryId
+---@class pesto.bep.TargetSummaryId
 ---@field label string|nil
----@field configuration pesto.ConfigurationId|nil
+---@field configuration pesto.bep.ConfigurationId|nil
 
----@class pesto.BuildFinishedId
+---@class pesto.bep.BuildFinishedId
 
----@class pesto.BuildToolLogsId
+---@class pesto.bep.BuildToolLogsId
 
----@class pesto.BuildMetricsId
+---@class pesto.bep.BuildMetricsId
 
----@class pesto.ConvenienceSymlinksIdentifiedId
+---@class pesto.bep.ConvenienceSymlinksIdentifiedId
 
----@class pesto.ExecRequestId
+---@class pesto.bep.ExecRequestId
 
 ---@alias pesto.SpecificBuildEventId
----| pesto.UnknownBuildEventId
----| pesto.ProgressId
+---| pesto.bep.UnknownBuildEventId
+---| pesto.bep.ProgressId
 
 --- The values in this alias should match the possible members of BuildEventId
----@alias pesto.BuildEventKind
+---@alias pesto.bep.BuildEventKind
 ---| "unknown"
 ---| "progress"
 ---| "started"
@@ -128,70 +128,70 @@
 ---| "convenience_symlinks_identified"
 ---| "exec_request"
 
----@class pesto.BuildEventId
----@field unknown pesto.UnknownBuildEventId|nil
----@field progress pesto.ProgressId|nil
----@field started pesto.BuildStartedId|nil
----@field unstructured_command_line pesto.UnstructuredCommandLineId|nil
----@field structured_command_line pesto.StructuredCommandLineId|nil
----@field workspace_status pesto.WorkspaceStatusId|nil
----@field options_parsed pesto.OptionsParsedId|nil
----@field fetch pesto.FetchId|nil
----@field configuration pesto.ConfigurationId|nil
----@field target_configured pesto.TargetConfiguredId|nil
----@field pattern pesto.PatternExpandedId|nil
----@field pattern_skipped pesto.PatternExpandedId|nil
----@field named_set pesto.NamedSetOfFilesId|nil
----@field target_completed pesto.TargetCompletedId|nil
----@field action_completed pesto.ActionCompletedId|nil
----@field unconfigured_label pesto.UnconfiguredLabelId|nil
----@field configured_label pesto.ConfiguredLabelId|nil
----@field test_result pesto.TestResultId|nil
----@field test_progress pesto.TestProgressId|nil
----@field test_summary pesto.TestSummaryId|nil
----@field target_summary pesto.TargetSummaryId|nil
----@field build_finished pesto.BuildFinishedId|nil
----@field build_tool_logs pesto.BuildToolLogsId|nil
----@field build_metrics pesto.BuildMetricsId|nil
----@field workspace pesto.WorkspaceConfigId|nil
----@field build_metadata pesto.BuildMetadataId|nil
----@field convenience_symlinks_identified pesto.ConvenienceSymlinksIdentifiedId|nil
----@field exec_request pesto.ExecRequestId|nil
+---@class pesto.bep.BuildEventId
+---@field unknown pesto.bep.UnknownBuildEventId|nil
+---@field progress pesto.bep.ProgressId|nil
+---@field started pesto.bep.BuildStartedId|nil
+---@field unstructured_command_line pesto.bep.UnstructuredCommandLineId|nil
+---@field structured_command_line pesto.bep.StructuredCommandLineId|nil
+---@field workspace_status pesto.bep.WorkspaceStatusId|nil
+---@field options_parsed pesto.bep.OptionsParsedId|nil
+---@field fetch pesto.bep.FetchId|nil
+---@field configuration pesto.bep.ConfigurationId|nil
+---@field target_configured pesto.bep.TargetConfiguredId|nil
+---@field pattern pesto.bep.PatternExpandedId|nil
+---@field pattern_skipped pesto.bep.PatternExpandedId|nil
+---@field named_set pesto.bep.NamedSetOfFilesId|nil
+---@field target_completed pesto.bep.TargetCompletedId|nil
+---@field action_completed pesto.bep.ActionCompletedId|nil
+---@field unconfigured_label pesto.bep.UnconfiguredLabelId|nil
+---@field configured_label pesto.bep.ConfiguredLabelId|nil
+---@field test_result pesto.bep.TestResultId|nil
+---@field test_progress pesto.bep.TestProgressId|nil
+---@field test_summary pesto.bep.TestSummaryId|nil
+---@field target_summary pesto.bep.TargetSummaryId|nil
+---@field build_finished pesto.bep.BuildFinishedId|nil
+---@field build_tool_logs pesto.bep.BuildToolLogsId|nil
+---@field build_metrics pesto.bep.BuildMetricsId|nil
+---@field workspace pesto.bep.WorkspaceConfigId|nil
+---@field build_metadata pesto.bep.BuildMetadataId|nil
+---@field convenience_symlinks_identified pesto.bep.ConvenienceSymlinksIdentifiedId|nil
+---@field exec_request pesto.bep.ExecRequestId|nil
 
 -- ===============================================================
 -- CommandLine
 -- See: https://github.com/bazelbuild/bazel/blob/master/src/main/protobuf/command_line.proto
 -- ===============================================================
----@class pesto.Option
+---@class pesto.bep.Option
 ---@field combined_form string
 ---@field option_name string
 ---@field option_value string
 
----@class pesto.OptionList
----@field option pesto.Option[]
+---@class pesto.bep.OptionList
+---@field option pesto.bep.Option[]
 
----@class pesto.CommandLineSection
+---@class pesto.bep.CommandLineSection
 ---@field chunk_list string[]
----@field option_list pesto.OptionList
+---@field option_list pesto.bep.OptionList
 
----@class pesto.CommandLine
+---@class pesto.bep.CommandLine
 ---@field command_line_label string
----@field sections pesto.CommandLineSection[]
+---@field sections pesto.bep.CommandLineSection[]
 
 -- ===============================================================
 -- BuildEvent payloads
 -- ===============================================================
 
----@class pesto.Progress
+---@class pesto.bep.Progress
 ---@field stdout string
 ---@field stderr string
 
 ---@alias pesto.AbortReason 0|1|2|3|4|5|6|7|8|9|10|11
----@class pesto.Aborted
+---@class pesto.bep.Aborted
 ---@field abort_reason pesto.AbortReason
 ---@field description string
 
----@class pesto.BuildStarted
+---@class pesto.bep.BuildStarted
 ---@field uuid string
 ---@field start_time number
 ---@field build_tool_version string
@@ -201,13 +201,13 @@
 ---@field workspace_directory string
 ---@field server_pid number
 
----@class pesto.WorkspaceConfig
+---@class pesto.bep.WorkspaceConfig
 ---@field local_exec_root string
 
----@class pesto.UnstructuredCommandLine
+---@class pesto.bep.UnstructuredCommandLine
 ---@field args string
 
----@class pesto.OptionsParsed
+---@class pesto.bep.OptionsParsed
 ---@field startup_options string[]
 ---@field cmd_line string[]
 ---@field explicit_cmd_line string[]
@@ -215,45 +215,45 @@
 --@field invocation_policy ???
 ---@field tool_tag string
 
----@class pesto.Fetch
+---@class pesto.bep.Fetch
 ---@field success boolean
 
----@class pesto.WorkspaceStatusItem
+---@class pesto.bep.WorkspaceStatusItem
 ---@field key string
 ---@field value string
 
----@class pesto.WorkspaceStatus
----@field item pesto.WorkspaceStatusItem[]
+---@class pesto.bep.WorkspaceStatus
+---@field item pesto.bep.WorkspaceStatusItem[]
 
----@class pesto.BuildMetadata
+---@class pesto.bep.BuildMetadata
 ---@field metdata {[string]: string}
 
----@class pesto.Configuration
+---@class pesto.bep.Configuration
 ---@field mnemonic string
 ---@field platform_name string
 ---@field cpu string
 ---@field make_variable {[string]: string}
 ---@field is_tool boolean
 
----@class pesto.TestSuiteExpansion
+---@class pesto.bep.TestSuiteExpansion
 ---@field suite_label string
 ---@field test_labels string
 
----@class pesto.PatternExpanded
----@field test_suite_expansions pesto.TestSuiteExpansion[]
+---@class pesto.bep.PatternExpanded
+---@field test_suite_expansions pesto.bep.TestSuiteExpansion[]
 
 ---@alias TestSize 0|1|2|3|4
 
----@class pesto.TargetConfigured
+---@class pesto.bep.TargetConfigured
 ---@field target_kind string
 ---@field test_size TestSize
 
----@class pesto.TestSuiteExpansion
+---@class pesto.bep.TestSuiteExpansion
 ---@field target_kind string
 ---@field test_size TestSize
 ---@field tag string
 
----@class pesto.File
+---@class pesto.bep.File
 ---@field path_prefix string
 ---@field name string
 ---@field uri string|nil
@@ -262,18 +262,18 @@
 ---@field digest string
 ---@field length number
 
----@class pesto.NamedSetOfFiles
----@field files pesto.File[]
----@field file_sets pesto.NamedSetOfFilesId[]
+---@class pesto.bep.NamedSetOfFiles
+---@field files pesto.bep.File[]
+---@field file_sets pesto.bep.NamedSetOfFilesId[]
 
----@class pesto.ActionExecuted
+---@class pesto.bep.ActionExecuted
 ---@field success boolean
 ---@field type string
 ---@field exit_code number
----@field stdout pesto.File
----@field stderr pesto.File
----@field configuration pesto.ConfigurationId
----@field primary_output pesto.File
+---@field stdout pesto.bep.File
+---@field stderr pesto.bep.File
+---@field configuration pesto.bep.ConfigurationId
+---@field primary_output pesto.bep.File
 ---@field command_line string[]
 -- TODO
 --@field failure_detail FailureDetail
@@ -281,16 +281,16 @@
 --@field start_time Timestamp
 ---@field strategy_details any
 
----@class pesto.OutputGroup
+---@class pesto.bep.OutputGroup
 ---@field name string
----@field file_sets pesto.NamedSetOfFilesId[]
+---@field file_sets pesto.bep.NamedSetOfFilesId[]
 ---@field incomplete boolean
----@field inline_files pesto.File[]
+---@field inline_files pesto.bep.File[]
 
----@class pesto.TargetComplete
+---@class pesto.bep.TargetComplete
 ---@field success boolean
----@field output_group pesto.OutputGroup
----@field directory_output pesto.File
+---@field output_group pesto.bep.OutputGroup
+---@field directory_output pesto.bep.File
 ---@field tag string
 --TODO
 --@field test_timeout Duration
@@ -298,13 +298,13 @@
 
 ---@alias TestStatus 0|1|2|3|4|5|6|7|8
 --
----@class pesto.ExecutionInfo
+---@class pesto.bep.ExecutionInfo
 ---@field strategy string
 ---@field cached_remotely boolean
 ---@field exit_code number
 ---@field hostname string
 
----@class pesto.TestResult
+---@class pesto.bep.TestResult
 ---@field status TestStatus
 ---@field status_details string
 ---@field cached_locally boolean
@@ -312,114 +312,114 @@
 --@field test_attempt_start Timestamp
 --@field test_attempt_duration Duration
 ---@field warning string[]
----@field execution_info pesto.ExecutionInfo
+---@field execution_info pesto.bep.ExecutionInfo
 
----@class pesto.TestProgress
+---@class pesto.bep.TestProgress
 ---@field uri string
 
----@class pesto.TestSummary
+---@class pesto.bep.TestSummary
 ---@field overall_status TestStatus
 ---@field total_run_count number
 ---@field attempt_count number
 ---@field shard_count number
----@field passed pesto.File
----@field failed pesto.File
+---@field passed pesto.bep.File
+---@field failed pesto.bep.File
 ---@field total_num_cached number
 -- TODO
 --@field first_start_time Timestamp
 --@field total_run_duration Duration
 
----@class pesto.ExitCode
+---@class pesto.bep.ExitCode
 ---@field name string
 ---@field code number
 
----@class pesto.AnomalyReport
+---@class pesto.bep.AnomalyReport
 ---@field was_suspended boolean
 
----@class pesto.BuildFinished
+---@class pesto.bep.BuildFinished
 ---@field overall_success boolean
----@field exit_code pesto.ExitCode
+---@field exit_code pesto.bep.ExitCode
 --TODO
 --@field finish_time Timestamp
----@field anomaly_report pesto.AnomalyReport
+---@field anomaly_report pesto.bep.AnomalyReport
 --@field failure_detail FailureDetail
 
----@class pesto.BuildMetrics
+---@class pesto.bep.BuildMetrics
 -- TODO fields
 
----@class pesto.TargetSummary
+---@class pesto.bep.TargetSummary
 ---@field overall_build_success boolean
 ---@field overall_test_status TestStatus
 
----@class pesto.BuildToolLogs
----@field log pesto.File[]
+---@class pesto.bep.BuildToolLogs
+---@field log pesto.bep.File[]
 
----@class pesto.ConvenienceSymlinksIdentified
+---@class pesto.bep.ConvenienceSymlinksIdentified
 ---@field convenience_symlinks string
 
----@class pesto.EnvironmentVariable
+---@class pesto.bep.EnvironmentVariable
 ---@field name string
 ---@field value string
 
----@class pesto.ExecRequestConstructed
+---@class pesto.bep.ExecRequestConstructed
 ---@field working_directory string
 ---@field argv string[]
----@field environment_variable pesto.EnvironmentVariable[]
+---@field environment_variable pesto.bep.EnvironmentVariable[]
 ---@field should_exec boolean
 
 -- ===============================================================
 -- BuildEvent payloads
 -- ===============================================================
 
----@class pesto.BuildEvent
----@field id pesto.BuildEventId
----@field children pesto.BuildEventId[]
+---@class pesto.bep.BuildEvent
+---@field id pesto.bep.BuildEventId
+---@field children pesto.bep.BuildEventId[]
 ---@field last_message boolean
 -- One of the following fields should be defined
----@field progress pesto.Progress|nil
----@field aborted pesto.Aborted|nil
----@field started pesto.BuildStarted|nil
----@field unstructured_command_line pesto.UnstructuredCommandLine|nil
----@field structured_command_line pesto.CommandLine|nil
----@field options_parsed pesto.OptionsParsed|nil
----@field workspace_status pesto.WorkspaceStatus|nil
----@field fetch pesto.Fetch|nil
----@field configuration pesto.Configuration|nil
----@field expanded pesto.PatternExpanded|nil
----@field configured pesto.TargetConfigured|nil
----@field action pesto.ActionExecuted|nil
----@field named_set_of_files pesto.NamedSetOfFiles|nil
----@field completed pesto.TargetComplete|nil
----@field test_result pesto.TestResult|nil
----@field test_progress pesto.TestProgress|nil
----@field test_summary pesto.TestSummary|nil
----@field target_summary pesto.TargetSummary|nil
----@field finished pesto.BuildFinished|nil
----@field build_tool_logs pesto.BuildToolLogs|nil
----@field build_metrics pesto.BuildMetrics|nil
----@field workspace_info pesto.WorkspaceConfig|nil
----@field build_metadata pesto.BuildMetadata|nil
----@field convenience_symlinks_identified pesto.ConvenienceSymlinksIdentified|nil
----@field exec_request pesto.ExecRequestConstructed|nil
+---@field progress pesto.bep.Progress|nil
+---@field aborted pesto.bep.Aborted|nil
+---@field started pesto.bep.BuildStarted|nil
+---@field unstructured_command_line pesto.bep.UnstructuredCommandLine|nil
+---@field structured_command_line pesto.bep.CommandLine|nil
+---@field options_parsed pesto.bep.OptionsParsed|nil
+---@field workspace_status pesto.bep.WorkspaceStatus|nil
+---@field fetch pesto.bep.Fetch|nil
+---@field configuration pesto.bep.Configuration|nil
+---@field expanded pesto.bep.PatternExpanded|nil
+---@field configured pesto.bep.TargetConfigured|nil
+---@field action pesto.bep.ActionExecuted|nil
+---@field named_set_of_files pesto.bep.NamedSetOfFiles|nil
+---@field completed pesto.bep.TargetComplete|nil
+---@field test_result pesto.bep.TestResult|nil
+---@field test_progress pesto.bep.TestProgress|nil
+---@field test_summary pesto.bep.TestSummary|nil
+---@field target_summary pesto.bep.TargetSummary|nil
+---@field finished pesto.bep.BuildFinished|nil
+---@field build_tool_logs pesto.bep.BuildToolLogs|nil
+---@field build_metrics pesto.bep.BuildMetrics|nil
+---@field workspace_info pesto.bep.WorkspaceConfig|nil
+---@field build_metadata pesto.bep.BuildMetadata|nil
+---@field convenience_symlinks_identified pesto.bep.ConvenienceSymlinksIdentified|nil
+---@field exec_request pesto.bep.ExecRequestConstructed|nil
 ---Note: These fields are non-standard fields that we've added for convenience
----@field kind pesto.BuildEventKind
+---@field kind pesto.bep.BuildEventKind
 ---@field id_key string
 local BuildEvent = {}
 BuildEvent.__index = BuildEvent
 
 ---@param raw_event table
----@return pesto.BuildEvent
+---@return pesto.bep.BuildEvent
 function BuildEvent:new(raw_event)
-	---@type pesto.BuildEvent
+	---@type pesto.bep.BuildEvent
 	local o = setmetatable(raw_event, BuildEvent)
 	local table_util = require("pesto.util.table_util")
-	o.kind = table_util.some_key(raw_event.id) --[[@as pesto.BuildEventKind]]
+	o.kind = table_util.some_key(raw_event.id) --[[@as pesto.bep.BuildEventKind]]
 	o.id_key = o.get_id_key(o.id)
 	return o
 end
 
 --- Gets a unique fingerprint for the build event ID
----@param build_event_id pesto.BuildEventId
+---@param build_event_id pesto.bep.BuildEventId
 ---@return string
 function BuildEvent.get_id_key(build_event_id)
 	local table_util = require("pesto.util.table_util")
