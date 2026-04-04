@@ -14,7 +14,12 @@
 ---| "automatic"
 
 ---@class pesto.CliCompletionSettings
+---
+--- Completion strategy
 ---@field mode pesto.CliCompletionMode
+---
+--- For the "bash" completion strategy, this is the amount of time to wait
+--- for the bash completion script to finish before timing out.
 ---@field bash_timeout number|nil Number of milliseconds to wait for bazel's bash completion script to reply
 ---
 --- Absolute path to the bash completion script. If the setting is not defined,
@@ -23,17 +28,36 @@
 ---@field bash_completion_script string|nil
 
 ---@class pesto.Settings
----@field bazel_command string Name of bazel binary
----@field bazel_runner RunBazelFn Runs the bazel command
----@field log_level string Logger level
+---
+--- Name of bazel binary that Pesto invokes. Should be on your $PATH.
+---@field bazel_command string
+---
+--- Callback invoked to run bazel.
+---@field bazel_runner RunBazelFn Method invoked to run bazel.
+---
+-- Logging level (see `:checkhealth pesto` to get the log file's path).
+---@field log_level string
+---
+--- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
+--- Bazel command line option. If you use the default runner, then following
+--- the build Pesto will parse the resulting build events tree and the quickfix
+--- list.
 ---@field enable_bep_integration boolean
+---
+--- When this option is true and when you are using the default runner, a
+--- terminal buffer will be opened automatically when bazel is invoked.
 ---@field auto_open_build_term boolean
----@field errorformats pesto.RuleActionErrorformats[] Maps a (rule kind pattern, action mnemonic pattern)
+---
+--- Maps a (rule kind pattern, action mnemonic pattern)
 --- pair to an errorformat string or compiler plugin name. Note that
 --- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
 --- string pattern.
+---@field errorformats pesto.RuleActionErrorformats[]
+---
 --- See pesto.RuleActionErrorformats and pesto.ActionErrorformat.
 ---@field bytestream_client "pesto-python-remote-apis-helpers"|pesto.ByteStreamClient|nil
+---
+--- Configuration for the `:Pesto bazel` subcommand auto-completion
 ---@field cli_completion pesto.CliCompletionSettings
 
 ---@type pesto.Settings

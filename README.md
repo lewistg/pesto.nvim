@@ -49,6 +49,55 @@ The health check should also point you to `pesto.nvim`'s log file where you may 
 
 ## Configuration
 
+You don't need to call a `setup` function to configure `pesto.nvim`.
+You can instead just set `vim.g.pesto`.
+Here is the default configuration:
+
+```lua
+---@type pesto.Settings
+vim.g.pesto = {
+    -- Name of bazel binary that Pesto invokes. Should be on your $PATH.
+	bazel_command = "bazel",
+    -- Callback invoked to run bazel.
+	bazel_runner = function(opts)
+        require("pesto.components").default_runner(opts)
+	end,
+    -- Logging level (see `:checkhealth pesto` to get the log file's path)
+	log_level = "info",
+    --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
+    --- Bazel command line option. If you use the default runner, then following
+    --- the build Pesto will parse the resulting build events tree and the quickfix
+    --- list.
+	enable_bep_integration = true,
+    --- When this option is true and when you are using the default runner, a
+    --- terminal buffer will be opened automatically when bazel is invoked.
+	auto_open_build_term = true,
+    --- Maps a (rule kind pattern, action mnemonic pattern)
+    --- pair to an errorformat string or compiler plugin name. Note that
+    --- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
+    --- string pattern.
+    --- See the "Action errorformat" section below for details.
+	errorformats = {
+       ...
+	},
+	bytestream_client = nil,
+    --- Configuration for the `:Pesto bazel` subcommand auto-completion
+	cli_completion = {
+        --- Completion strategy. There are three modes:
+        --- * "bash": With this mode completion gets powered by the Bazel's own bash completion script (e.g., /etc/bash_completion.d/bazel)
+        --- * "lua": A less sophisticated lua implementation of Bazel
+        --- * "automatic": With this mode, we attempt to first use the bash completion script. If it's unavailable, then we fallback to the lua implementation.
+		mode = "automatic",
+        --- For the "bash" completion strategy, this is the amount of time to wait
+        --- for the bash completion script to finish before timing out.
+		bash_timeout = 15000,
+        --- Absolute path to the bash completion script. If the setting is not defined,
+        --- then Pesto falls back to searching for the script in `/etc/bash_completion.d/`
+		bash_completion_script = nil,
+	},
+}
+```
+
 ### Action errorformat
 
 Following a build, `pesto.nvim` parses the BEP output file, finds the failed build actions, and then uses `vim.fn.setqflist` to parse and load errors from the actions' stderr file into the quickfix list.
