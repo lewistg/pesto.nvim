@@ -98,6 +98,14 @@ vim.g.pesto = {
 }
 ```
 
+If you prefer, however, `pesto.nvim` does support a setup function:
+
+```lua
+---@type pesto.Settngs
+local settings = {...}
+require("pesto").setup(settings)
+```
+
 ### Action errorformat
 
 Following a build, `pesto.nvim` parses the BEP output file, finds the failed build actions, and then uses `vim.fn.setqflist` to parse and load errors from the actions' stderr file into the quickfix list.
