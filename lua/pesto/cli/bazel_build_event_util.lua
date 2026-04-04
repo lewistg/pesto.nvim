@@ -4,7 +4,7 @@ local M = {}
 local BUILD_EVENT_JSON_FILE_OPTION = "--build_event_json_file"
 
 ---@param bazel_command string[]
----@param settings pesto.Settings
+---@param settings pesto.InternalSettings
 function M.inject_bep_option(bazel_command, settings)
 	local option_name = BUILD_EVENT_JSON_FILE_OPTION
 	for _, arg in ipairs(bazel_command) do

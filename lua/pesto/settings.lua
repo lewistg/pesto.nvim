@@ -19,10 +19,10 @@
 ---
 --- Absolute path to the bash completion script. If the setting is not defined,
 --- then Pesto falls back to searching for the completion scripts defined in
---- pesto.Settings.DEFAULT_BASH_COMPLETION_SCRIPTS.
+--- pesto.InternalSettings.DEFAULT_BASH_COMPLETION_SCRIPTS.
 ---@field bash_completion_script string|nil
 
----@class pesto.RawSettings
+---@class pesto.Settings
 ---@field bazel_command string Name of bazel binary
 ---@field bazel_runner RunBazelFn Runs the bazel command
 ---@field log_level string Logger level
@@ -36,7 +36,7 @@
 ---@field bytestream_client "pesto-python-remote-apis-helpers"|pesto.ByteStreamClient|nil
 ---@field cli_completion pesto.CliCompletionSettings
 
----@type pesto.RawSettings
+---@type pesto.Settings
 local default_raw_settings = {
 	bazel_command = "bazel",
 	bazel_runner = function(opts)
@@ -73,21 +73,22 @@ local default_raw_settings = {
 	},
 }
 
----@class pesto.Settings
-local Settings = {}
-Settings.__index = Settings
+--- Wraps the settings and resolves buffer-local overrides
+---@class pesto.InternalSettings
+local InternalSettings = {}
+InternalSettings.__index = InternalSettings
 
-Settings.SETTINGS_KEY = "pesto"
+InternalSettings.SETTINGS_KEY = "pesto"
 
 ---@type string[]
-Settings.DEFAULT_BASH_COMPLETION_SCRIPTS = {
+InternalSettings.DEFAULT_BASH_COMPLETION_SCRIPTS = {
 	vim.fs.joinpath("/etc/bash_completion.d", "bazel"),
 	vim.fs.joinpath("/etc/bash_completion.d", "bazel-completion"),
 }
 
----@return pesto.Settings
-function Settings:new()
-	local o = setmetatable({}, Settings)
+---@return pesto.InternalSettings
+function InternalSettings:new()
+	local o = setmetatable({}, InternalSettings)
 	return o
 end
 
@@ -95,18 +96,18 @@ end
 ---@private
 ---@param key string
 ---@return `T`
-function Settings:_resolve_setting(key)
+function InternalSettings:_resolve_setting(key)
 	local buf_id = vim.api.nvim_get_current_buf()
 	return vim.tbl_deep_extend(
 		"keep",
-		vim.tbl_get(vim.b, buf_id, Settings.SETTINGS_KEY) or {},
-		vim.tbl_get(vim.g, Settings.SETTINGS_KEY) or {},
+		vim.tbl_get(vim.b, buf_id, InternalSettings.SETTINGS_KEY) or {},
+		vim.tbl_get(vim.g, InternalSettings.SETTINGS_KEY) or {},
 		default_raw_settings
 	)[key]
 end
 
 ---@return RunBazelFn
-function Settings:get_bazel_runner()
+function InternalSettings:get_bazel_runner()
 	return self:_resolve_setting("bazel_runner")
 end
 
@@ -115,22 +116,22 @@ end
 ---the bazel command. The argument to `--build_event_json_file` will be a well
 ---known file that can be loaded post-build.
 ---@return boolean
-function Settings:get_enable_bep_integration()
+function InternalSettings:get_enable_bep_integration()
 	return self:_resolve_setting("enable_bep_integration")
 end
 
-function Settings:get_auto_open_build_term()
+function InternalSettings:get_auto_open_build_term()
 	return self:_resolve_setting("auto_open_build_term")
 end
 
 ---@return pesto.RuleActionErrorformats
-function Settings:get_errorformats(rule_kind, action_mnemonic)
+function InternalSettings:get_errorformats(rule_kind, action_mnemonic)
 	return self:_resolve_setting("errorformats")
 end
 
 ---@return pesto.CliCompletionSettings
-function Settings:get_cli_completion_settings()
+function InternalSettings:get_cli_completion_settings()
 	return self:_resolve_setting("cli_completion")
 end
 
-return Settings
+return InternalSettings

@@ -1,12 +1,12 @@
 ---@class pesto.DefaultRunner
----@field private _settings pesto.Settings
+---@field private _settings pesto.InternalSettings
 ---@field private _build_window_manager pesto.BuildWindowManager
 ---@field private _build_event_json_loader pesto.BuildEventJsonLoader
 ---@field private _quickfix_loader pesto.QuickfixLoader
 local DefaultRunner = {}
 DefaultRunner.__index = DefaultRunner
 
----@param settings pesto.Settings
+---@param settings pesto.InternalSettings
 ---@param build_window_manager pesto.BuildWindowManager
 ---@param build_event_json_loader pesto.BuildEventJsonLoader
 ---@param quickfix_loader pesto.QuickfixLoader

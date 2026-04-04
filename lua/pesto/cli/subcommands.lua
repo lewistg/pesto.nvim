@@ -58,7 +58,7 @@ local function execute_yank_package_label_subcommand()
 end
 
 ---@param run_bazel_fn RunBazelFn
----@param settings pesto.Settings
+---@param settings pesto.InternalSettings
 local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
 	---@type pesto.SubcommandExecuteFn
 	local function execute()
@@ -92,7 +92,7 @@ end
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
 ---@field run_bazel_fn RunBazelFn
----@field settings pesto.Settings
+---@field settings pesto.InternalSettings
 
 ---@param deps pesto.SubcommandDeps
 ---@return pesto.Subcommands[]
