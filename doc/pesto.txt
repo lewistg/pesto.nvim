@@ -1,15 +1,335 @@
 *pesto.txt*                                              Neovim plugin for Bazel
 *Pesto* *pesto* *pesto.nvim*
 
---------------------------------------------------------------------------------
-
+================================================================================
 Intro                                                              *pesto-intro*
 
 Pesto is a Bazel runner plugin for Neovim. It aims to make the edit-build-test
 cycle more seamless.
 
---------------------------------------------------------------------------------
+                                                                    *pesto-types*
+Note: Throughout this manual there are references to LuaLS types defined in
+Pesto's source code (e.g., `pesto.Settings`).
 
-Config                                                            *pesto-config*
+================================================================================
+Configuration                                                     *pesto-config*
+
+You don't need to call a `setup` function to configure `pesto.nvim`. You can
+instead just set `vim.g.pesto`. Here is the default configuration:
+
+>lua
+    ---@type pesto.Settings
+    vim.g.pesto = {
+        -- Name of bazel binary that Pesto invokes. Should be on your $PATH.
+        bazel_command = "bazel",
+        -- Callback invoked to run bazel.
+        bazel_runner = function(opts)
+            require("pesto.components").default_runner(opts)
+        end,
+        -- Logging level (see `:checkhealth pesto` to get the log file's path)
+        log_level = "info",
+        --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
+        --- Bazel command line option. If you use the default runner, then following
+        --- the build Pesto will parse the resulting build events tree and the quickfix
+        --- list.
+        enable_bep_integration = true,
+        --- When this option is true and when you are using the default runner, a
+        --- terminal buffer will be opened automatically when bazel is invoked.
+        auto_open_build_term = true,
+        --- Maps a (rule kind pattern, action mnemonic pattern)
+        --- pair to an errorformat string or compiler plugin name. Note that
+        --- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
+        --- string pattern.
+        --- See the "Action errorformat" section below for details.
+        errorformats = {
+           ...
+        },
+        --- Configuration for the `:Pesto bazel` subcommand auto-completion
+        cli_completion = {
+            --- Completion strategy. There are three modes:
+            --- * "bash": With this mode completion gets powered by the Bazel's own bash completion script (e.g., /etc/bash_completion.d/bazel)
+            --- * "lua": A less sophisticated lua implementation of Bazel
+            --- * "automatic": With this mode, we attempt to first use the bash completion script. If it's unavailable, then we fallback to the lua implementation.
+            mode = "automatic",
+            --- For the "bash" completion strategy, this is the amount of time to wait
+            --- for the bash completion script to finish before timing out.
+            bash_timeout = 15000,
+            --- Absolute path to the bash completion script. If the setting is not defined,
+            --- then Pesto falls back to searching for the script in `/etc/bash_completion.d/`
+            bash_completion_script = nil,
+        },
+    }
+<
+
+If you prefer, however, `pesto.nvim` does support a setup function:
+
+>lua
+    ---@type pesto.Settings
+    local settings = {...}
+    require("pesto").setup(settings)
+<
+
+================================================================================
+Options                                                            *pesto-options*
+
+`bazel_command`                                    *pesto.Settings.bazel_command*
+    type: `string`
+    default: `"bazel"`
+
+    Pesto invokes bazel using this command. The command should be available on
+    your `PATH`.
+
+`bazel_runner`                                      *pesto.Settings.bazel_runner*
+    type: pesto.RunBazelFn
+    default: Pesto's default runner (see |pesto-config|).
+
+    Pesto calls this callback to invoke bazel. By default Pesto uses its own
+    default runner callback (see |pesto-default-runner|).
+
+`log_level`                                            *pesto.Settings.log_level*
+    type: `"trace"|"debug"|"info"|"warn"|"error"`
+    default: "info"
+
+    This option defines the minimum level of logs that are output.
+
+`enable_bep_integration`                  *pesto.Settings.enable_bep_integration*
+    type: `boolean`
+    default: `true`
+
+    This option enables the default runner's (|pesto-default-runner|) BEP
+    integration (|pesto-bep-integration|).
+
+`auto_open_build_term`
+    type: `boolean`
+    default: `true`
+
+    When this option is set to true, the default runner will automatically open
+    the build terminal used to invoke Bazel.
+
+    Regardless of whether or not the default runner opens, Pesto will always
+    send a notification for the build result.
+
+`errorformats`
+    type: `pesto.RuleActionErrorformats[]`
+    default: See `lua/pesto/settings.lua`
+
+    This option defines a mapping from a Bazel rule kind and action mnemonic to
+    an |errorformat|. This mapping is used by Pesto to load the quickfix list
+    following a failed build.
+
+    If you're a new or casual Bazel user "rule kind" and "action mnemonic" may
+    be new terms. Please see |pesto-bazel-concepts| for a deeper explanation.
+
+    To understand this setting it's also helpful to look a the
+    `pesto.RuleActionErrorformats` type definition along with its supporting
+    type `pesto.ActionErrorformat`:
+
+>lua
+    ---@class pesto.RuleActionErrorformats
+    ---@field rule_kind string A lua string pattern
+    ---@field action_errorformats pesto.ActionErrorformat[]
+
+    ---@class pesto.ActionErrorformat
+    ---@field action_mnemonic string A lua string pattern
+    ---@field compiler string|nil The compiler plugin that should define the errorformat to use for parsing the action's stderr output
+    ---@field errorformat string|nil Errorformat string (:help errorformat)
+<
+
+    Finally, let's look at Pesto's default value:
+
+>lua
+	{
+		{
+			rule_kind = "java_*",
+			action_errorformats = {
+				{
+					action_mnemonic = "Javac",
+					compiler = "javac",
+				},
+			},
+		},
+		{
+			rule_kind = "cc_*",
+			action_errorformats = {
+				{
+					action_mnemonic = "CppCompile",
+					compiler = "gcc",
+				},
+			},
+		},
+	}
+<
+
+    As an example, lets say an action with the mnemonic `Javac` triggered by
+    the rule `java_library` failed. Pesto will resolve this to the first entry
+    in the default value:
+
+>lua
+    {
+        action_mnemonic = "Javac",
+        compiler = "javac",
+    }
+<
+
+    Notice that in this case there is no |errorformat| string. Instead the
+    config defines the `pesto.ActionErrorFormat.compiler` option. Neovim
+    already ships with a number of compiler plugins (see |compiler|), including
+    for `javac`. These plugins already define an `errorformat` string. Instead
+    of having to copy these over into the Pesto's config Pesto allows you
+    specify the compiler plugin to use and will use its errorformat string.
+
+`cli_completion`                           *pesto.Settings.CliCompletionSettings*
+    type: `pesto.CliCompletionSettings`
+    default: See individual settings below
+
+    This setting affects the auto-completion behavior of Pesto's `bazel`
+    wrapper command: `:Pesto bazel ...`
+
+    Individual fields are described below.
+
+`cli_completion.mode`                 *pesto.Settings.CliCompletionSettings.mode*
+    type: `"lua"|"bash"|"automatic"`
+    default: "automatic"
+
+    Pesto provides two completion strategies for its `bazel` subcommand:
+
+    * `"bash"`: With this mode Pesto uses Bazel's native bash completion script
+      (e.g., /etc/bash_completion.d/bazel) to generate completions.
+    * `"lua"`: With this mode Pesto uses a less sophisticated Lua-based
+      implementation. This mode does not support auto-completing Bazel's
+      command line options.
+
+    By default the value of `cli_completion.mode` is set to "automatic". This
+    means Pesto will first try to use `"bash"` strategy. If the completion
+    script cannot be found, then Pesto falls back to the `"lua"` strategy.
+
+    The `"bash"` strategy relies on inter-process communication, which may make
+    the `"bash"` strategy appear slightly slower. If your completion needs do
+    not require fuller fidelity with the bash CLI experience, you may consider
+    using the `"lua"` strategy which is more responsive.
+
+`cli_completion.bash_timeout` *pesto.Settings.CliCompletionSettings.bash_timeout*
+    type: `number`
+    default: `15000`
+
+    Defines the maximum number of milliseconds to wait for a bazel completion.
+    This setting only applies when using the `"bash"` completion mode
+    (|pesto.Settings.CliCompletionSettings.mode|).
+
+                    *pesto.Settings.CliCompletionSettings.bash_completion_script*
+`cli_completion.bash_completion_script`
+    type: `string|nil`
+    default: `nil`
+
+    Absolute path to the bash completion script that Pesto should for completions.
+    This setting only applies when using the `"bash"` completion mode
+    (|pesto.Settings.CliCompletionSettings.mode|).
+
+    Note: Whe the value of `bash_completion_script`--the default value--Pesto
+    searches among a few well known locations. (See
+    `pesto.InternalSettings.DEFAULT_BASH_COMPLETION_SCRIPTS`.)
+
+================================================================================
+Bazel concepts                                             *pesto-bazel-concepts*
+
+This section gives a quick primer on key Bazel concepts underpinning Pesto.
+
+One of Pesto's key features is its quickfix integration. Here's how it works:
+
+When a Bazel build is executed, it can be configured to emit a log of "build
+events". When the BEP integration is enabled (|pesto-bep-integration|), Pesto
+configures Bazel to emit these events. After the build finishes, Pesto reads
+this build events log to find additional log files containing compilation
+errors that can be loaded into the quickfix window.
+
+When you trigger a Bazel build you specify one or more build targets. A build
+target is defined in BUILD (or BUILD.bazel) files using "rules." For example in
+a Java project you'll likely find many BUILD files contain targets defined by
+the `java_library` and `java_binary` rules.
+
+When you create a target using a rule, you normally specify the target's
+inputs, which is often source files. The rule then defines the steps to take
+those inputs and produce outputs, such as a library or executable.
+
+In Bazel terms the steps taken to produce an output are called "actions."
+Actions are given short memorable names called "mnemonics." For example, the
+Java Bazel rules often involve an action that invokes the Java compiler. This
+action is given the mnemonic "Javac".
+
+When action fails--for example the Java compiler found compilation
+errors--Bazel emits a build event for the failed action. Following the build
+Pesto finds this event and is able to identify the "rule kind" and action
+mnemonic associated with the failed action (e.g., `java_library` and `Javac`).
+It is also able to get a URI pointing to the action's output.
+
+Pesto fetches the failed action's output and then uses the rule kind and
+action mnemonic as a key to look up which errorformat it should use to parse
+the output load into the quickfix list.
+
+Note: Pesto does not parse the progress output that Bazel emits during
+execution. Pesto's primary source of build information is the build events log.
+
+================================================================================
+Default runner                                              *pesto-default-runner*
+
+When Pesto needs to invoke Bazel it calls the callback given by the
+|pesto.Settings.bazel_runner| option. This section describes Pesto's default
+runner.
+
+Pesto's default runner runs the Bazel command in a terminal window. If the
+|auto_open_build_term| option is set to `true`, then terminal window will
+automatically appear showing Bazel's output. Regardless of the
+|auto_open_build_term| setting, Pesto will always send a notification when the
+Bazel invocation finishes.
+
+================================================================================
+Build Events Protocol (BEP) integration                   *pesto-bep-integration*
+
+Pesto is capable of consuming Bazel's build event logs. This integration is
+controlled by the |enable_bep_integration| setting, which is set to `true` by
+default.
+
+When the BEP integration is enabled, default runner (|pesto-default-runner|)
+automatically injects `--build_event_json_file={BEP_FILE}` Bazel option. After
+Bazel finishes Pesto does the following things:
+
+    1. Loads the `{BEP_FILE}`
+    2. Searches the BEP events for failed actions
+    3. Loads the logs associated with the failed actions
+    4. If the failed actions have a corresponding `errorformat` mapping, Pesto
+    loads the errors into the quickfix list.
+
+For a more detailed explanation see |pesto-bazel-concepts|.
+
+--------------------------------------------------------------------------------
+Remote caching (experimental)                              *pesto-remote-caching*
+
+More advanced Bazel setups often involve Remote Build Execution (RBE) or remote
+caching. Under these circumstances Bazel will store action logs in the remote
+cache.
+
+When action logs are stored remotely, the `{BEP_FILE}` will refer the logs using
+a `bytestream` URI like this:
+>
+    bytestream://rbe.util.acme.org:8980/blobs/477b2a3983637d7633933691800642a388a38e1dd81ebe12304a603dc3b3dfba/226
+<
+Pesto must fetch these logs in order to populate the quickfix list.
+
+A `bytestream` URI is served by a gRPC endpoint. Since implementing a gRPC
+client in Lua would be a significant undertaking, Pesto delegates the remote
+log fetches to the configured |bytestream_client|.
+
+Pesto ships with a ByteStream client written in Python. You can find it in the
+`tools/pesto-remote-apis-helpers` directory.
+
+Pesto does the following when it detects logs are stored remotely at some
+ByteStream URI:
+
+    1. Checks to see if |bytestream_client| is configured. If client is
+    configured, Pesto will use it to fetch the logs.
+    2. If the client is not configured, Pesto checks to see if its own
+    `tools/pesto-remote-apis-helpers` script has been set up.
+    3. If `tools/pesto-remote-apis-helpers` has not been set up, then it will
+    prompt you to install the script.
 
 
