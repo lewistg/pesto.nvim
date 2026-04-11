@@ -57,13 +57,13 @@ local function execute_yank_package_label_subcommand()
 	vim.fn.setreg("@", package_label .. "\n")
 end
 
----@param run_bazel_fn RunBazelFn
+---@param run_bazel_fn pesto.RunBazelFn
 ---@param settings pesto.InternalSettings
 local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
 	---@type pesto.SubcommandExecuteFn
 	local function execute()
 		local runner = require("pesto.runner.runner")
-		---@type RunBazelContext
+		---@type pesto.RunBazelContext
 		local context = runner.get_run_bazel_context()
 
 		---@type string
@@ -73,7 +73,7 @@ local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
 		---@type string[]
 		local bazel_command = { "bazel", "build", "--compile_one_dependency", filename }
 
-		---@type RunBazelOpts
+		---@type pesto.RunBazelOpts
 		local opts = {
 			bazel_command = bazel_command,
 			context = context,
@@ -91,7 +91,7 @@ end
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
----@field run_bazel_fn RunBazelFn
+---@field run_bazel_fn pesto.RunBazelFn
 ---@field settings pesto.InternalSettings
 
 ---@param deps pesto.SubcommandDeps

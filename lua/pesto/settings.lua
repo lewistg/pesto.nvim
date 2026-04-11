@@ -33,7 +33,7 @@
 ---@field bazel_command string
 ---
 --- Callback invoked to run bazel.
----@field bazel_runner RunBazelFn Method invoked to run bazel.
+---@field bazel_runner pesto.RunBazelFn Method invoked to run bazel.
 ---
 -- Logging level (see `:checkhealth pesto` to get the log file's path).
 ---@field log_level string
@@ -130,7 +130,7 @@ function InternalSettings:_resolve_setting(key)
 	)[key]
 end
 
----@return RunBazelFn
+---@return pesto.RunBazelFn
 function InternalSettings:get_bazel_runner()
 	return self:_resolve_setting("bazel_runner")
 end

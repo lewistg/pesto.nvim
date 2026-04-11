@@ -21,7 +21,7 @@ function DefaultRunner:new(settings, build_window_manager, build_event_json_load
 	return o
 end
 
----@param opts RunBazelOpts
+---@param opts pesto.RunBazelOpts
 function DefaultRunner.__call(self, opts)
 	local bazel_build_event_util = require("pesto.cli.bazel_build_event_util")
 
