@@ -101,7 +101,7 @@ vim.g.pesto = {
 If you prefer, however, `pesto.nvim` does support a setup function:
 
 ```lua
----@type pesto.Settngs
+---@type pesto.Settings
 local settings = {...}
 require("pesto").setup(settings)
 ```
