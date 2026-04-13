@@ -1,14 +1,14 @@
----@class pesto.bep.BuildEventJsonLoader
+---@class pesto.BuildEventJsonLoader
 local BuildEventJsonLoader = {}
 BuildEventJsonLoader.__index = BuildEventJsonLoader
 
----@return pesto.bep.BuildEventJsonLoader
+---@return pesto.BuildEventJsonLoader
 function BuildEventJsonLoader:new()
 	local o = setmetatable({}, BuildEventJsonLoader)
 	return o
 end
 
----@param bep_json_file string|Path
+---@param bep_json_file string
 ---@return table[]
 function BuildEventJsonLoader:load_raw(bep_json_file)
 	local lines = vim.fn.readfile(tostring(bep_json_file))
@@ -19,7 +19,7 @@ function BuildEventJsonLoader:load_raw(bep_json_file)
 	end, lines)
 end
 
----@param bep_json_file string|Path
+---@param bep_json_file string
 ---@return BuildEventTree
 function BuildEventJsonLoader:load(bep_json_file)
 	---@type table[]
