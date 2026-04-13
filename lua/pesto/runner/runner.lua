@@ -1,16 +1,16 @@
 local M = {}
 
----@class RunBazelContext
+---@class pesto.RunBazelContext
 ---@field workspace_dir string
 ---@field package_dir string|nil
 
----@class RunBazelOpts
+---@class pesto.RunBazelOpts
 ---@field bazel_command string[]
----@field context RunBazelContext
+---@field context pesto.RunBazelContext
 
----@alias RunBazelFn fun(RunBazelOpts)
+---@alias pesto.RunBazelFn fun(opts: pesto.RunBazelOpts)
 
----@return RunBazelContext
+---@return pesto.RunBazelContext
 function M.get_run_bazel_context()
 	local bazel_repo = require("pesto.bazel.repo")
 	local build_file = bazel_repo.find_build_file()

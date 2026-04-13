@@ -8,14 +8,14 @@ local PESTO_UNKNOWN_ACTION_RULE_KIND = "_PESTO_UNKNOWN_ACTION_RULE_KIND_"
 
 ---@class pesto.QuickfixLoader
 ---@field private _build_event_file_loader pesto.BuildEventFileLoader
----@field private _settings pesto.Settings
+---@field private _settings pesto.InternalSettings
 ---@field private _error_scratch_buf_nr number|nil
 ---@field private _has_sent_missing_client_notification boolean
 local QuickfixLoader = {}
 QuickfixLoader.__index = QuickfixLoader
 
 ---@param build_event_file_loader pesto.BuildEventFileLoader
----@param settings pesto.Settings
+---@param settings pesto.InternalSettings
 ---@return pesto.QuickfixLoader
 function QuickfixLoader:new(build_event_file_loader, settings)
 	local o = setmetatable({}, QuickfixLoader)
@@ -204,7 +204,7 @@ end
 function QuickfixLoader:_get_remote_cache_uri(build_event_tree)
 	local events = build_event_tree:find_events_by_kind({ "structured_command_line" })
 
-	---@type pesto.Option[]|nil
+	---@type pesto.bep.Option[]|nil
 	local command_options
 	for _, event in ipairs(events) do
 		if vim.tbl_get(event, "command_line_label") == "canonical" then

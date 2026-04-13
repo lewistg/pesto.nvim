@@ -1,17 +1,17 @@
 ---@class pesto.BazelSubcommand: pesto.Subcommand
----@field private _settings pesto.Settings
+---@field private _settings pesto.InternalSettings
 ---@field private _basic_completion pesto.BazelBasicCompletion
 ---@field private _bash_completion pesto.BazelBashCompletion
----@field private _run_bazel_fn RunBazelFn
+---@field private _run_bazel_fn pesto.RunBazelFn
 local BazelSubcommand = {}
 BazelSubcommand.__index = BazelSubcommand
 
 BazelSubcommand.name = "bazel"
 
----@param settings pesto.Settings
+---@param settings pesto.InternalSettings
 ---@param bazel_basic_completion pesto.BazelBasicCompletion
 ---@param bazel_bash_completion pesto.BazelBashCompletion
----@param run_bazel_fn RunBazelFn
+---@param run_bazel_fn pesto.RunBazelFn
 function BazelSubcommand:new(settings, bazel_basic_completion, bazel_bash_completion, run_bazel_fn)
 	local o = setmetatable({}, BazelSubcommand)
 

@@ -24,8 +24,8 @@ local LazyTable = require("pesto.util.lazy_table")
 ---@field pesto_cli PestoCli
 ---@field quick_fix_loader pesto.QuickfixLoader
 ---@field remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
----@field run_bazel_fn RunBazelFn
----@field settings pesto.Settings
+---@field run_bazel_fn pesto.RunBazelFn
+---@field settings pesto.InternalSettings
 ---@field subcommands pesto.Subcommands
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 
@@ -132,7 +132,7 @@ components.pesto_cli = _pesto_cli --[[@as PestoCli]]
 local _settings = function()
 	return require("pesto.settings"):new()
 end
-components.settings = _settings --[[@as pesto.Settings ]]
+components.settings = _settings --[[@as pesto.InternalSettings ]]
 
 local _quick_fix_loader = function()
 	return require("pesto.runner.default.quickfix_loader"):new(components.build_event_file_loader, components.settings)
@@ -145,14 +145,14 @@ local _remote_apis_helpers_command_builder = function()
 end
 components.remote_apis_helpers_command_builder = _remote_apis_helpers_command_builder --[[ @as pesto.RemoteApisHelpersCommandBuilder ]]
 
----@return RunBazelFn
+---@return pesto.RunBazelFn
 local _run_bazel_fn = function()
 	---@params opts RunBazelOpts
 	return function(opts)
 		return components.settings:get_bazel_runner()(opts)
 	end
 end
-components.run_bazel_fn = _run_bazel_fn --[[@as RunBazelFn ]]
+components.run_bazel_fn = _run_bazel_fn --[[@as pesto.RunBazelFn ]]
 
 ---@return pesto.Subcommands
 local _subcommands = function()

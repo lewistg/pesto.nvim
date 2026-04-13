@@ -5,7 +5,7 @@
 ---@field private _bash_completion_server_channel number|nil
 ---@field private _enabled boolean
 ---@field private _bash_completion_server_script_path string
----@field private _settings pesto.Settings
+---@field private _settings pesto.InternalSettings
 local BazelBashCompletion = {}
 BazelBashCompletion.__index = BazelBashCompletion
 
@@ -15,7 +15,7 @@ BazelBashCompletion.MIN_WAIT = 2 * 1000
 BazelBashCompletion.MAX_WAIT = 30 * 1000
 
 ---@param bazel_bash_completion_client pesto.BazelBashCompletionClient
----@param settings pesto.Settings
+---@param settings pesto.InternalSettings
 ---@return pesto.BazelBashCompletion
 function BazelBashCompletion:new(bazel_bash_completion_client, settings)
 	local o = setmetatable({}, BazelBashCompletion)

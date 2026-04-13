@@ -1,8 +1,8 @@
----@class pesto.BuildEventJsonLoader
+---@class pesto.bep.BuildEventJsonLoader
 local BuildEventJsonLoader = {}
 BuildEventJsonLoader.__index = BuildEventJsonLoader
 
----@return pesto.BuildEventJsonLoader
+---@return pesto.bep.BuildEventJsonLoader
 function BuildEventJsonLoader:new()
 	local o = setmetatable({}, BuildEventJsonLoader)
 	return o

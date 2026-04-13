@@ -138,20 +138,20 @@ end
 function BuildEventsBuffer:_load_events(build_event_tree)
 	self._build_event_tree = build_event_tree
 
-	---@type pesto.BuildEvent[]
+	---@type pesto.bep.BuildEvent[]
 	local target_complete_events = self._build_event_tree:find_events_by_kind({ "target_completed" })
 	target_complete_events = vim.tbl_filter(function(target_completed_event)
 		if not target_completed_event.id.target_completed.label then
 			return nil
 		end
-		---@type pesto.BuildEventId
+		---@type pesto.bep.BuildEventId
 		local id = {
 			target_configured = {
 				label = target_completed_event.id.target_completed.label,
 			},
 		}
 		local BuildEventTree = require("pesto.bazel.build_event_tree")
-		---@type pesto.BuildEvent|nil
+		---@type pesto.bep.BuildEvent|nil
 		local target_configured_event = build_event_tree:find_event_by_id(id)
 		if
 			target_configured_event
@@ -170,7 +170,7 @@ function BuildEventsBuffer:_load_events(build_event_tree)
 	for _, event in ipairs(target_complete_events) do
 		assert(event.id.target_completed ~= nil, "Build event does not have a TargetCompletedId id")
 
-		---@type pesto.TargetComplete
+		---@type pesto.bep.TargetComplete
 		local target_completed = event.completed
 
 		local label = event.id.target_completed.label or "(unknown label)"
@@ -197,12 +197,12 @@ function BuildEventsBuffer:_load_events(build_event_tree)
 	return failure_bazel_target_results, successful_bazel_target_results
 end
 
----@param target_completed_event pesto.BuildEvent
+---@param target_completed_event pesto.bep.BuildEvent
 ---@return pesto.TargetActionLogs[]
 function BuildEventsBuffer:_get_failed_action_logs(target_completed_event)
 	assert(target_completed_event.id.target_completed ~= nil, "Build event does not have a TargetCompletedId id")
 
-	---@type pesto.BuildEvent[]
+	---@type pesto.bep.BuildEvent[]
 	local action_completed_events =
 		self._build_event_tree:find_child_event_by_kinds(target_completed_event, { "action_completed" })
 	---@type pesto.TargetActionLogs[]
