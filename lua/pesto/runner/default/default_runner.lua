@@ -32,15 +32,12 @@ function DefaultRunner.__call(self, opts)
 		bep_file = bazel_build_event_util.extract_bep_option(opts.bazel_command)
 	end
 
-	local bazel_command = table.concat(opts.bazel_command, " ")
-	local term_command =
-		string.format("(cd %s && %s)", opts.context.package_dir or opts.context.workspace_dir, bazel_command)
-
 	---@type BuildEventTree|nil
 	local build_event_tree = nil
 
 	self._build_window_manager:start_new_build({
-		term_command = term_command,
+		term_command = opts.bazel_command,
+		cwd = opts.context.package_dir or opts.context.workspace_dir,
 		auto_open = self._settings:get_auto_open_build_term(),
 		on_exit = function(is_current)
 			if not is_current then

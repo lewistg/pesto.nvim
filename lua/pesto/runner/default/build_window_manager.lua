@@ -1,5 +1,6 @@
 ---@class pesto.BuildWindowManager.NewBuildOptions
----@field term_command string
+---@field term_command string[]
+---@field cwd string
 ---@field auto_open boolean
 ---@field get_build_event_tree (fun(): BuildEventTree|nil)|nil
 ---@field on_exit fun(is_current: boolean)|nil
@@ -64,6 +65,7 @@ function BuildWindowManager:start_new_build(opts)
 
 	vim.api.nvim_buf_call(build_info.term_buf_id, function()
 		vim.fn.jobstart(opts.term_command, {
+			cwd = opts.cwd,
 			on_stdout = function(_, chunks)
 				if scrolled_to_bottom then
 					return
