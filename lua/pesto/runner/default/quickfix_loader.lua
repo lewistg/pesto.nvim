@@ -95,10 +95,10 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 						vim.api.nvim_buf_call(error_scratch_buf_nr, function()
 							self:_append_quickfix_items(workspace_dir, stderr_lines, vim.o.errorformat)
 						end)
-					end
-					if not called_on_first_quickfix_loaded then
-						on_first_quickfix_loaded()
-						called_on_first_quickfix_loaded = true
+						if not called_on_first_quickfix_loaded then
+							on_first_quickfix_loaded()
+							called_on_first_quickfix_loaded = true
+						end
 					end
 				end,
 				on_error = function(err)
