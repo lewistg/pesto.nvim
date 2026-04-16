@@ -2,7 +2,7 @@
 ---@field term_command string[]
 ---@field cwd string
 ---@field auto_open boolean
----@field get_build_event_tree (fun(): BuildEventTree|nil)|nil
+---@field get_build_event_tree (fun(): pesto.BuildEventTree|nil)|nil
 ---@field on_exit fun(is_current: boolean)|nil
 
 ---@class pesto.BuildWindowManager.BuildInfo

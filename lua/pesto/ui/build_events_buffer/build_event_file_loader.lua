@@ -36,7 +36,7 @@ function OpenBuildEventsSummarySubcommand:_execute(opts)
     return
   end
 
-  ---@type BuildEventTree
+  ---@type pesto.BuildEventTree
   local build_events_tree = self._build_event_json_loader:load(build_events_file)
 
   local BuildEventsBuffer = require('pesto.ui.build_events_buffer.build_events_buffer')

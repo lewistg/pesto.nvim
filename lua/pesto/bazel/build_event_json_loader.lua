@@ -20,7 +20,7 @@ function BuildEventJsonLoader:load_raw(bep_json_file)
 end
 
 ---@param bep_json_file string
----@return BuildEventTree
+---@return pesto.BuildEventTree
 function BuildEventJsonLoader:load(bep_json_file)
   ---@type table[]
   local raw_events = self:load_raw(bep_json_file)

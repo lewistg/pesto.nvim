@@ -21,7 +21,7 @@ function BuildEventsBuffer.is_build_events_buffer(buf_id)
   return vim.api.nvim_buf_get_option(buf_id, 'filetype') == BuildEventsBuffer.FILE_TYPE
 end
 
----@param build_event_tree BuildEventTree
+---@param build_event_tree pesto.BuildEventTree
 ---@param build_event_file_loader pesto.BuildEventFileLoader
 ---@return pesto.BuildEventsBuffer
 function BuildEventsBuffer:new(build_event_tree, build_event_file_loader)
@@ -134,7 +134,7 @@ function BuildEventsBuffer:on_enter_key()
 end
 
 ---@private
----@param build_event_tree BuildEventTree
+---@param build_event_tree pesto.BuildEventTree
 ---@return pesto.BazelTargetResult[], pesto.BazelTargetResult[]
 function BuildEventsBuffer:_load_events(build_event_tree)
   self._build_event_tree = build_event_tree

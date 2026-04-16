@@ -26,7 +26,7 @@ function QuickfixLoader:new(build_event_file_loader, settings)
   return o
 end
 
----@param build_event_tree BuildEventTree
+---@param build_event_tree pesto.BuildEventTree
 ---@param on_first_quickfix_loaded function
 function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded)
   ---@type table<_TargetRuleKind, table<_ActionType, string>>
@@ -164,7 +164,7 @@ function QuickfixLoader:_append_quickfix_items(workspace_dir, stderr_lines, erro
   })
 end
 
----@param build_event_tree BuildEventTree
+---@param build_event_tree pesto.BuildEventTree
 ---@return string
 function QuickfixLoader:_get_workspace_directory(build_event_tree)
   local build_started_event = build_event_tree:find_events_by_kind({ 'started' })[1]
@@ -179,7 +179,7 @@ function QuickfixLoader:_get_scratch_buf_nr()
   return self._error_scratch_buf_nr
 end
 
----@param build_event_tree BuildEventTree
+---@param build_event_tree pesto.BuildEventTree
 ---@return table<_TargetRuleKind, table<_ActionType, string>>
 function QuickfixLoader:_get_failed_action_stderr(build_event_tree)
   ---@type table<_TargetRuleKind, table<_ActionType, string>>
@@ -216,7 +216,7 @@ function QuickfixLoader:_get_failed_action_stderr(build_event_tree)
   return stderr_uris
 end
 
----@param build_event_tree BuildEventTree
+---@param build_event_tree pesto.BuildEventTree
 ---@return string|nil
 function QuickfixLoader:_get_remote_cache_uri(build_event_tree)
   local events = build_event_tree:find_events_by_kind({ 'structured_command_line' })

@@ -1,10 +1,10 @@
 --- Contains common, higher-level queries on a pesto.BuildEventTree
 ---@class pesto.BuildEventTreeQueries
----@field private _build_event_tree BuildEventTree
+---@field private _build_event_tree pesto.BuildEventTree
 local BuildEventTreeQueries = {}
 BuildEventTreeQueries.__index = BuildEventTreeQueries
 
----@param build_event_tree BuildEventTree
+---@param build_event_tree pesto.BuildEventTree
 ---@return pesto.BuildEventTreeQueries
 function BuildEventTreeQueries:new(build_event_tree)
   local o = setmetatable({}, BuildEventTreeQueries)

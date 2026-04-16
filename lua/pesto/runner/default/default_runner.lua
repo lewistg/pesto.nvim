@@ -32,7 +32,7 @@ function DefaultRunner.__call(self, opts)
     bep_file = bazel_build_event_util.extract_bep_option(opts.bazel_command)
   end
 
-  ---@type BuildEventTree|nil
+  ---@type pesto.BuildEventTree|nil
   local build_event_tree = nil
 
   self._build_window_manager:start_new_build({

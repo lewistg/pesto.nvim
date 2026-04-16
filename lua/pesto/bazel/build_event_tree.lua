@@ -1,10 +1,10 @@
----@class BuildEventTree
+---@class pesto.BuildEventTree
 ---@field private build_events {[string]: pesto.bep.BuildEvent}
 local BuildEventTree = {}
 BuildEventTree.__index = BuildEventTree
 
 ---@param raw_events table[]
----@return BuildEventTree
+---@return pesto.BuildEventTree
 function BuildEventTree:new(raw_events)
   local o = setmetatable({}, BuildEventTree)
 
