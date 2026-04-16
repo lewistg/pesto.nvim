@@ -63,8 +63,21 @@ function BuildWindowManager:start_new_build(opts)
 	local scrolled_to_bottom = false
 
 	vim.api.nvim_buf_call(build_info.term_buf_id, function()
-		build_info.job_id = vim.fn.termopen(opts.term_command, {
-			on_exit = function(_job_id, exit_code, event_type)
+		vim.fn.jobstart(opts.term_command, {
+			on_stdout = function(_, chunks)
+				if scrolled_to_bottom then
+					return
+				end
+				for _, win_id in ipairs(self:find_build_windows(0)) do
+					vim.api.nvim_win_call(win_id, function()
+						-- Move the cursor to the bottom. Doing this one time
+						-- should cause the buffer to tail the output
+						vim.cmd.normal("G")
+					end)
+				end
+				scrolled_to_bottom = true
+			end,
+			on_exit = function(_, exit_code)
 				build_info.exit_code = exit_code
 				---@diagnostic disable-next-line: invisible
 				if opts.on_exit ~= nil then
@@ -88,19 +101,7 @@ function BuildWindowManager:start_new_build(opts)
 					end)
 				end
 			end,
-			on_stdout = function()
-				if scrolled_to_bottom then
-					return
-				end
-				for _, win_id in ipairs(self:find_build_windows(0)) do
-					vim.api.nvim_win_call(win_id, function()
-						-- Move the cursor to the bottom. Doing this one time
-						-- should cause the buffer to tail the output
-						vim.cmd.normal("G")
-					end)
-				end
-				scrolled_to_bottom = true
-			end,
+			term = true,
 		})
 	end)
 
