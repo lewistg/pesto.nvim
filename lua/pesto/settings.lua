@@ -62,39 +62,39 @@
 
 ---@type pesto.Settings
 local default_raw_settings = {
-	bazel_command = "bazel",
-	bazel_runner = function(opts)
-		require("pesto.components").default_runner(opts)
-	end,
-	log_level = "info",
-	enable_bep_integration = true,
-	auto_open_build_term = true,
-	errorformats = {
-		{
-			rule_kind = "java_*",
-			action_errorformats = {
-				{
-					action_mnemonic = "Javac",
-					compiler = "javac",
-				},
-			},
-		},
-		{
-			rule_kind = "cc_*",
-			action_errorformats = {
-				{
-					action_mnemonic = "CppCompile",
-					compiler = "gcc",
-				},
-			},
-		},
-	},
-	bytestream_client = nil,
-	cli_completion = {
-		mode = "automatic",
-		bash_timeout = 15000,
-		bash_completion_script = nil,
-	},
+  bazel_command = 'bazel',
+  bazel_runner = function(opts)
+    require('pesto.components').default_runner(opts)
+  end,
+  log_level = 'info',
+  enable_bep_integration = true,
+  auto_open_build_term = true,
+  errorformats = {
+    {
+      rule_kind = 'java_*',
+      action_errorformats = {
+        {
+          action_mnemonic = 'Javac',
+          compiler = 'javac',
+        },
+      },
+    },
+    {
+      rule_kind = 'cc_*',
+      action_errorformats = {
+        {
+          action_mnemonic = 'CppCompile',
+          compiler = 'gcc',
+        },
+      },
+    },
+  },
+  bytestream_client = nil,
+  cli_completion = {
+    mode = 'automatic',
+    bash_timeout = 15000,
+    bash_completion_script = nil,
+  },
 }
 
 --- Wraps the settings and resolves buffer-local overrides
@@ -102,18 +102,18 @@ local default_raw_settings = {
 local InternalSettings = {}
 InternalSettings.__index = InternalSettings
 
-InternalSettings.SETTINGS_KEY = "pesto"
+InternalSettings.SETTINGS_KEY = 'pesto'
 
 ---@type string[]
 InternalSettings.DEFAULT_BASH_COMPLETION_SCRIPTS = {
-	vim.fs.joinpath("/etc/bash_completion.d", "bazel"),
-	vim.fs.joinpath("/etc/bash_completion.d", "bazel-completion"),
+  vim.fs.joinpath('/etc/bash_completion.d', 'bazel'),
+  vim.fs.joinpath('/etc/bash_completion.d', 'bazel-completion'),
 }
 
 ---@return pesto.InternalSettings
 function InternalSettings:new()
-	local o = setmetatable({}, InternalSettings)
-	return o
+  local o = setmetatable({}, InternalSettings)
+  return o
 end
 
 ---@generic T
@@ -121,18 +121,18 @@ end
 ---@param key string
 ---@return `T`
 function InternalSettings:_resolve_setting(key)
-	local buf_id = vim.api.nvim_get_current_buf()
-	return vim.tbl_deep_extend(
-		"keep",
-		vim.tbl_get(vim.b, buf_id, InternalSettings.SETTINGS_KEY) or {},
-		vim.tbl_get(vim.g, InternalSettings.SETTINGS_KEY) or {},
-		default_raw_settings
-	)[key]
+  local buf_id = vim.api.nvim_get_current_buf()
+  return vim.tbl_deep_extend(
+    'keep',
+    vim.tbl_get(vim.b, buf_id, InternalSettings.SETTINGS_KEY) or {},
+    vim.tbl_get(vim.g, InternalSettings.SETTINGS_KEY) or {},
+    default_raw_settings
+  )[key]
 end
 
 ---@return pesto.RunBazelFn
 function InternalSettings:get_bazel_runner()
-	return self:_resolve_setting("bazel_runner")
+  return self:_resolve_setting('bazel_runner')
 end
 
 ---Indicates whether or not the bep integration is enabled. When enabled, the
@@ -141,21 +141,21 @@ end
 ---known file that can be loaded post-build.
 ---@return boolean
 function InternalSettings:get_enable_bep_integration()
-	return self:_resolve_setting("enable_bep_integration")
+  return self:_resolve_setting('enable_bep_integration')
 end
 
 function InternalSettings:get_auto_open_build_term()
-	return self:_resolve_setting("auto_open_build_term")
+  return self:_resolve_setting('auto_open_build_term')
 end
 
 ---@return pesto.RuleActionErrorformats
 function InternalSettings:get_errorformats(rule_kind, action_mnemonic)
-	return self:_resolve_setting("errorformats")
+  return self:_resolve_setting('errorformats')
 end
 
 ---@return pesto.CliCompletionSettings
 function InternalSettings:get_cli_completion_settings()
-	return self:_resolve_setting("cli_completion")
+  return self:_resolve_setting('cli_completion')
 end
 
 return InternalSettings

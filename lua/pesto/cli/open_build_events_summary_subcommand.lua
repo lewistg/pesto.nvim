@@ -3,24 +3,24 @@
 local OpenBuildEventsSummarySubcommand = {}
 OpenBuildEventsSummarySubcommand.__index = OpenBuildEventsSummarySubcommand
 
-OpenBuildEventsSummarySubcommand.name = "open-build-events-summary"
+OpenBuildEventsSummarySubcommand.name = 'open-build-events-summary'
 
 ---@param build_window_manager pesto.BuildWindowManager
 function OpenBuildEventsSummarySubcommand:new(build_window_manager)
-	local o = setmetatable({}, OpenBuildEventsSummarySubcommand)
+  local o = setmetatable({}, OpenBuildEventsSummarySubcommand)
 
-	o._build_window_manager = build_window_manager
+  o._build_window_manager = build_window_manager
 
-	o.execute = function(opts)
-		o:_execute(opts)
-	end
+  o.execute = function(opts)
+    o:_execute(opts)
+  end
 
-	return o
+  return o
 end
 
 ---@param opts pesto.SubcommandExecuteOpts
 function OpenBuildEventsSummarySubcommand:_execute(opts)
-	self._build_window_manager:open_build_summary()
+  self._build_window_manager:open_build_summary()
 end
 
 return OpenBuildEventsSummarySubcommand
