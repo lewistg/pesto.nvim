@@ -3,6 +3,7 @@
 ---@field private _build_window_manager pesto.BuildWindowManager
 ---@field private _build_event_json_loader pesto.BuildEventJsonLoader
 ---@field private _quickfix_loader pesto.QuickfixLoader
+---@field private _build_event_tree pesto.BuildEventTree|nil
 local DefaultRunner = {}
 DefaultRunner.__index = DefaultRunner
 
@@ -32,8 +33,7 @@ function DefaultRunner.__call(self, opts)
     bep_file = bazel_build_event_util.extract_bep_option(opts.bazel_command)
   end
 
-  ---@type pesto.BuildEventTree|nil
-  local build_event_tree = nil
+  self._build_event_tree = nil
 
   self._build_window_manager:start_new_build({
     term_command = opts.bazel_command,
@@ -45,17 +45,23 @@ function DefaultRunner.__call(self, opts)
       end
       if bep_file then
         ---@diagnostic disable-next-line: invisible
-        build_event_tree = self._build_event_json_loader:load(bep_file)
+        self._build_event_tree = self._build_event_json_loader:load(bep_file)
         ---@diagnostic disable-next-line: invisible
-        self._quickfix_loader:load_quickfix(build_event_tree, function()
+        self._quickfix_loader:load_quickfix(self._build_event_tree, function()
           vim.cmd.copen()
         end)
       end
     end,
     get_build_event_tree = function()
-      return build_event_tree
+      ---@diagnostic disable-next-line: invisible
+      return self._build_event_tree
     end,
   })
+end
+
+---@return pesto.BuildEventTree|nil
+function DefaultRunner:get_build_event_tree()
+  return self._build_event_tree
 end
 
 return DefaultRunner

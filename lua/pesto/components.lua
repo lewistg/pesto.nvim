@@ -18,6 +18,7 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field build_window_manager pesto.BuildWindowManager
 ---@field byte_stream_client pesto.ByteStreamClient
 ---@field default_runner pesto.DefaultRunner
+---@field dump_failed_action_logs_subcommand pesto.DumpFailedActionLogsSubcommand
 ---@field functional_test_hooks pesto.FunctionalTestHooks
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
@@ -105,6 +106,15 @@ local function _default_runner()
 end
 components.default_runner = _default_runner --[[@as pesto.DefaultRunner]]
 
+---@return pesto.DumpFailedActionLogsSubcommand
+local function _dump_failed_action_logs_subcommand()
+  return require('pesto.cli.dump_failed_action_logs'):new(
+    components.default_runner,
+    components.build_event_file_loader
+  )
+end
+components.dump_failed_action_logs_subcommand = _dump_failed_action_logs_subcommand --[[@as pesto.DumpFailedActionLogsSubcommand]]
+
 ---@return pesto.FunctionalTestHooks
 local function _functional_test_hooks()
   return require('pesto.test.functional_test_hooks'):new(
@@ -165,6 +175,7 @@ components.run_bazel_fn = _run_bazel_fn --[[@as pesto.RunBazelFn ]]
 local _subcommands = function()
   return require('pesto.cli.subcommands').make_subcommands({
     bazel_sub_command = components.bazel_sub_command,
+    dump_failed_action_logs_sucommand = components.dump_failed_action_logs_subcommand,
     install_remote_apis_helpers_subcommand = components.install_remote_apis_helpers_subcommand,
     open_build_events_summary_subcommand = components.open_build_events_summary_subcommand,
     run_bazel_fn = components.run_bazel_fn,

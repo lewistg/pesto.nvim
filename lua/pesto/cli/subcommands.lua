@@ -91,6 +91,7 @@ end
 
 ---@class pesto.SubcommandDeps
 ---@field bazel_sub_command pesto.BazelSubcommand
+---@field dump_failed_action_logs_sucommand pesto.DumpFailedActionLogsSubcommand
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
@@ -104,6 +105,7 @@ function M.make_subcommands(deps)
     -- Please keep keys alphabetized (by command name)
     deps.bazel_sub_command,
     get_compile_one_dep_subcommand(deps.run_bazel_fn, deps.settings),
+    deps.dump_failed_action_logs_sucommand,
     deps.install_remote_apis_helpers_subcommand,
     deps.open_build_term_subcommand,
     {
