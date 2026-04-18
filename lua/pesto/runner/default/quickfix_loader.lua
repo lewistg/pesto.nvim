@@ -1,7 +1,3 @@
-local RULE_TARGET_KIND_PATTERN = '^(.*) rule$'
-local PESTO_UNKNOWN_EVENT_ACTION_TYPE = '_PESTO_UNKNOWN_ACTION_TYPE_'
-local PESTO_UNKNOWN_ACTION_RULE_KIND = '_PESTO_UNKNOWN_ACTION_RULE_KIND_'
-
 --- Module-local aliases
 ---@alias _TargetRuleKind string
 ---@alias _ActionType string
@@ -29,8 +25,11 @@ end
 ---@param build_event_tree pesto.BuildEventTree
 ---@param on_first_quickfix_loaded function
 function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded)
+  local BuildEventsTreeQueries = require('pesto.bazel.build_event_tree_queries')
+  local build_event_tree_queries = BuildEventsTreeQueries:new(build_event_tree)
+
   ---@type table<_TargetRuleKind, table<_ActionType, string>>
-  local stderr_uris = self:_get_failed_action_stderr(build_event_tree)
+  local stderr_uris = build_event_tree_queries:find_failed_action_logs()
 
   local logger = require('pesto.logger')
   logger.debug(
@@ -53,8 +52,6 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
       local BuildEventFileLoader = require('pesto.bazel.build_event_file_loader')
       if BuildEventFileLoader.is_byte_stream_uri(stderr_uri) then
         logger.debug('Logs for some failed actions are stored remotely. Getting remote cache URI.')
-        local BuildEventsTreeQueries = require('pesto.bazel.build_event_tree_queries')
-        local build_event_tree_queries = BuildEventsTreeQueries:new(build_event_tree)
         local remote_cache_option = build_event_tree_queries:find_command_line_option(
           'canonical',
           'remote_cache'
@@ -180,43 +177,6 @@ function QuickfixLoader:_get_scratch_buf_nr()
 end
 
 ---@param build_event_tree pesto.BuildEventTree
----@return table<_TargetRuleKind, table<_ActionType, string>>
-function QuickfixLoader:_get_failed_action_stderr(build_event_tree)
-  ---@type table<_TargetRuleKind, table<_ActionType, string>>
-  local stderr_uris = {}
-  for _, target_configured_event in
-    ipairs(build_event_tree:find_events_by_kind({ 'target_configured' }))
-  do
-    for _, target_completed in
-      ipairs(
-        build_event_tree:find_child_event_by_kinds(target_configured_event, { 'target_completed' })
-      )
-    do
-      for _, action_completed in
-        ipairs(build_event_tree:find_child_event_by_kinds(target_completed, { 'action_completed' }))
-      do
-        if vim.tbl_get(action_completed, 'action', 'failure_detail') ~= nil then
-          ---@type string
-          local rule_target_kind = self:_parse_rule_target_kind(
-            vim.tbl_get(target_configured_event, 'configured', 'target_kind')
-          ) or PESTO_UNKNOWN_ACTION_RULE_KIND
-          ---@type string
-          local action_type = vim.tbl_get(action_completed, 'action', 'type')
-            or PESTO_UNKNOWN_EVENT_ACTION_TYPE
-          if stderr_uris[rule_target_kind] == nil then
-            stderr_uris[rule_target_kind] = {}
-          end
-          ---@type string|nil
-          local stderr_uri = vim.tbl_get(action_completed, 'action', 'stderr', 'uri')
-          stderr_uris[rule_target_kind][action_type] = stderr_uri
-        end
-      end
-    end
-  end
-  return stderr_uris
-end
-
----@param build_event_tree pesto.BuildEventTree
 ---@return string|nil
 function QuickfixLoader:_get_remote_cache_uri(build_event_tree)
   local events = build_event_tree:find_events_by_kind({ 'structured_command_line' })
@@ -274,12 +234,6 @@ function QuickfixLoader:_set_errorformat_settings(buf_nr, rule_errorformat)
       })
     end)
   end
-end
-
----@return string
-function QuickfixLoader:_parse_rule_target_kind(target_kind)
-  local _, _, rule_kind = string.find(target_kind, RULE_TARGET_KIND_PATTERN)
-  return rule_kind
 end
 
 return QuickfixLoader
