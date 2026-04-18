@@ -11,7 +11,7 @@
 ---@field timeout number
 
 ---@class pesto.BazelBashCompletionClient
----@field private _settings pesto.Settings
+---@field private _settings pesto.InternalSettings
 ---@field private _bash_completion_server_system_object vim.SystemObj|nil
 ---@field private _current_response_line_handler fun(line: string)|nil
 ---@field private _bash_completion_script string|-1|nil
@@ -22,7 +22,7 @@ BazelBashCompletionClient.TIMEOUT_ERROR = {
   message = 'bash completion timed out',
 }
 
----@param settings pesto.Settings
+---@param settings pesto.InternalSettings
 ---@return pesto.BazelBashCompletionClient
 function BazelBashCompletionClient:new(settings)
   local o = setmetatable({}, BazelBashCompletionClient)

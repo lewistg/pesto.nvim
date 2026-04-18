@@ -85,7 +85,7 @@ local function _bazel_sub_command()
     components.run_bazel_fn
   )
 end
-components.bazel_sub_command = _bazel_sub_command --[[@as BazelSubcommand]]
+components.bazel_sub_command = _bazel_sub_command --[[@as pesto.BazelSubcommand]]
 
 ---@return pesto.ByteStreamClient
 local function _byte_stream_client()

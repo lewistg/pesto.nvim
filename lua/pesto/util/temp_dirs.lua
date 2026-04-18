@@ -2,6 +2,7 @@
 ---@field BASE_TEMP_DIR string
 ---@field LOGS_DIR string
 ---@field BEP_DIR string
+---@field DEFAULT_FAILED_ACTION_LOGS_DUMP_DIR string
 
 local lazy_table = require('pesto.util.lazy_table')
 
@@ -20,5 +21,6 @@ end
 M.BASE_TEMP_DIR = get_make_dir(vim.fn.tempname(), 'pesto.nvim') --[[@as string]]
 M.LOGS_DIR = get_make_dir(M.BASE_TEMP_DIR, 'logs') --[[@as string]]
 M.BEP_DIR = get_make_dir(M.BASE_TEMP_DIR, 'bep') --[[@as string]]
+M.DEFAULT_FAILED_ACTION_LOGS_DUMP_DIR = get_make_dir(M.BASE_TEMP_DIR, 'failed_action_logs') --[[@as string]]
 
 return M
