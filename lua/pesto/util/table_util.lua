@@ -55,7 +55,7 @@ end
 ---@param default_value T
 function M.get_or_set(dict_table, key, default_value)
   if dict_table[key] == nil then
-    dict_table = default_value
+    dict_table[key] = default_value
   end
   return dict_table[key]
 end

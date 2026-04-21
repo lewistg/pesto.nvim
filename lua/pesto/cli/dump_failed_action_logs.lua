@@ -88,7 +88,7 @@ function DumpFailedActionLogsSubcommand:_execute(opts)
   vim.notify(table.concat(notification_lines, '\n'), vim.log.levels.INFO)
 end
 
----@param failed_action_log_uris table<string, table<string, string>>
+---@param failed_action_log_uris table<string, table<string, string[]>>
 ---@return table<string, string>
 function DumpFailedActionLogsSubcommand:_get_file_names(failed_action_log_uris)
   ---@type table<string, string>
@@ -97,10 +97,12 @@ function DumpFailedActionLogsSubcommand:_get_file_names(failed_action_log_uris)
   ---@type number
   for rule_kind, failed_actions_uris in pairs(failed_action_log_uris) do
     local file_index = 0
-    for action_mnemonic, uri in pairs(failed_actions_uris) do
-      local file_name = string.format('%s-%s-%d', rule_kind, action_mnemonic, file_index)
-      file_names[file_name] = uri
-      file_index = file_index + 1
+    for action_mnemonic, uris in pairs(failed_actions_uris) do
+      for _, uri in ipairs(uris) do
+        local file_name = string.format('%s-%s-%d', rule_kind, action_mnemonic, file_index)
+        file_names[file_name] = uri
+        file_index = file_index + 1
+      end
     end
   end
 
