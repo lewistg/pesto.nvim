@@ -1,8 +1,21 @@
---- Maps a rule's actions' mnemonics to either a errorformat string or compiler plugin (which should in turn define a errorformat)
+--- Maps a rule's actions' mnemonics to either a errorformat string or compiler
+--- plugin (which should in turn define a errorformat)
 ---@class pesto.ActionErrorformat
----@field action_mnemonic string A lua string pattern
----@field compiler string|nil The compiler plugin that should define the errorformat to use for parsing the action's stderr output
----@field errorformat string|nil Errorformat string (:help errorformat)
+---
+--- A lua string pattern
+---@field action_mnemonic string
+---
+--- The compiler plugin that should define the errorformat to use for parsing
+--- the action's stderr output.
+---@field compiler string|nil
+---
+--- Errorformat string (:help errorformat)
+---@field errorformat string|nil
+---
+--- Some compilers produce output with syntax highlighting using ANSI escape
+--- codes. When `strip_escape_codes` is set to true, Pesto will strip out the
+--- escape codes before parsing the errors for the quickfix window.
+---@field strip_escape_codes boolean|nil
 
 ---@class pesto.RuleActionErrorformats
 ---@field rule_kind string A lua string pattern
@@ -71,6 +84,24 @@ local default_raw_settings = {
   auto_open_build_term = true,
   errorformats = {
     {
+      rule_kind = 'cc_*',
+      action_errorformats = {
+        {
+          action_mnemonic = 'CppCompile',
+          compiler = 'gcc',
+        },
+      },
+    },
+    {
+      rule_kind = 'go_*',
+      action_errorformats = {
+        {
+          action_mnemonic = 'GoCompilePkg',
+          compiler = 'go',
+        },
+      },
+    },
+    {
       rule_kind = 'java_*',
       action_errorformats = {
         {
@@ -80,11 +111,26 @@ local default_raw_settings = {
       },
     },
     {
-      rule_kind = 'cc_*',
+      rule_kind = 'rust_*',
       action_errorformats = {
         {
-          action_mnemonic = 'CppCompile',
-          compiler = 'gcc',
+          action_mnemonic = 'Rustc',
+          compiler = 'rustc',
+          strip_escape_codes = true,
+        },
+      },
+    },
+    {
+      rule_kind = 'scala_*',
+      action_errorformats = {
+        {
+          action_mnemonic = 'Scalac',
+          errorformat = table.concat({
+            -- Scala 3 patterns
+            '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+            '--\\ %m:\\ %f:%l:%c%.%#',
+          }, ','),
+          strip_escape_codes = true,
         },
       },
     },

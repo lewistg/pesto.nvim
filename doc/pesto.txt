@@ -129,44 +129,110 @@ Options                                                            *pesto-option
     ---@field rule_kind string A lua string pattern
     ---@field action_errorformats pesto.ActionErrorformat[]
 
+    --- Maps a rule's actions' mnemonics to either a errorformat string or compiler
+    --- plugin (which should in turn define a errorformat)
     ---@class pesto.ActionErrorformat
-    ---@field action_mnemonic string A lua string pattern
-    ---@field compiler string|nil The compiler plugin that should define the errorformat to use for parsing the action's stderr output
-    ---@field errorformat string|nil Errorformat string (:help errorformat)
+    ---
+    --- A lua string pattern
+    ---@field action_mnemonic string
+    ---
+    --- The compiler plugin that should define the errorformat to use for parsing
+    --- the action's stderr output.
+    ---@field compiler string|nil
+    ---
+    --- Errorformat string (:help errorformat)
+    ---@field errorformat string|nil
+    ---
+    --- Some compilers produce output with syntax highlighting using ANSI escape
+    --- codes. When `strip_escape_codes` is set to true, Pesto will strip out the
+    --- escape codes before parsing the errors for the quickfix window.
+    ---@field strip_escape_codes boolean|nil
 <
 
-    Finally, let's look at Pesto's default value:
+    Finally, let's look at snippets from Pesto's default value in
+    `lua/pesto/settings.lua`:
 
 >lua
-	{
-		{
-			rule_kind = "java_*",
-			action_errorformats = {
-				{
-					action_mnemonic = "Javac",
-					compiler = "javac",
-				},
-			},
-		},
-		{
-			rule_kind = "cc_*",
-			action_errorformats = {
-				{
-					action_mnemonic = "CppCompile",
-					compiler = "gcc",
-				},
-			},
-		},
-	}
+  {
+    {
+      rule_kind = 'cc_*',
+      action_errorformats = {
+        {
+          action_mnemonic = 'CppCompile',
+          compiler = 'gcc',
+        },
+      },
+    },
+    ...
+    {
+      rule_kind = 'java_*',
+      action_errorformats = {
+        {
+          action_mnemonic = 'Javac',
+          compiler = 'javac',
+        },
+      },
+    },
+    {
+      rule_kind = 'rust_*',
+      action_errorformats = {
+        {
+          action_mnemonic = 'Rustc',
+          compiler = 'rustc',
+          strip_escape_codes = true,
+        },
+      },
+    },
+    {
+      rule_kind = 'scala_*',
+      action_errorformats = {
+        {
+          action_mnemonic = 'Scalac',
+          errorformat = table.concat({
+            -- Scala 3 patterns
+            '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+            '--\\ %m:\\ %f:%l:%c%.%#',
+          }, ','),
+          strip_escape_codes = true,
+        },
+      },
+    },
+  }
 <
 
-    As an example, lets say an action with the mnemonic `Javac` triggered by
-    the rule `java_library` failed. Pesto will resolve this to the first entry
-    in the default value:
+    Let's consider a few examples. First, let's say we compile a Scala test.
+    Scala test targets are created using the `scala_test` rule. Scala
+    compliation is executed using an action with the mnemonic `Scalac`. Now,
+    let's say the test fails. Pesto needs find the errorformat to use to parse
+    the error logs.
+
+    The `scala_test` target name will be matched by the pattern `scala_*` and
+    the mnemonic will match `Scalac`. So Pesto will parse the error output
+    using this errorformat:
 
 >lua
     {
-        action_mnemonic = "Javac",
+      ...
+      errorformat = table.concat({
+        -- Scala 3 patterns
+        '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+        '--\\ %m:\\ %f:%l:%c%.%#',
+      }, ','),
+      ...
+    }
+<
+
+    Next let's say we triggered a failing Java build while trying to build a
+    Java library. In this case, the target likely came from the rule
+    `java_library` that triggered the compilation action with the mnemonic
+    `Javac`.
+
+    In this case the relevant config `java_library`, `Javac` maps to is the
+    following:
+
+>lua
+    {
+        ...
         compiler = "javac",
     }
 <
@@ -177,6 +243,9 @@ Options                                                            *pesto-option
     for `javac`. These plugins already define an `errorformat` string. Instead
     of having to copy these over into the Pesto's config Pesto allows you
     specify the compiler plugin to use and will use its errorformat string.
+
+    Neovim doesn't ship with a compiler plugin for Scala, so we had to define
+    the errorformat manually.
 
 `cli_completion`                           *pesto.Settings.CliCompletionSettings*
     type: `pesto.CliCompletionSettings`
