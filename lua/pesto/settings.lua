@@ -126,6 +126,8 @@ local default_raw_settings = {
         {
           action_mnemonic = 'Scalac',
           errorformat = table.concat({
+            -- Scala 2 pattern
+            '%f:%l:\\ error:\\ %m',
             -- Scala 3 patterns
             '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
             '--\\ %m:\\ %f:%l:%c%.%#',

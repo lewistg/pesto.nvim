@@ -189,6 +189,8 @@ Options                                                            *pesto-option
         {
           action_mnemonic = 'Scalac',
           errorformat = table.concat({
+            -- Scala 2 pattern
+            '%f:%l:\\ error:\\ %m',
             -- Scala 3 patterns
             '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
             '--\\ %m:\\ %f:%l:%c%.%#',
@@ -213,11 +215,13 @@ Options                                                            *pesto-option
 >lua
     {
       ...
-      errorformat = table.concat({
-        -- Scala 3 patterns
-        '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
-        '--\\ %m:\\ %f:%l:%c%.%#',
-      }, ','),
+          errorformat = table.concat({
+            -- Scala 2 pattern
+            '%f:%l:\\ error:\\ %m',
+            -- Scala 3 patterns
+            '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+            '--\\ %m:\\ %f:%l:%c%.%#',
+          }, ','),
       ...
     }
 <
