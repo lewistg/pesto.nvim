@@ -410,38 +410,38 @@ BuildEvent.__index = BuildEvent
 ---@param raw_event table
 ---@return pesto.bep.BuildEvent
 function BuildEvent:new(raw_event)
-	---@type pesto.bep.BuildEvent
-	local o = setmetatable(raw_event, BuildEvent)
-	local table_util = require("pesto.util.table_util")
-	o.kind = table_util.some_key(raw_event.id) --[[@as pesto.bep.BuildEventKind]]
-	o.id_key = o.get_id_key(o.id)
-	return o
+  ---@type pesto.bep.BuildEvent
+  local o = setmetatable(raw_event, BuildEvent)
+  local table_util = require('pesto.util.table_util')
+  o.kind = table_util.some_key(raw_event.id) --[[@as pesto.bep.BuildEventKind]]
+  o.id_key = o.get_id_key(o.id)
+  return o
 end
 
 --- Gets a unique fingerprint for the build event ID
 ---@param build_event_id pesto.bep.BuildEventId
 ---@return string
 function BuildEvent.get_id_key(build_event_id)
-	local table_util = require("pesto.util.table_util")
-	local specific_id_type = table_util.some_key(build_event_id)
-	if type(specific_id_type) ~= "string" then
-		error(string.format('unrecongized id type: "%s"', specific_id_type or "(type not given)"))
-	end
-	---@param value table
-	local function get_key(value)
-		local sorted_keys = vim.tbl_keys(value)
-		table.sort(sorted_keys)
-		local values = vim.tbl_map(function(k)
-			local v = value[k]
-			if type(v) == "table" then
-				return get_key(v)
-			else
-				return tostring(v)
-			end
-		end, sorted_keys)
-		return table.concat(values, "_")
-	end
-	return specific_id_type .. ":" .. get_key(build_event_id)
+  local table_util = require('pesto.util.table_util')
+  local specific_id_type = table_util.some_key(build_event_id)
+  if type(specific_id_type) ~= 'string' then
+    error(string.format('unrecongized id type: "%s"', specific_id_type or '(type not given)'))
+  end
+  ---@param value table
+  local function get_key(value)
+    local sorted_keys = vim.tbl_keys(value)
+    table.sort(sorted_keys)
+    local values = vim.tbl_map(function(k)
+      local v = value[k]
+      if type(v) == 'table' then
+        return get_key(v)
+      else
+        return tostring(v)
+      end
+    end, sorted_keys)
+    return table.concat(values, '_')
+  end
+  return specific_id_type .. ':' .. get_key(build_event_id)
 end
 
 return BuildEvent

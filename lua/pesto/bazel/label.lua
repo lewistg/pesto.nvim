@@ -1,6 +1,6 @@
 local M = {}
 
-local LABEL_PATTERN = "([^/]*)//([^:]*)(:?(.*))"
+local LABEL_PATTERN = '([^/]*)//([^:]*)(:?(.*))'
 
 ---Parsed Bazel label (see: https://bazel.build/concepts/labels)
 ---@class pesto.BazelLabel
@@ -13,15 +13,15 @@ local LABEL_PATTERN = "([^/]*)//([^:]*)(:?(.*))"
 ---@param raw_label string
 ---@return pesto.BazelLabel|nil
 function M.parse_label(raw_label)
-	local i, _, repo_name, package_name, _, target_name = string.find(raw_label, LABEL_PATTERN)
-	if not i then
-		return nil
-	end
-	return {
-		repo_name = repo_name,
-		package_name = package_name,
-		target_name = target_name,
-	}
+  local i, _, repo_name, package_name, _, target_name = string.find(raw_label, LABEL_PATTERN)
+  if not i then
+    return nil
+  end
+  return {
+    repo_name = repo_name,
+    package_name = package_name,
+    target_name = target_name,
+  }
 end
 
 return M

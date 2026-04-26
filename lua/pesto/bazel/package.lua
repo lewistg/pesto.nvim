@@ -14,20 +14,20 @@ local NAME_PATTERN = '^%s*name%s*=%s*"([^"]*)"%s*,?$'
 ---@param build_file string
 ---@return string[]
 function M.guess_target_names(build_file)
-	local status, lines = pcall(vim.fn.readfile, tostring(build_file))
-	if not status then
-		return {}
-	end
+  local status, lines = pcall(vim.fn.readfile, tostring(build_file))
+  if not status then
+    return {}
+  end
 
-	---@type string[]
-	local names = {}
-	for _, line in ipairs(lines) do
-		local _, _, name = string.find(line, NAME_PATTERN)
-		if name then
-			table.insert(names, name)
-		end
-	end
-	return names
+  ---@type string[]
+  local names = {}
+  for _, line in ipairs(lines) do
+    local _, _, name = string.find(line, NAME_PATTERN)
+    if name then
+      table.insert(names, name)
+    end
+  end
+  return names
 end
 
 return M
