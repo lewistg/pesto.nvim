@@ -175,7 +175,7 @@ components.run_bazel_fn = _run_bazel_fn --[[@as pesto.RunBazelFn ]]
 local _subcommands = function()
   return require('pesto.cli.subcommands').make_subcommands({
     bazel_sub_command = components.bazel_sub_command,
-    dump_failed_action_logs_sucommand = components.dump_failed_action_logs_subcommand,
+    dump_failed_action_logs_subcommand = components.dump_failed_action_logs_subcommand,
     install_remote_apis_helpers_subcommand = components.install_remote_apis_helpers_subcommand,
     open_build_events_summary_subcommand = components.open_build_events_summary_subcommand,
     run_bazel_fn = components.run_bazel_fn,
