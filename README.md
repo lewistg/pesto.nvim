@@ -1,7 +1,8 @@
 > [!WARNING]
 > **Work in progress**
 >
-> This plugin is currently under active development.
+> This plugin is under active development but stable enough to try. Feel free
+> to open an issue if you have feedback or encounter a bug.
 
 # pesto.nvim: Neovim Bazel plugin
 
