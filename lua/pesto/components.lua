@@ -71,7 +71,7 @@ components.build_event_file_loader = _build_event_file_loader --[[@as pesto.Buil
 
 ---@return pesto.BuildSubcommand
 local function _build_subcommand()
-  return require('pesto.cli.build_subcommand'):new()
+  return require('pesto.cli.build_subcommand'):new(components.settings)
 end
 components.build_subcommand = _build_subcommand --[[@as pesto.BuildSubcommand]]
 
