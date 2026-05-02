@@ -1,0 +1,4 @@
+sh_binary(
+    name = "c2",
+    srcs = ["c2.sh"]
+)
