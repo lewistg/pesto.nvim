@@ -197,7 +197,7 @@ function InternalSettings:get_auto_open_build_term()
 end
 
 ---@return pesto.RuleActionErrorformats
-function InternalSettings:get_errorformats(rule_kind, action_mnemonic)
+function InternalSettings:get_errorformats()
   return self:_resolve_setting('errorformats')
 end
 
