@@ -59,17 +59,6 @@ function M.find_build_file(buf_nr)
   end
 end
 
----@param dir Path
----@return boolean
-function M.is_package(dir)
-  for _, marker_file in PACKAGE_MARKERS do
-    if dir:join(marker_file):is_file() then
-      return true
-    end
-  end
-  return false
-end
-
 -- Finds the repo's root marker file
 --
 ---@param buf_nr number|nil
