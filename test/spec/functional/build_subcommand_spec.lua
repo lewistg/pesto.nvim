@@ -1,4 +1,4 @@
-describe('open BUILD file subcommands', function()
+describe('build subcommand', function()
   local nvim_chan
   local busted_fixtures = require('busted.fixtures')
   local bazel_repo_dir = busted_fixtures.path('bazel_repo_fixture')
@@ -30,40 +30,26 @@ describe('open BUILD file subcommands', function()
     vim.fn.jobstop(nvim_chan)
   end)
 
-  it('compile-one-dep builds some dependency for the currently open source file', function()
+  it('builds the targets for the package associated with the current file', function()
     vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'edit', args = { 'hello-world/main.c' } }, {})
 
-    local subcommand = { 'compile-one-dep' }
+    local subcommand = { 'build' }
     vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'Pesto', args = subcommand }, {})
 
     build_window_test_helper:verify_build_window_opens()
   end)
 
-  it(
-    'compile-one-dep builds some dependency for the currently open source file even when the package is in an ancestor directory',
-    function()
-      local src_dir = vim.fs.joinpath(bazel_repo_dir, 'java/src/main/java/com/example')
-      vim.rpcrequest(
-        nvim_chan,
-        'nvim_cmd',
-        { cmd = 'edit', args = { vim.fs.joinpath(src_dir, 'Main.java') } },
-        {}
-      )
+  it('builds the targets when an explicit resolver ID is given', function()
+    vim.rpcrequest(
+      nvim_chan,
+      'nvim_cmd',
+      { cmd = 'edit', args = { 'java/src/main/java/com/example/Main.java' } },
+      {}
+    )
 
-      local build_file = vim.rpcrequest(
-        nvim_chan,
-        'nvim_exec_lua',
-        "return require('pesto.bazel.repo').find_build_file(0)",
-        {}
-      )
+    local subcommand = { 'build', 'all' }
+    vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'Pesto', args = subcommand }, {})
 
-      -- Make sure the build file is in a different directory (should be an ancestor)
-      assert.are_not.equal(src_dir, vim.fs.dirname(build_file))
-
-      local subcommand = { 'compile-one-dep' }
-      vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'Pesto', args = subcommand }, {})
-
-      build_window_test_helper:verify_build_window_opens()
-    end
-  )
+    build_window_test_helper:verify_build_window_opens()
+  end)
 end)

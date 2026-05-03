@@ -1,5 +1,7 @@
 local M = {}
 
+-- Note: BUILD.bazel takes precedence over BUILD [1]
+-- [1]: https://bazel.build/concepts/build-files
 local PACKAGE_MARKERS = {
   'BUILD.bazel',
   'BUILD',
@@ -38,8 +40,12 @@ function M.get_package_label(buf_nr)
   end
   local package_dir_path = vim.fn.fnamemodify(build_file_path, ':p:h')
   local root_dir_path = M.find_project_root_dir()
-  local package_label = vim.fs.relpath(root_dir_path, package_dir_path)
-  return '//' .. package_label
+  local package_rel_path = vim.fs.relpath(root_dir_path, package_dir_path)
+  if package_rel_path == '.' then
+    return '//'
+  else
+    return '//' .. package_rel_path
+  end
 end
 
 -- Finds the corresponding build file for the source file in the given buffer.
@@ -47,27 +53,13 @@ end
 ---@param buf_nr number|nil
 ---@return string|nil
 function M.find_build_file(buf_nr)
+  local project_root_dir = M.find_project_root_dir(buf_nr)
   local buffer_dir = get_buffer_dir(buf_nr)
-  -- note: BUILD.repo takes precedence over BUILD [1]
-  -- [1]: https://repo.build/concepts/build-files
-  for _, filename in ipairs(PACKAGE_MARKERS) do
-    local build_file = vim.fn.findfile(filename, buffer_dir .. ';')
-    if build_file ~= '' then
-      build_file = vim.fn.fnamemodify(build_file, ':p')
-      return build_file
-    end
-  end
-end
-
----@param dir Path
----@return boolean
-function M.is_package(dir)
-  for _, marker_file in PACKAGE_MARKERS do
-    if dir:join(marker_file):is_file() then
-      return true
-    end
-  end
-  return false
+  local files = vim.fs.find(
+    PACKAGE_MARKERS,
+    { type = 'file', path = buffer_dir, upward = true, stop = project_root_dir }
+  )
+  return files[1]
 end
 
 -- Finds the repo's root marker file

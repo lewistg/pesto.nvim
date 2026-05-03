@@ -29,6 +29,7 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field settings pesto.InternalSettings
 ---@field subcommands pesto.Subcommands
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
+---@field build_subcommand pesto.BuildSubcommand
 
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
@@ -67,6 +68,12 @@ local function _build_event_file_loader()
   return require('pesto.bazel.build_event_file_loader'):new(components.byte_stream_client)
 end
 components.build_event_file_loader = _build_event_file_loader --[[@as pesto.BuildEventFileLoader]]
+
+---@return pesto.BuildSubcommand
+local function _build_subcommand()
+  return require('pesto.cli.build_subcommand'):new(components.settings)
+end
+components.build_subcommand = _build_subcommand --[[@as pesto.BuildSubcommand]]
 
 ---@return pesto.BuildWindowManager
 local function _build_window_manager()
@@ -144,7 +151,7 @@ end
 components.pesto_cli = _pesto_cli --[[@as PestoCli]]
 
 local _settings = function()
-  return require('pesto.settings'):new()
+  return require('pesto.internal_settings'):new()
 end
 components.settings = _settings --[[@as pesto.InternalSettings ]]
 
@@ -175,7 +182,8 @@ components.run_bazel_fn = _run_bazel_fn --[[@as pesto.RunBazelFn ]]
 local _subcommands = function()
   return require('pesto.cli.subcommands').make_subcommands({
     bazel_sub_command = components.bazel_sub_command,
-    dump_failed_action_logs_sucommand = components.dump_failed_action_logs_subcommand,
+    build_subcommand = components.build_subcommand,
+    dump_failed_action_logs_subcommand = components.dump_failed_action_logs_subcommand,
     install_remote_apis_helpers_subcommand = components.install_remote_apis_helpers_subcommand,
     open_build_events_summary_subcommand = components.open_build_events_summary_subcommand,
     run_bazel_fn = components.run_bazel_fn,

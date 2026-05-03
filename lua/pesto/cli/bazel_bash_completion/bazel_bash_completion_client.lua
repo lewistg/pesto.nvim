@@ -258,8 +258,8 @@ function BazelBashCompletionClient:_get_bash_completion_script()
     if cli_options.bash_completion_script ~= nil then
       bash_completion_scripts = { cli_options.bash_completion_script }
     else
-      local Settings = require('pesto.settings')
-      bash_completion_scripts = Settings.DEFAULT_BASH_COMPLETION_SCRIPTS
+      local settings = require('pesto.settings')
+      bash_completion_scripts = settings.DEFAULT_BASH_COMPLETION_SCRIPTS
     end
 
     logger.trace(

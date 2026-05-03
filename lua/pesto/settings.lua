@@ -1,3 +1,5 @@
+local M = {}
+
 --- Maps a rule's actions' mnemonics to either a errorformat string or compiler
 --- plugin (which should in turn define a errorformat)
 ---@class pesto.ActionErrorformat
@@ -20,6 +22,15 @@
 ---@class pesto.RuleActionErrorformats
 ---@field rule_kind string A lua string pattern
 ---@field action_errorformats pesto.ActionErrorformat[]
+
+---@alias pesto.TargetResolverResult
+---| {targets: string[]}
+---| {query: string}
+
+---@alias pesto.TargetResolver fun(context: pesto.RunBazelContext): pesto.TargetResolverResult
+
+--- Map from a "target resolver ID" to a method that returns a Bazel target resolver.
+---@alias pesto.BuildTargetResolvers {[string]: pesto.TargetResolver}
 
 ---@alias pesto.CliCompletionMode
 ---| "lua"
@@ -72,13 +83,42 @@
 ---
 --- Configuration for the `:Pesto bazel` subcommand auto-completion
 ---@field cli_completion pesto.CliCompletionSettings
+---
+--- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
+---@field build_target_resolvers pesto.BuildTargetResolvers
+
+---@type string
+M.SETTINGS_KEY = 'pesto'
+
+---@type string[]
+M.DEFAULT_BASH_COMPLETION_SCRIPTS = {
+  vim.fs.joinpath('/etc/bash_completion.d', 'bazel'),
+  vim.fs.joinpath('/etc/bash_completion.d', 'bazel-completion'),
+}
+
+---@type pesto.BuildTargetResolvers
+M.DEFAULT_TARGET_RESOLVERS = {
+  ['all'] = function(context)
+    return {
+      targets = { string.format('%s:all', context.package_label) },
+    }
+  end,
+  ['tests'] = function(context)
+    return {
+      query = string.format('tests(%s:*)', context.package_label),
+    }
+  end,
+}
+
+M.DEFAULT_TARGET_RESOLVER_ID = 'all'
 
 ---@type pesto.Settings
-local default_raw_settings = {
+M.DEFAULT_RAW_SETTINGS = {
   bazel_command = 'bazel',
   bazel_runner = function(opts)
     require('pesto.components').default_runner(opts)
   end,
+  build_target_resolvers = M.DEFAULT_TARGET_RESOLVERS,
   log_level = 'info',
   enable_bep_integration = true,
   auto_open_build_term = true,
@@ -145,65 +185,4 @@ local default_raw_settings = {
   },
 }
 
---- Wraps the settings and resolves buffer-local overrides
----@class pesto.InternalSettings
-local InternalSettings = {}
-InternalSettings.__index = InternalSettings
-
-InternalSettings.SETTINGS_KEY = 'pesto'
-
----@type string[]
-InternalSettings.DEFAULT_BASH_COMPLETION_SCRIPTS = {
-  vim.fs.joinpath('/etc/bash_completion.d', 'bazel'),
-  vim.fs.joinpath('/etc/bash_completion.d', 'bazel-completion'),
-}
-
----@return pesto.InternalSettings
-function InternalSettings:new()
-  local o = setmetatable({}, InternalSettings)
-  return o
-end
-
----@generic T
----@private
----@param key string
----@return `T`
-function InternalSettings:_resolve_setting(key)
-  local buf_id = vim.api.nvim_get_current_buf()
-  return vim.tbl_deep_extend(
-    'keep',
-    vim.tbl_get(vim.b, buf_id, InternalSettings.SETTINGS_KEY) or {},
-    vim.tbl_get(vim.g, InternalSettings.SETTINGS_KEY) or {},
-    default_raw_settings
-  )[key]
-end
-
----@return pesto.RunBazelFn
-function InternalSettings:get_bazel_runner()
-  return self:_resolve_setting('bazel_runner')
-end
-
----Indicates whether or not the bep integration is enabled. When enabled, the
----`--build_event_json_file=<string>` bazel flag is automatically injected into
----the bazel command. The argument to `--build_event_json_file` will be a well
----known file that can be loaded post-build.
----@return boolean
-function InternalSettings:get_enable_bep_integration()
-  return self:_resolve_setting('enable_bep_integration')
-end
-
-function InternalSettings:get_auto_open_build_term()
-  return self:_resolve_setting('auto_open_build_term')
-end
-
----@return pesto.RuleActionErrorformats
-function InternalSettings:get_errorformats()
-  return self:_resolve_setting('errorformats')
-end
-
----@return pesto.CliCompletionSettings
-function InternalSettings:get_cli_completion_settings()
-  return self:_resolve_setting('cli_completion')
-end
-
-return InternalSettings
+return M

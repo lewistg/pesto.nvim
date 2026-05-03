@@ -26,7 +26,10 @@ instead just set `vim.g.pesto`. Here is the default configuration:
         bazel_runner = function(opts)
             require("pesto.components").default_runner(opts)
         end,
-        -- Logging level (see `:checkhealth pesto` to get the log file's path)
+        --- Map from a "target resolver ID" to a method that returns a Bazel
+        --- target resolver.
+        build_target_resolvers = require("pesto.settings").DEFAULT_TARGET_RESOLVERS,
+        --- Logging level (see `:checkhealth pesto` to get the log file's path)
         log_level = "info",
         --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
         --- Bazel command line option. If you use the default runner, then following
@@ -85,6 +88,58 @@ Options                                                            *pesto-option
 
     Pesto calls this callback to invoke bazel. By default Pesto uses its own
     default runner callback (see |pesto-default-runner|).
+
+`build_target_resolvers`                   *pesto.Settings.build_target_resolvers*
+    type: {
+      [string]: fun(context: pesto.RunBazelContext): {query: string}|{targets : string[]}
+    }
+    default: require("pesto.settings").DEFAULT_TARGET_RESOLVERS
+
+    This option is used by Pesto's `build` subcommand (|pesto-commands-build|).
+    The option defines a mapping from a string ID to a function that returns
+    either a target query or targets. The `build` subcommand will use the result
+    to invoke a build with the given targets.
+
+    The function takes a `pesto.RunBazelContext` which has the following
+    definition:
+>lua
+    ---@class pesto.RunBazelContext
+    ---@field workspace_dir string
+    ---@field package_dir string|nil
+    ---@field package_label string|nil
+    ---@field buf_nr number
+<
+    This context should be used to dynamically create the list of targets or
+    the query needed to invoke the build.
+
+    When a query is returned, Pesto will run the query and then invoke a build
+    using the returned targets. When a targets are returned, Pesto runs the
+    build directly using the given targets.
+
+    As an example, here are the default resolvers
+    (`require("pesto.settings").DEFAULT_TARGET_RESOLVERS`):
+
+>lua
+    ---@type pesto.BuildTargetResolvers
+    local DEFAULT_TARGET_RESOLVERS = {
+      ['all'] = function(context)
+        return {
+          targets = { string.format('%s:all', context.package_label) },
+        }
+      end,
+      ['tests'] = function(context)
+        return {
+          query = string.format('tests(%s:*)', context.package_label),
+        }
+      end,
+    }
+<
+    Tip: It's possible you'll want different resolvers based on the file type
+    of the source file you're editing. You can detect the file type based on
+    the context's `pesto.RunBazelContext.bufnr` field. Another option is to use
+    an autocommand or filetype plugin to set `build_target_resolvers` at the
+    buffer level. Pesto merges buffer-level options with the global-level
+    options, giving priority to the buffer level.
 
 `log_level`                                            *pesto.Settings.log_level*
     type: `"trace"|"debug"|"info"|"warn"|"error"`
@@ -294,16 +349,36 @@ Options                                                            *pesto-option
     type: `string|nil`
     default: `nil`
 
-    Absolute path to the bash completion script that Pesto should for completions.
-    This setting only applies when using the `"bash"` completion mode
+    Absolute path to the bash completion script that Pesto should use for
+    completions. This setting only applies when using the `"bash"` completion
+    mode
     (|pesto.Settings.CliCompletionSettings.mode|).
 
-    Note: Whe the value of `bash_completion_script`--the default value--Pesto
-    searches among a few well known locations. (See
-    `pesto.InternalSettings.DEFAULT_BASH_COMPLETION_SCRIPTS`.)
+    Note: When the value of `bash_completion_script` is the unset Pesto searches
+    among a few well known locations. See
+    `require('pesto.settings').DEFAULT_BASH_COMPLETION_SCRIPTS` for the default
+    locations.
 
 ================================================================================
-Bazel concepts                                             *pesto-bazel-concepts*
+Commands                                                          *pesto-commands*
+
+Pesto's CLI is similar to `git`: There is a single top-level command and
+various sub-commands. Here is the format:
+>viml
+    :Pesto <sub-command>
+<
+Listed below are the possible sub-commands:
+
+`build [target-resolver-id]`                                *pesto-commands-build*
+    `target-resolver-id`: This ID acts as a key into the map defined by the
+    |pesto.Settings.build_target_resolvers| option.
+
+    The `build` command provides a way to quickly invoke a Bazel build. Its
+    primary use case is invoking a build for targets that directly depend on
+    the source file currently being edited.
+
+================================================================================
+Bazel concepts                                              *pesto-bazel-concepts*
 
 This section gives a quick primer on key Bazel concepts underpinning Pesto.
 
