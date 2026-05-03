@@ -38,4 +38,18 @@ describe('build subcommand', function()
 
     build_window_test_helper:verify_build_window_opens()
   end)
+
+  it('builds the targets when an explicit resolver ID is given', function()
+    vim.rpcrequest(
+      nvim_chan,
+      'nvim_cmd',
+      { cmd = 'edit', args = { 'java/src/main/java/com/example/Main.java' } },
+      {}
+    )
+
+    local subcommand = { 'build', 'all' }
+    vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'Pesto', args = subcommand }, {})
+
+    build_window_test_helper:verify_build_window_opens()
+  end)
 end)

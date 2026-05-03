@@ -23,8 +23,14 @@ local M = {}
 ---@field rule_kind string A lua string pattern
 ---@field action_errorformats pesto.ActionErrorformat[]
 
---- Map from a "query ID" to a method that returns Bazel query
----@alias pesto.BuildQueries {[string]: fun(context: pesto.RunBazelContext): string}
+---@alias pesto.TargetResolverResult
+---| {targets: string[]}
+---| {query: string}
+
+---@alias pesto.TargetResolver fun(context: pesto.RunBazelContext): pesto.TargetResolverResult
+
+--- Map from a "target resolver ID" to a method that returns a Bazel target resolver.
+---@alias pesto.BuildTargetResolvers {[string]: pesto.TargetResolver}
 
 ---@alias pesto.CliCompletionMode
 ---| "lua"
@@ -78,8 +84,8 @@ local M = {}
 --- Configuration for the `:Pesto bazel` subcommand auto-completion
 ---@field cli_completion pesto.CliCompletionSettings
 ---
---- Configuration for the `:Pesto build [query_id]` subcommand. Defines the possible pre-defined target queries
----@field build_queries pesto.BuildQueries
+--- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
+---@field build_target_resolvers pesto.BuildTargetResolvers
 
 ---@type string
 M.SETTINGS_KEY = 'pesto'
@@ -90,15 +96,21 @@ M.DEFAULT_BASH_COMPLETION_SCRIPTS = {
   vim.fs.joinpath('/etc/bash_completion.d', 'bazel-completion'),
 }
 
----@type pesto.BuildQueries
-M.DEFAULT_BUILD_QUERIES = {
+---@type pesto.BuildTargetResolvers
+M.DEFAULT_TARGET_RESOLVERS = {
   ['all'] = function(context)
-    return string.format('kind(rule, %s:all)', context.package_label)
+    return {
+      targets = { string.format('%s:all', context.package_label) },
+    }
   end,
   ['tests'] = function(context)
-    return string.format('tests(%s:*)', context.package_label)
+    return {
+      query = string.format('tests(%s:*)', context.package_label),
+    }
   end,
 }
+
+M.DEFAULT_TARGET_RESOLVER_ID = 'all'
 
 ---@type pesto.Settings
 M.DEFAULT_RAW_SETTINGS = {
@@ -106,6 +118,7 @@ M.DEFAULT_RAW_SETTINGS = {
   bazel_runner = function(opts)
     require('pesto.components').default_runner(opts)
   end,
+  build_target_resolvers = M.DEFAULT_TARGET_RESOLVERS,
   log_level = 'info',
   enable_bep_integration = true,
   auto_open_build_term = true,
@@ -170,7 +183,6 @@ M.DEFAULT_RAW_SETTINGS = {
     bash_timeout = 15000,
     bash_completion_script = nil,
   },
-  build_queries = M.DEFAULT_BUILD_QUERIES,
 }
 
 return M

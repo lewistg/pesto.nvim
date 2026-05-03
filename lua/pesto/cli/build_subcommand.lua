@@ -1,6 +1,6 @@
 ---@class pesto.QueryTargetsOpts
+---@field query string
 ---@field run_bazel_context pesto.RunBazelContext
----@field query_fn fun(context: pesto.RunBazelContext): string
 ---@field on_success fun(labels: string[])
 ---@field on_error fun(err: string, stderr_lines)
 
@@ -33,7 +33,7 @@ end
 ---@return string[]
 function BuildSubcommand:_complete(opts)
   local cli_util = require('pesto.util.cli')
-  local query_ids = vim.tbl_keys(self._settings:get_build_queries())
+  local query_ids = vim.tbl_keys(self._settings:get_build_target_resolvers())
   return cli_util.get_completion_candidates(opts.arg_lead, query_ids)
 end
 
@@ -42,78 +42,102 @@ function BuildSubcommand:_execute(opts)
   local logger = require('pesto.logger')
 
   ---@type string|nil
-  local query_id = opts.fargs[1]
+  local resolver_id = opts.fargs[1]
 
   local settings = require('pesto.settings')
-  local build_queries = self._settings:get_build_queries()
+  local build_target_resolvers = self._settings:get_build_target_resolvers()
 
-  ---@type (fun(context: pesto.RunBazelContext): string)|nil
-  local query_fn
-  if query_id ~= nil then
-    query_fn = build_queries[query_id]
-    if query_fn == nil then
-      vim.notify(string.format("Pesto: No query with ID '%s'", query_id), vim.log.levels.ERROR)
+  ---@type pesto.TargetResolver|nil
+  local target_resolver
+  if resolver_id ~= nil then
+    target_resolver = build_target_resolvers[resolver_id]
+    if target_resolver == nil then
+      vim.notify(
+        string.format("Pesto: No resolver with ID '%s'", resolver_id),
+        vim.log.levels.ERROR
+      )
       return
     end
   else
-    query_fn = settings.DEFAULT_BUILD_QUERIES['all']
-    assert(query_fn ~= nil, "default, 'all' query is undefined")
+    target_resolver = settings.DEFAULT_TARGET_RESOLVERS[settings.DEFAULT_TARGET_RESOLVER_ID]
+    assert(target_resolver ~= nil, 'default target resolver is undefined')
   end
-
-  -- Run the query
-  vim.notify('Pesto: Querying targets...')
 
   local runner = require('pesto.runner.runner')
   local context = runner.get_run_bazel_context()
-  self:_query_targets({
-    query_fn = query_fn,
-    run_bazel_context = context,
-    on_success = function(labels)
-      -- This callback calls some "non-fast" functions
-      vim.schedule(function()
-        logger.trace(string.format('successfully queried targets: %s', table.concat(labels, ',')))
+  local target_resolver_result = target_resolver(context)
 
-        if #labels == 0 then
-          vim.notify("Pesto: Query didn't return any targets", vim.log.levels.ERROR)
-          return
-        end
-        local bazel_command = {
-          self._settings:get_bazel_command(),
-          'build',
-          unpack(labels),
-        }
-        self._settings:get_bazel_runner()({
-          bazel_command = bazel_command,
-          context = context,
-        })
-      end)
-    end,
-    on_error = function(err, stderr)
-      vim.schedule(function()
-        vim.notify('Pesto: Target query failed. See logs for more details', vim.log.levels.ERROR)
-        logger.error(string.format('bazel query failed. error=%s, stderr=%s', err, stderr))
-      end)
-    end,
-  })
+  if target_resolver_result.query ~= nil then
+    -- Run the query
+    vim.notify('Pesto: Querying targets...')
+
+    self:_query_targets({
+      query = target_resolver_result.query,
+      run_bazel_context = context,
+      on_success = function(labels)
+        -- This callback calls some "non-fast" functions
+        vim.schedule(function()
+          logger.trace(string.format('successfully queried targets: %s', table.concat(labels, ',')))
+
+          if #labels == 0 then
+            vim.notify("Pesto: Query didn't return any targets", vim.log.levels.ERROR)
+            return
+          end
+          local bazel_command = {
+            self._settings:get_bazel_command(),
+            'build',
+            unpack(labels),
+          }
+          self._settings:get_bazel_runner()({
+            bazel_command = bazel_command,
+            context = context,
+          })
+        end)
+      end,
+      on_error = function(err, stderr)
+        vim.schedule(function()
+          vim.notify('Pesto: Target query failed. See logs for more details', vim.log.levels.ERROR)
+          logger.error(string.format('bazel query failed. error=%s, stderr=%s', err, stderr))
+        end)
+      end,
+    })
+  elseif target_resolver_result.targets ~= nil then
+    if #target_resolver_result.targets == 0 then
+      vim.notify(
+        'Pesto: The "targets" result returned an empty list of targets',
+        vim.log.levels.ERROR
+      )
+    else
+      local bazel_command = {
+        self._settings:get_bazel_command(),
+        'build',
+        unpack(target_resolver_result.targets),
+      }
+      self._settings:get_bazel_runner()({
+        bazel_command = bazel_command,
+        context = context,
+      })
+    end
+  else
+    vim.notify('Pesto: Invalid response from target resolver', vim.log.levels.ERROR)
+  end
 end
 
 ---@param opts pesto.QueryTargetsOpts
 function BuildSubcommand:_query_targets(opts)
   if opts.run_bazel_context.package_label == nil then
     opts.on_error('failed to resolve package directory')
+    return
   end
-
-  local logger = require('pesto.logger')
-
-  local bazel_query = opts.query_fn(opts.run_bazel_context)
 
   ---@type string[]
   local query_command = {
     self._settings:get_bazel_command(),
     'query',
-    bazel_query,
+    opts.query,
   }
 
+  local logger = require('pesto.logger')
   logger.trace(string.format('running query: %s', table.concat(query_command, ' ')))
 
   vim.system(query_command, {
