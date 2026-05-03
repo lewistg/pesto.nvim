@@ -294,13 +294,15 @@ Options                                                            *pesto-option
     type: `string|nil`
     default: `nil`
 
-    Absolute path to the bash completion script that Pesto should for completions.
-    This setting only applies when using the `"bash"` completion mode
+    Absolute path to the bash completion script that Pesto should use for
+    completions. This setting only applies when using the `"bash"` completion
+    mode
     (|pesto.Settings.CliCompletionSettings.mode|).
 
-    Note: Whe the value of `bash_completion_script`--the default value--Pesto
-    searches among a few well known locations. (See
-    `pesto.InternalSettings.DEFAULT_BASH_COMPLETION_SCRIPTS`.)
+    Note: When the value of `bash_completion_script` is the unset Pesto searches
+    among a few well known locations. See
+    `require('pesto.settings').DEFAULT_BASH_COMPLETION_SCRIPTS` for the default
+    locations.
 
 ================================================================================
 Bazel concepts                                             *pesto-bazel-concepts*

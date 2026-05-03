@@ -151,7 +151,7 @@ end
 components.pesto_cli = _pesto_cli --[[@as PestoCli]]
 
 local _settings = function()
-  return require('pesto.settings'):new()
+  return require('pesto.internal_settings'):new()
 end
 components.settings = _settings --[[@as pesto.InternalSettings ]]
 
