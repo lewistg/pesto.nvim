@@ -1,5 +1,6 @@
 ---@class pesto.QueryTargetsOpts
 ---@field run_bazel_context pesto.RunBazelContext
+---@field query_fn fun(context: pesto.RunBazelContext): string
 ---@field on_success fun(labels: string[])
 ---@field on_error fun(err: string, stderr_lines)
 
@@ -21,12 +22,43 @@ function BuildSubcommand:new(settings)
     o:_execute(opts)
   end
 
+  o.complete = function(opts)
+    return o:_complete(opts)
+  end
+
   return o
+end
+
+---@param opts pesto.SubcommandCompleteOpts
+---@return string[]
+function BuildSubcommand:_complete(opts)
+  local cli_util = require('pesto.util.cli')
+  local query_ids = vim.tbl_keys(self._settings:get_build_queries())
+  return cli_util.get_completion_candidates(opts.arg_lead, query_ids)
 end
 
 ---@param opts pesto.SubcommandExecuteOpts
 function BuildSubcommand:_execute(opts)
   local logger = require('pesto.logger')
+
+  ---@type string|nil
+  local query_id = opts.fargs[1]
+
+  local settings = require('pesto.settings')
+  local build_queries = self._settings:get_build_queries()
+
+  ---@type (fun(context: pesto.RunBazelContext): string)|nil
+  local query_fn
+  if query_id ~= nil then
+    query_fn = build_queries[query_id]
+    if query_fn == nil then
+      vim.notify(string.format("Pesto: No query with ID '%s'", query_id), vim.log.levels.ERROR)
+      return
+    end
+  else
+    query_fn = settings.DEFAULT_BUILD_QUERIES['all']
+    assert(query_fn ~= nil, "default, 'all' query is undefined")
+  end
 
   -- Run the query
   vim.notify('Pesto: Querying targets...')
@@ -34,6 +66,7 @@ function BuildSubcommand:_execute(opts)
   local runner = require('pesto.runner.runner')
   local context = runner.get_run_bazel_context()
   self:_query_targets({
+    query_fn = query_fn,
     run_bazel_context = context,
     on_success = function(labels)
       -- This callback calls some "non-fast" functions
@@ -66,21 +99,21 @@ end
 
 ---@param opts pesto.QueryTargetsOpts
 function BuildSubcommand:_query_targets(opts)
-  if opts.run_bazel_context.package_dir == nil then
+  if opts.run_bazel_context.package_label == nil then
     opts.on_error('failed to resolve package directory')
   end
 
-  local bazel_repo = require('pesto.bazel.repo')
-  local package_label = bazel_repo.get_package_label()
+  local logger = require('pesto.logger')
+
+  local bazel_query = opts.query_fn(opts.run_bazel_context)
 
   ---@type string[]
   local query_command = {
     self._settings:get_bazel_command(),
     'query',
-    string.format('kind(rule, %s:*)', package_label),
+    bazel_query,
   }
 
-  local logger = require('pesto.logger')
   logger.trace(string.format('running query: %s', table.concat(query_command, ' ')))
 
   vim.system(query_command, {

@@ -23,6 +23,9 @@ local M = {}
 ---@field rule_kind string A lua string pattern
 ---@field action_errorformats pesto.ActionErrorformat[]
 
+--- Map from a "query ID" to a method that returns Bazel query
+---@alias pesto.BuildQueries {[string]: fun(context: pesto.RunBazelContext): string}
+
 ---@alias pesto.CliCompletionMode
 ---| "lua"
 ---| "bash"
@@ -74,6 +77,9 @@ local M = {}
 ---
 --- Configuration for the `:Pesto bazel` subcommand auto-completion
 ---@field cli_completion pesto.CliCompletionSettings
+---
+--- Configuration for the `:Pesto build [query_id]` subcommand. Defines the possible pre-defined target queries
+---@field build_queries pesto.BuildQueries
 
 ---@type string
 M.SETTINGS_KEY = 'pesto'
@@ -82,6 +88,16 @@ M.SETTINGS_KEY = 'pesto'
 M.DEFAULT_BASH_COMPLETION_SCRIPTS = {
   vim.fs.joinpath('/etc/bash_completion.d', 'bazel'),
   vim.fs.joinpath('/etc/bash_completion.d', 'bazel-completion'),
+}
+
+---@type pesto.BuildQueries
+M.DEFAULT_BUILD_QUERIES = {
+  ['all'] = function(context)
+    return string.format('kind(rule, %s:all)', context.package_label)
+  end,
+  ['tests'] = function(context)
+    return string.format('tests(%s:*)', context.package_label)
+  end,
 }
 
 ---@type pesto.Settings
@@ -154,6 +170,7 @@ M.DEFAULT_RAW_SETTINGS = {
     bash_timeout = 15000,
     bash_completion_script = nil,
   },
+  build_queries = M.DEFAULT_BUILD_QUERIES,
 }
 
 return M

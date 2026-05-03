@@ -3,6 +3,8 @@ local M = {}
 ---@class pesto.RunBazelContext
 ---@field workspace_dir string
 ---@field package_dir string|nil
+---@field package_label string|nil
+---@field bufnr number
 
 ---@class pesto.RunBazelOpts
 ---@field bazel_command string[]
@@ -16,12 +18,17 @@ function M.get_run_bazel_context()
   local build_file = bazel_repo.find_build_file()
   local build_dir = vim.fs.dirname(build_file)
 
+  local bufnr = vim.api.nvim_get_current_buf()
+  local package_label = bazel_repo.get_package_label(bufnr)
+
   local workspace_marker_file = bazel_repo.find_project_root_marker_file()
   local workspace_dir = vim.fs.dirname(workspace_marker_file)
 
   return {
     workspace_dir = workspace_dir,
     package_dir = build_dir,
+    package_label = package_label,
+    bufnr = bufnr,
   }
 end
 

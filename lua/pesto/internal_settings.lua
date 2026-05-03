@@ -65,4 +65,9 @@ function InternalSettings:get_bazel_command()
   return self:_resolve_setting('bazel_command')
 end
 
+---@return pesto.BuildQueries
+function InternalSettings:get_build_queries()
+  return self:_resolve_setting('build_queries')
+end
+
 return InternalSettings
