@@ -4,8 +4,8 @@ local M = {}
 local BUILD_EVENT_JSON_FILE_OPTION = '--build_event_json_file'
 
 ---@param bazel_command string[]
----@param settings pesto.InternalSettings
-function M.inject_bep_option(bazel_command, settings)
+---@param temp_bep_file fun(): string Lazy value of the temp BEP file to use if needed
+function M.inject_bep_option(bazel_command, temp_bep_file)
   local option_name = BUILD_EVENT_JSON_FILE_OPTION
   for _, arg in ipairs(bazel_command) do
     if vim.startswith(arg, option_name) then
@@ -13,8 +13,7 @@ function M.inject_bep_option(bazel_command, settings)
       return
     end
   end
-  local temp_dirs = require('pesto.util.temp_dirs')
-  local bep_file = string.format('%s/%d_bep.json', temp_dirs.BEP_DIR, vim.fn.rand())
+  local bep_file = temp_bep_file()
   table.insert(bazel_command, 3, option_name)
   table.insert(bazel_command, 4, bep_file)
 end

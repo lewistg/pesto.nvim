@@ -63,8 +63,8 @@ function BuildWindowManager:start_new_build(opts)
   ---@type boolean
   local scrolled_to_bottom = false
 
-  vim.api.nvim_buf_call(build_info.term_buf_id, function()
-    vim.fn.jobstart(opts.term_command, {
+  build_info.job_id = vim.api.nvim_buf_call(build_info.term_buf_id, function()
+    local job_id = vim.fn.jobstart(opts.term_command, {
       cwd = opts.cwd,
       on_stdout = function(_, chunks)
         if scrolled_to_bottom then
@@ -105,6 +105,7 @@ function BuildWindowManager:start_new_build(opts)
       end,
       term = true,
     })
+    return job_id
   end)
 
   local logger = require('pesto.logger')
@@ -124,7 +125,7 @@ function BuildWindowManager:start_new_build(opts)
   self:_clean_up_old_bufs()
 end
 
----@return number|nil
+---@return number|nil exit_code If the build is still ongoing, will return nil
 function BuildWindowManager:get_build_exit_code()
   return self._current_build_info and self._current_build_info.exit_code
 end

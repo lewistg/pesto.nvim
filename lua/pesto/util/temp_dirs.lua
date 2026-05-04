@@ -18,6 +18,9 @@ local function get_make_dir(base_path, path)
   end
 end
 
+--- Note: Remember that vim.fn.tempname() will refer to filenames in a
+--- temporary directory that is isolated to the current Neovim session (see
+--- :help tempname.)
 M.BASE_TEMP_DIR = get_make_dir(vim.fn.tempname(), 'pesto.nvim') --[[@as string]]
 M.LOGS_DIR = get_make_dir(M.BASE_TEMP_DIR, 'logs') --[[@as string]]
 M.BEP_DIR = get_make_dir(M.BASE_TEMP_DIR, 'bep') --[[@as string]]
