@@ -28,6 +28,7 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field run_bazel_fn pesto.RunBazelFn
 ---@field settings pesto.InternalSettings
 ---@field subcommands pesto.Subcommands
+---@field temp_bep_files pesto.TempBepFiles
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 ---@field build_subcommand pesto.BuildSubcommand
 
@@ -108,7 +109,8 @@ local function _default_runner()
     components.settings,
     components.build_window_manager,
     components.build_event_json_loader,
-    components.quick_fix_loader
+    components.quick_fix_loader,
+    components.temp_bep_files
   )
 end
 components.default_runner = _default_runner --[[@as pesto.DefaultRunner]]
@@ -192,6 +194,12 @@ local _subcommands = function()
   })
 end
 components.subcommands = _subcommands --[[@as pesto.Subcommands]]
+
+---@return pesto.TempBepFiles
+local _temp_bep_files = function()
+  return require('pesto.runner.default.temp_bep_files'):new()
+end
+components.temp_bep_files = _temp_bep_files --[[@as pesto.TempBepFiles]]
 
 ---@return pesto.OpenBuildEventsSummarySubcommand
 local _open_build_events_summary_subcommand = function()

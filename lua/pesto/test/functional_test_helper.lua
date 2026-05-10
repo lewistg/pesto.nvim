@@ -61,4 +61,31 @@ function FunctionalTestHelper:set_completion_mode(mode)
   )
 end
 
+function FunctionalTestHelper:get_temp_dir()
+  return vim.rpcrequest(
+    self.nvim_chan,
+    'nvim_exec_lua',
+    "return require('pesto.components').functional_test_hooks:get_temp_dir()",
+    {}
+  )
+end
+
+---@param timeout_millis number
+---@return number
+function FunctionalTestHelper:wait_for_build(timeout_millis)
+  local job_exit = vim.rpcrequest(
+    self.nvim_chan,
+    'nvim_exec_lua',
+    string.format(
+      "return require('pesto.components').functional_test_hooks:wait_for_build(%d)",
+      timeout_millis
+    ),
+    {}
+  )
+  if job_exit == vim.NIL or job_exit == nil then
+    error('Failed to get job exit code')
+  end
+  return job_exit
+end
+
 return FunctionalTestHelper

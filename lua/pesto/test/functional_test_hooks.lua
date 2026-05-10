@@ -81,4 +81,18 @@ function FunctionalTestHooks:are_remote_apis_helpers_installed()
   return result.code == 0
 end
 
+---@return string
+function FunctionalTestHooks:get_temp_dir()
+  local temp_dir = require('pesto.util.temp_dirs')
+  return temp_dir.BASE_TEMP_DIR
+end
+
+---@pram timeout_millis
+---@return number|nil
+function FunctionalTestHooks:wait_for_build(timeout_millis)
+  return vim.fn.wait(timeout_millis, function()
+    return self._build_window_manager:get_build_exit_code() ~= nil
+  end)
+end
+
 return FunctionalTestHooks
