@@ -20,16 +20,6 @@ function FunctionalTestHooks:new(build_window_manager, remote_apis_helpers_comma
   return o
 end
 
----@return number|nil The exit code of the last build in the current tab
-function FunctionalTestHooks:get_build_exit_code()
-  return self._build_window_manager:get_build_exit_code()
-end
-
----@return number[]
-function FunctionalTestHooks:find_build_windows(tab_id)
-  return self._build_window_manager:find_build_windows(tab_id)
-end
-
 ---@return number[]|nil
 function FunctionalTestHooks:get_quickfix_items()
   return vim.fn.getqflist({ id = 0, items = true }).items
@@ -87,12 +77,28 @@ function FunctionalTestHooks:get_temp_dir()
   return temp_dir.BASE_TEMP_DIR
 end
 
+--[[
+-- Default runner helpers
+--]]
+
 ---@pram timeout_millis
 ---@return number|nil
 function FunctionalTestHooks:wait_for_build(timeout_millis)
   return vim.fn.wait(timeout_millis, function()
-    return self._build_window_manager:get_build_exit_code() ~= nil
+    local exit_code = self._build_window_manager:get_build_exit_code()
+    return exit_code ~= nil
   end)
+end
+
+---@return number|nil The exit code of the last build in the current tab
+function FunctionalTestHooks:get_build_exit_code()
+  return self._build_window_manager:get_build_exit_code()
+end
+
+---@param tab_id number|nil
+---@return number[]
+function FunctionalTestHooks:find_build_windows(tab_id)
+  return self._build_window_manager:find_build_windows(tab_id)
 end
 
 return FunctionalTestHooks

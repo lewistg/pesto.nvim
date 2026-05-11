@@ -26,6 +26,8 @@ BuildWindowManager.__index = BuildWindowManager
 --- Windows that display - one of these marked buffers are considered build windows.
 BuildWindowManager.PESTO_BUILD_WIN_BUFFER = 'pesto_build_win_buffer'
 
+BuildWindowManager.AUTOCOMMAND_GROUP = 'pesto.default.buildWindowManager'
+
 --- The build window may display two different types of buffers:
 --- 1. A terminal buffer created by vim.fn.termopen
 --- 2. The build summary buffer, which shows the high-level overview of the successful/failed targets
@@ -37,6 +39,8 @@ function BuildWindowManager:new(build_event_file_loader)
 
   o._current_build_info = nil
   o._build_event_file_loader = build_event_file_loader
+
+  vim.api.nvim_create_augroup(BuildWindowManager.AUTOCOMMAND_GROUP, {})
 
   return o
 end
@@ -90,6 +94,8 @@ function BuildWindowManager:start_new_build(opts)
           vim.api.nvim_buf_delete(term_buf_id, { force = true })
         end
 
+        self:_set_quick_exit_keymaps(term_buf_id)
+
         -- Wrapping these vim.notify calls in a vim.schedule seems to
         -- prevent (perhaps) a textlock issue that blocks us from
         -- immediately opening the quickfix window.
@@ -126,9 +132,29 @@ function BuildWindowManager:start_new_build(opts)
   self:_clean_up_old_bufs()
 end
 
+---@private
+---@param buf_id number
+function BuildWindowManager:_set_quick_exit_keymaps(buf_id)
+  vim.api.nvim_buf_set_keymap(
+    buf_id,
+    'n',
+    '<CR>',
+    ':q<CR>',
+    { desc = 'Quit this Bazel output window' }
+  )
+end
+
 ---@return number|nil exit_code If the build is still ongoing, will return nil
 function BuildWindowManager:get_build_exit_code()
   return self._current_build_info and self._current_build_info.exit_code
+end
+
+function BuildWindowManager:is_build_win_current()
+  local buf_id = vim.api.nvim_win_get_buf(0)
+  if vim.b[buf_id][BuildWindowManager.PESTO_BUILD_WIN_BUFFER] then
+    return vim.bo[buf_id].buftype == 'terminal'
+  end
+  return false
 end
 
 function BuildWindowManager:_clean_up_old_bufs()
@@ -172,15 +198,23 @@ end
 function BuildWindowManager:_set_status_lines(term_buf_id)
   ---@param win_id number|nil
   local function set_statusline(win_id)
-    vim.wo[win_id or 0][0].statusline = '[Pesto: Bazel] (Press <CR> or <q> to close) %F'
+    vim.wo[win_id or 0][0].statusline = '[Pesto: Bazel] (Press <CR> to close) %F'
   end
+
+  vim.api.nvim_clear_autocmds({
+    buffer = term_buf_id,
+    group = BuildWindowManager.AUTOCOMMAND_GROUP,
+  })
+
   vim.api.nvim_create_autocmd({ 'BufWinEnter' }, {
     buffer = term_buf_id,
     callback = function()
       local win_id = vim.api.nvim_get_current_win()
       set_statusline(win_id)
     end,
+    group = BuildWindowManager.AUTOCOMMAND_GROUP,
   })
+
   vim.iter(self:find_build_windows()):each(function(win_id)
     vim.api.nvim_win_call(win_id, set_statusline)
   end)
