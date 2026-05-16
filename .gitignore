@@ -1,1 +1,4 @@
-test/xdg/**
+# For tests we symlink this directory to the repo root, so we want to avoid
+# adding anything inside of it.
+# See tools/nluah.sh
+test/xdg/local/share/nvim/site/pack/pesto/start/pesto.nvim
