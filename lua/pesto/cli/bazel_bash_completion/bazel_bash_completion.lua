@@ -28,6 +28,11 @@ function BazelBashCompletion:new(bazel_bash_completion_client, settings)
   return o
 end
 
+---@return boolean
+function BazelBashCompletion:is_available()
+  return self._bazel_bash_completion_client:check_health().loads
+end
+
 ---@param opts pesto.SubcommandCompleteOpts
 ---@return string[]
 function BazelBashCompletion:complete(opts)
