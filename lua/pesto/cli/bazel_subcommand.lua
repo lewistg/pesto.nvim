@@ -1,5 +1,6 @@
 ---@class pesto.BazelSubcommand: pesto.Subcommand
 ---@field private _settings pesto.InternalSettings
+---@field private _completion pesto.SubcommandCompletion|nil
 ---@field private _basic_completion pesto.BazelBasicCompletion
 ---@field private _bash_completion pesto.BazelBashCompletion
 ---@field private _run_bazel_fn pesto.RunBazelFn
@@ -35,21 +36,52 @@ end
 ---@param opts pesto.SubcommandCompleteOpts
 ---@return string[]
 function BazelSubcommand:_complete(opts)
-  ---@type pesto.SubcommandCompletion
-  local completion_strategy
-  local completion_mode = self._settings:get_cli_completion_settings().mode
-  if completion_mode == 'lua' then
-    completion_strategy = self._basic_completion
-  elseif completion_mode == 'bash' then
-    completion_strategy = self._bash_completion
-  elseif completion_mode == 'automatic' then
-    completion_strategy = self._bash_completion
+  return self:_get_completion():complete(opts)
+end
+
+---@return pesto.SubcommandCompletion
+function BazelSubcommand:_get_completion()
+  if self._completion ~= nil then
+    return self._completion
   end
 
   local logger = require('pesto.logger')
-  logger.trace(string.format('attempting completion: mode=%s', completion_mode))
 
-  return completion_strategy:complete(opts)
+  ---@return pesto.SubcommandCompletion
+  local function resolve_automatic_completion()
+    local completion
+    ---@type pesto.CliCompletionMode
+    local mode
+    if self._bash_completion:is_available() then
+      mode = 'bash'
+      completion = self._bash_completion
+    else
+      mode = 'lua'
+      completion = self._basic_completion
+    end
+    logger.debug(string.format('automatically resolved completion strategy: %s', mode))
+    return completion
+  end
+
+  ---@type pesto.SubcommandCompletion
+  local completion
+  local mode = self._settings:get_cli_completion_settings().mode
+
+  if mode == 'lua' then
+    completion = self._basic_completion
+  elseif mode == 'bash' then
+    completion = self._bash_completion
+  elseif mode == 'automatic' then
+    completion = resolve_automatic_completion()
+  else
+    logger.warn(
+      string.format('unrecognized completion mode "%s", falling back to "automatic" mode', mode)
+    )
+    completion = resolve_automatic_completion()
+  end
+
+  self._completion = completion
+  return self._completion
 end
 
 ---@param opts pesto.SubcommandExecuteOpts
