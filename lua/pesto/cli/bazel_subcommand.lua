@@ -54,9 +54,6 @@ end
 
 ---@param opts pesto.SubcommandExecuteOpts
 function BazelSubcommand:_execute(opts)
-  -- There should be at least one farg value (the name of the subcommand)
-  assert(#opts.fargs >= 1)
-
   local runner = require('pesto.runner.runner')
   local context = runner.get_run_bazel_context()
   local bazel_command = vim.deepcopy(opts.fargs)
