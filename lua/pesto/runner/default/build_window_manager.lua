@@ -135,13 +135,10 @@ end
 ---@private
 ---@param buf_id number
 function BuildWindowManager:_set_quick_exit_keymaps(buf_id)
-  vim.api.nvim_buf_set_keymap(
-    buf_id,
-    'n',
-    '<CR>',
-    ':q<CR>',
-    { desc = 'Quit this Bazel output window' }
-  )
+  vim.api.nvim_buf_set_keymap(buf_id, 'n', '<CR>', ':q<CR>', {
+    desc = 'Quit this Bazel output window',
+    silent = true,
+  })
 end
 
 ---@return number|nil exit_code If the build is still ongoing, will return nil
