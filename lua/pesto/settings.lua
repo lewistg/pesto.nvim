@@ -86,6 +86,14 @@ local M = {}
 ---
 --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
 ---@field build_target_resolvers pesto.BuildTargetResolvers
+---
+--- The temporary directory to use. Useful for debugging.
+---
+--- By default Pesto uses vim.fn.tempname() to create a temporary directory for
+--- its logs and working files. As a result, logs are automatically deleted
+--- after the neovim closes. You can set this directory to pick a more
+--- long-lived location.
+---@field temp_dir string|nil
 
 ---@type string
 M.SETTINGS_KEY = 'pesto'

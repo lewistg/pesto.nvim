@@ -18,10 +18,13 @@ local function get_make_dir(base_path, path)
   end
 end
 
+local settings = require('pesto.settings')
+
 --- Note: Remember that vim.fn.tempname() will refer to filenames in a
 --- temporary directory that is isolated to the current Neovim session (see
 --- :help tempname.)
-M.BASE_TEMP_DIR = get_make_dir(vim.fn.tempname(), 'pesto.nvim') --[[@as string]]
+local temp_dir = vim.tbl_get(vim.g, settings.SETTINGS_KEY, 'temp_dir') or vim.fn.tempname()
+M.BASE_TEMP_DIR = get_make_dir(temp_dir, 'pesto.nvim') --[[@as string]]
 M.LOGS_DIR = get_make_dir(M.BASE_TEMP_DIR, 'logs') --[[@as string]]
 M.BEP_DIR = get_make_dir(M.BASE_TEMP_DIR, 'bep') --[[@as string]]
 M.DEFAULT_FAILED_ACTION_LOGS_DUMP_DIR = get_make_dir(M.BASE_TEMP_DIR, 'failed_action_logs') --[[@as string]]

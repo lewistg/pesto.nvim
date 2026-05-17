@@ -12,26 +12,6 @@ function FunctionalTestHelper:new(nvim_chan)
   return o
 end
 
-function FunctionalTestHelper:find_build_windows()
-  --- One of the windows should be the build window
-  return vim.rpcrequest(
-    self.nvim_chan,
-    'nvim_exec_lua',
-    "return require('pesto.components').build_window_manager:find_build_windows(0)",
-    {}
-  )
-end
-
-function FunctionalTestHelper:get_build_exit_code()
-  --- One of the windows should be the build window
-  return vim.rpcrequest(
-    self.nvim_chan,
-    'nvim_exec_lua',
-    "return require('pesto.components').build_window_manager:get_build_exit_code()",
-    {}
-  )
-end
-
 function FunctionalTestHelper:install_remote_apis_helpers()
   return vim.rpcrequest(self.nvim_chan, 'nvim_exec2', ':Pesto install-remote-apis-helpers', {})
 end
@@ -70,6 +50,10 @@ function FunctionalTestHelper:get_temp_dir()
   )
 end
 
+--[[
+-- Default runner helpers
+--]]
+
 ---@param timeout_millis number
 ---@return number
 function FunctionalTestHelper:wait_for_build(timeout_millis)
@@ -86,6 +70,30 @@ function FunctionalTestHelper:wait_for_build(timeout_millis)
     error('Failed to get job exit code')
   end
   return job_exit
+end
+
+---@param tabpagenr number|nil
+function FunctionalTestHelper:find_build_windows(tabpagenr)
+  --- One of the windows should be the build window
+  return vim.rpcrequest(
+    self.nvim_chan,
+    'nvim_exec_lua',
+    string.format(
+      "return require('pesto.components').build_window_manager:find_build_windows(%d)",
+      tabpagenr or 0
+    ),
+    {}
+  )
+end
+
+function FunctionalTestHelper:get_build_exit_code()
+  --- One of the windows should be the build window
+  return vim.rpcrequest(
+    self.nvim_chan,
+    'nvim_exec_lua',
+    "return require('pesto.components').build_window_manager:get_build_exit_code()",
+    {}
+  )
 end
 
 return FunctionalTestHelper

@@ -12,11 +12,17 @@ describe('default runner loader', function()
     },
   }
 
-  setup(function()
+  local ENTER_KEY = vim.api.nvim_replace_termcodes('<CR>', true, false, true)
+
+  ---@type pesto.FunctionalTestHelper
+  local functional_test_helper
+
+  before_each(function()
     nvim_chan = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, job_opts)
+    functional_test_helper = require('pesto.test.functional_test_helper'):new(nvim_chan)
   end)
 
-  teardown(function()
+  after_each(function()
     vim.fn.jobstop(nvim_chan)
   end)
 
@@ -43,18 +49,18 @@ describe('default runner loader', function()
     end)
     assert.are.same(0, wait_status)
 
-    -- Eventually the quickfix window should be focused
+    -- Eventually the quickfix window should be opened
     wait_status = vim.fn.wait(5 * 1000, function()
       local current_tab_page_id = vim.rpcrequest(nvim_chan, 'nvim_get_current_tabpage')
       local tabpage_win_ids =
         vim.rpcrequest(nvim_chan, 'nvim_tabpage_list_wins', current_tab_page_id)
 
-      local current_win_id = vim.rpcrequest(nvim_chan, 'nvim_get_current_win')
-      local current_win_info =
-        vim.rpcrequest(nvim_chan, 'nvim_call_function', 'getwininfo', { current_win_id })[1]
-      local is_quickfix = vim.tbl_get(current_win_info or {}, 'quickfix')
-
-      return is_quickfix == 1
+      return vim.iter(tabpage_win_ids):any(function(win_id)
+        local win_info =
+          vim.rpcrequest(nvim_chan, 'nvim_call_function', 'getwininfo', { win_id })[1]
+        local is_quickfix = vim.tbl_get(win_info or {}, 'quickfix')
+        return is_quickfix == 1
+      end)
     end)
     assert.are.same(0, wait_status)
 
@@ -88,5 +94,29 @@ describe('default runner loader', function()
     -- Confirm the jump
     local current_buf_id = vim.rpcrequest(nvim_chan, 'nvim_get_current_buf')
     assert.are.same(error_source_file_buf_id, current_buf_id)
+  end)
+
+  it('the Bazel output window can be closed by with <CR>', function()
+    vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'edit', args = { 'hello-error/main.c' } }, {})
+
+    vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'Pesto', args = { 'compile-one-dep' } }, {})
+
+    ---@type number|nil
+    local build_win_id
+    vim.fn.wait(1000, function()
+      build_win_id = functional_test_helper:find_build_windows(0)[1]
+      return build_win_id ~= nil
+    end)
+    assert.is_truthy(build_win_id)
+
+    functional_test_helper:wait_for_build(10 * 1000)
+
+    -- Build window should close on <CR>
+    vim.rpcrequest(nvim_chan, 'nvim_feedkeys', ENTER_KEY, 't', false)
+    local wait_status = vim.fn.wait(1000, function()
+      local build_win_ids = functional_test_helper:find_build_windows(0)
+      return #build_win_ids == 0
+    end)
+    assert.is_true(wait_status == 0, 'Bazel output build window did not close')
   end)
 end)

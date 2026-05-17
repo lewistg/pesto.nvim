@@ -39,4 +39,11 @@ function BuildWindowTestHelper:verify_build_window_opens()
   assert.are.equal(0, wait_status)
 end
 
+---@param tabpagenr number|nil
+function BuildWindowTestHelper:find_build_windows(tabpagenr)
+  --- One of the windows should be the build window
+  local build_win_ids = self._functional_test_helper:find_build_windows()
+  assert.are.equal(1, #build_win_ids)
+end
+
 return BuildWindowTestHelper
