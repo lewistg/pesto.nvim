@@ -119,7 +119,7 @@ function BuildWindowManager:start_new_build(opts)
     string.format(
       "Started new terminal buffer for bazel. buf_id=%d, command='%s'",
       term_buf_id,
-      opts.term_command
+      table.concat(opts.term_command, ' ')
     )
   )
 
