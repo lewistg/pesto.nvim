@@ -8,6 +8,25 @@ local function get_enabled_str(is_enabled)
   end
 end
 
+local function check_bazel_command()
+  local components = require('pesto.components')
+  local bazel_command = components.settings:get_bazel_command()
+  local command_line = '\t- command: ' .. tostring(bazel_command)
+  if vim.fn.executable(bazel_command) == 1 then
+    local lines = {
+      'Bazel command found',
+      command_line,
+    }
+    vim.health.ok(table.concat(lines, '\n'))
+  else
+    local lines = {
+      'Bazel command not found',
+      command_line,
+    }
+    vim.health.error(table.concat(lines, '\n'))
+  end
+end
+
 local function check_bazel_bash_completion()
   local components = require('pesto.components')
 
@@ -44,10 +63,11 @@ function M.check()
     vim.health.error('Neovim >= 0.11.0 required')
   end
 
+  check_bazel_command()
+  check_bazel_bash_completion()
+
   local logger = require('pesto.logger')
   vim.health.info(string.format('Log file: %s', logger.LOG_FILE_PATH))
-
-  check_bazel_bash_completion()
 end
 
 return M
