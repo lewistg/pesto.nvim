@@ -1,26 +1,19 @@
 local M = {}
 
-local function get_enabled_str(is_enabled)
-  if is_enabled then
-    return 'enabled'
-  else
-    return 'disabled'
-  end
-end
-
-local function check_bazel_command()
+local function check_bazel_executable()
   local components = require('pesto.components')
   local bazel_command = components.settings:get_bazel_command()
-  local command_line = '\t- command: ' .. tostring(bazel_command)
+  local header = 'Bazel executable: '
+  local command_line = '\t- Executable: ' .. tostring(bazel_command)
   if vim.fn.executable(bazel_command) == 1 then
     local lines = {
-      'Bazel command found',
+      header .. 'found',
       command_line,
     }
     vim.health.ok(table.concat(lines, '\n'))
   else
     local lines = {
-      'Bazel command not found',
+      header .. 'not found',
       command_line,
     }
     vim.health.error(table.concat(lines, '\n'))
@@ -33,21 +26,22 @@ local function check_bazel_bash_completion()
   local completion_settings = components.settings:get_cli_completion_settings()
 
   if completion_settings.mode == 'lua' then
-    vim.health.info('Bash Bazel completion : ' .. get_enabled_str(false))
+    vim.health.info('Bash Bazel completion: disabled')
   else
     local bazel_bash_completion_client = components.bazel_bash_completion_client
     local health_check_result = bazel_bash_completion_client:check_health()
+    local header = 'Bash Bazel completion: '
     if health_check_result.loads then
       local lines = {
-        'Bash Bazel completion script loads',
-        '\t- script: ' .. tostring(health_check_result.completion_script),
+        header .. 'loads',
+        '\t- Script path: ' .. tostring(health_check_result.completion_script),
       }
       vim.health.ok(table.concat(lines, '\n'))
     else
       local lines = {
-        'Bash Bazel completion script does not load',
-        '\t- completion script: ' .. tostring(health_check_result.completion_script),
-        "\t- note: check pesto.nvim's logs for specific errors",
+        header .. 'does not load',
+        '\t- Script path: ' .. tostring(health_check_result.completion_script),
+        "\t- Note: check pesto.nvim's logs for specific errors",
       }
       vim.health.error(table.concat(lines, '\n'))
     end
@@ -63,7 +57,7 @@ function M.check()
     vim.health.error('Neovim >= 0.11.0 required')
   end
 
-  check_bazel_command()
+  check_bazel_executable()
   check_bazel_bash_completion()
 
   local logger = require('pesto.logger')
