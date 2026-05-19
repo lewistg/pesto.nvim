@@ -74,7 +74,8 @@ local function get_compile_one_dep_subcommand(run_bazel_fn, settings)
     filename = vim.fs.relpath(context.package_dir or context.workspace_dir, filename) or filename
 
     ---@type string[]
-    local bazel_command = { 'bazel', 'build', '--compile_one_dependency', filename }
+    local bazel_command =
+      { settings:get_bazel_executable(), 'build', '--compile_one_dependency', filename }
 
     ---@type pesto.RunBazelOpts
     local opts = {
