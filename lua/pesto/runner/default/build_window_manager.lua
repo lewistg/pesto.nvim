@@ -195,7 +195,7 @@ end
 function BuildWindowManager:_set_status_lines(term_buf_id)
   ---@param win_id number|nil
   local function set_statusline(win_id)
-    vim.wo[win_id or 0][0].statusline = '[Pesto: Bazel] (Press <CR> to close) %F'
+    vim.wo[win_id or 0][0].statusline = '[Pesto: Bazel] (Press ENTER to close) %F'
   end
 
   vim.api.nvim_clear_autocmds({

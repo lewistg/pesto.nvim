@@ -35,8 +35,9 @@ The health check should also point you to `pesto.nvim`'s log file where you may 
 2. Open up `./examples/c-example/src/main.c`
 3. Try the `:Pesto compile-one-dep` command
     - You should see a terminal window pop up with Bazel's output.
-4. Close the build terminal and go back to `main.c`.
-5. Introduce some type of syntax error
+4. Close the build terminal by pressing ENTER.
+    - Similar to `:make`, Pesto adds the ENTER keymap to quickly dismiss the build output terminal buffer.
+5. Introduce some type of syntax error.
 6. This time instead of using `compile-one-dep`, let's build using the `bazel` subcommand. Enter the following:
     ```
     :Pesto bazel build :<TAB>
