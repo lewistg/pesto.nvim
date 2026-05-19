@@ -90,7 +90,7 @@ function BazelSubcommand:_execute(opts)
   local context = runner.get_run_bazel_context()
   local bazel_command = vim.deepcopy(opts.fargs)
 
-  table.insert(bazel_command, 1, self._settings:get_bazel_command())
+  table.insert(bazel_command, 1, self._settings:get_bazel_executable())
 
   self._run_bazel_fn({
     bazel_command = bazel_command,

@@ -20,8 +20,9 @@ instead just set `vim.g.pesto`. Here is the default configuration:
 >lua
     ---@type pesto.Settings
     vim.g.pesto = {
-        -- Name of bazel binary that Pesto invokes. Should be on your $PATH.
-        bazel_command = "bazel",
+        --- Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a
+        --- path to an executable.
+        bazel_executable = "bazel",
         -- Callback invoked to run bazel.
         bazel_runner = function(opts)
             require("pesto.components").default_runner(opts)
@@ -75,12 +76,12 @@ If you prefer, however, `pesto.nvim` does support a setup function:
 ================================================================================
 Options                                                            *pesto-options*
 
-`bazel_command`                                    *pesto.Settings.bazel_command*
+`bazel_executable`                              *pesto.Settings.bazel_executable*
     type: `string`
     default: `"bazel"`
 
-    Pesto invokes bazel using this command. The command should be available on
-    your `PATH`.
+    Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a path
+    to an executable.
 
 `bazel_runner`                                      *pesto.Settings.bazel_runner*
     type: pesto.RunBazelFn

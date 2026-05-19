@@ -57,13 +57,14 @@ Here is the default configuration:
 ```lua
 ---@type pesto.Settings
 vim.g.pesto = {
-    -- Name of bazel binary that Pesto invokes. Should be on your $PATH.
-	bazel_command = "bazel",
+    --- Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a
+    --- path to an executable.
+	bazel_executable = "bazel",
     -- Callback invoked to run bazel.
 	bazel_runner = function(opts)
         require("pesto.components").default_runner(opts)
 	end,
-    -- Logging level (see `:checkhealth pesto` to get the log file's path)
+    --- Logging level (see `:checkhealth pesto` to get the log file's path)
 	log_level = "info",
     --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
     --- Bazel command line option. If you use the default runner, then following

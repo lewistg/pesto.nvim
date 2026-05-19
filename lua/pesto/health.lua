@@ -2,7 +2,7 @@ local M = {}
 
 local function check_bazel_executable()
   local components = require('pesto.components')
-  local bazel_command = components.settings:get_bazel_command()
+  local bazel_command = components.settings:get_bazel_executable()
   local header = 'Bazel executable: '
   local command_line = '\t- Executable: ' .. tostring(bazel_command)
   if vim.fn.executable(bazel_command) == 1 then

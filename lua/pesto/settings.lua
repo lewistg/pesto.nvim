@@ -53,8 +53,9 @@ local M = {}
 
 ---@class pesto.Settings
 ---
---- Name of bazel binary that Pesto invokes. Should be on your $PATH.
----@field bazel_command string
+--- Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a
+--- path to an executable.
+---@field bazel_executable string
 ---
 --- Callback invoked to run bazel.
 ---@field bazel_runner pesto.RunBazelFn Method invoked to run bazel.
@@ -122,7 +123,7 @@ M.DEFAULT_TARGET_RESOLVER_ID = 'all'
 
 ---@type pesto.Settings
 M.DEFAULT_RAW_SETTINGS = {
-  bazel_command = 'bazel',
+  bazel_executable = 'bazel',
   bazel_runner = function(opts)
     require('pesto.components').default_runner(opts)
   end,

@@ -61,8 +61,8 @@ function InternalSettings:get_cli_completion_settings()
 end
 
 ---@return string
-function InternalSettings:get_bazel_command()
-  return self:_resolve_setting('bazel_command')
+function InternalSettings:get_bazel_executable()
+  return self:_resolve_setting('bazel_executable')
 end
 
 ---@return pesto.BuildTargetResolvers

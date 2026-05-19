@@ -84,7 +84,7 @@ function BuildSubcommand:_execute(opts)
             return
           end
           local bazel_command = {
-            self._settings:get_bazel_command(),
+            self._settings:get_bazel_executable(),
             'build',
             unpack(labels),
           }
@@ -109,7 +109,7 @@ function BuildSubcommand:_execute(opts)
       )
     else
       local bazel_command = {
-        self._settings:get_bazel_command(),
+        self._settings:get_bazel_executable(),
         'build',
         unpack(target_resolver_result.targets),
       }
@@ -132,7 +132,7 @@ function BuildSubcommand:_query_targets(opts)
 
   ---@type string[]
   local query_command = {
-    self._settings:get_bazel_command(),
+    self._settings:get_bazel_executable(),
     'query',
     opts.query,
   }
