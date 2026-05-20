@@ -26,6 +26,25 @@ It aims to make the edit-build-test cycle more seamless.
 
 * Neovim 0.11.0 or later
 
+## Installation
+
+* Neovim's built-in plugin manager
+```lua
+vim.pack.add({
+  'https://github.com/lewistg/pesto.nvim'
+})
+```
+* `lazy.nvim`
+```lua
+{
+  'lewistg/pesto.nvim',
+  ---@type pesto.Settings
+  opts = {},
+  -- Pesto is lazy by default (see :h lua-plugin-lazy)
+  lazy = false,
+}
+```
+
 ## Quick start
 
 This repository includes a few example Bazel repositories in the `./examples` directory. 
