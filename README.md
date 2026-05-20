@@ -6,7 +6,7 @@
 
 # pesto.nvim: Neovim Bazel plugin
 
-`pesto.nvim` is a Bazel runner plugin for Neovim.
+`pesto.nvim` is a Bazel runner plugin for Neovim with quickfix support.
 It aims to make the edit-build-test cycle more seamless.
 
 <div align="center">
@@ -32,26 +32,21 @@ This repository includes a few example Bazel repositories in the `./examples` di
 You can use them to try out `pesto.nvim`.
 Below is a suggested exercise using the example C project.
 
-If you experience an error, try checking `pesto.nvim`'s health (`:checkhealth pesto`).
-The health check should also point you to `pesto.nvim`'s log file where you may find lower-level information.
-
-1. Go into `./examples/c-example`
-2. Open up `./examples/c-example/src/main.c`
-3. Try the `:Pesto compile-one-dep` command
-    - You should see a terminal window pop up with Bazel's output.
-4. Close the build terminal by pressing ENTER.
-    - Similar to `:make`, Pesto adds the ENTER keymap to quickly dismiss the build output terminal buffer.
-5. Introduce some type of syntax error.
-6. This time instead of using `compile-one-dep`, let's build using the `bazel` subcommand. Enter the following:
-    ```
-    :Pesto bazel build :<TAB>
-    ```
-    Once you hit tab, it should autocomplete to be:
-    ```
-    :Pesto bazel build :main
-    ```
-    Press `<ENTER>` to trigger the build
-    - This time you'll see the build terminal open, but afterwards the quickfix window should load with the error.
+0. Make sure things are properly configured by running a health check on Pesto: `:checkhealth pesto`
+    - The first two checks are the most important.
+    You must have Neovim version >= 0.11.0, and Pesto needs a valid Bazel executable to run.
+1. `cd` into `./examples/c-example`
+2. Open up `./src/main.c`
+3. Type `:Pesto bazel build :<Tab>`
+    - The command should complete to `:Pesto bazel build :main`.
+    The `//src` package has a `cc_binary` target named `main`.
+4. Now press `<Enter>` to run the command.
+    - A terminal buffer should open at the bottom of the window, and Bazel should execute the build.
+5. After the build finishes, close the terminal by pressing `<Enter>`.
+    - Similar to `:make`, Pesto adds the `<Enter>` keymap to quickly dismiss the build output terminal buffer.
+6. Introduce some type of syntax error into `main.c` or some other source file (e.g., `ids.c`).
+7. Instead of using the Bazel wrapper command, `:Pesto bazel`, command, this time try using the `:Pesto build` command.
+     - For more information about this command see `:h pesto-build-command`
 
 ## Configuration
 
@@ -69,6 +64,20 @@ vim.g.pesto = {
 	bazel_runner = function(opts)
         require("pesto.components").default_runner(opts)
 	end,
+    --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
+    build_target_resolvers = {
+      --- These are the default resolvers. For more information see `:h pesto.Settings.build_target_resolvers`
+      ['all'] = function(context)
+        return {
+          targets = { string.format('%s:all', context.package_label) },
+        }
+      end,
+      ['tests'] = function(context)
+        return {
+          query = string.format('tests(%s:*)', context.package_label),
+        }
+      end,
+    }
     --- Logging level (see `:checkhealth pesto` to get the log file's path)
 	log_level = "info",
     --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
