@@ -9,6 +9,10 @@
 `pesto.nvim` is a Bazel runner plugin for Neovim.
 It aims to make the edit-build-test cycle more seamless.
 
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/78895432-2730-4e7d-9e96-f028638e4f4a">
+</div>
+
 ## Features
 
 * A `bazel` wrapper command with autocomplete support:
