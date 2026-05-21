@@ -50,7 +50,7 @@ function InternalSettings:get_auto_open_build_term()
   return self:_resolve_setting('auto_open_build_term')
 end
 
----@return pesto.RuleActionErrorformats
+---@return pesto.ActionErrorformat[]
 function InternalSettings:get_errorformats()
   return self:_resolve_setting('errorformats')
 end

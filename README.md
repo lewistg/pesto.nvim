@@ -147,7 +147,7 @@ Following a build, `pesto.nvim` parses the BEP output file, finds the failed bui
 As a multi-language build tool, it's possible Bazel will report errors coming from multiple compilers for different languages at once.
 How then do we pick which `errorformat` to use with `vim.fn.setqflist`?
 
-In `pesto.nvim`'s configuration we are able to map rule kind and action mnemonic pairs to an `errorformat` configuration (`(rule_kind, action_mnemonic) -> errrorformat`).
+In `pesto.nvim`'s configuration we we map action mnemonics to an `errorformat` configuration.
 `pesto.nvim` will resolve which `errorformat` to use based on this mapping.
 
 
@@ -165,35 +165,53 @@ Here is `pesto.nvim`'s default mapping:
 
 ```lua
 vim.g.pesto = {
-    ...
-	errorformats = {
-		{
-			rule_kind = "java_*",
-			action_errorformats = {
-				{
-					action_mnemonic = "Javac",
-					compiler = "javac",
-				},
-			},
-		},
-		{
-			rule_kind = "cc_*",
-			action_errorformats = {
-				{
-					action_mnemonic = "CppCompile",
-					compiler = "gcc",
-				},
-			},
-		},
-	},
-    ...
+  ...
+  errorformats = {
+    -- rules_cc
+    {
+      action_mnemonic = 'CppCompile',
+      compiler = 'gcc',
+    },
+    -- rules_go
+    {
+      action_mnemonic = 'GoCompilePkg',
+      compiler = 'go',
+    },
+    -- rules_java
+    {
+      action_mnemonic = 'Javac',
+      compiler = 'javac',
+    },
+    {
+      action_mnemonic = 'Turbine',
+      errorformat = "%f:%l: %m"
+    },
+    -- rules_rust
+    {
+      action_mnemonic = 'Rustc',
+      compiler = 'rustc',
+      strip_escape_codes = true,
+    },
+    -- rules_scala
+    {
+      action_mnemonic = 'Scalac',
+      errorformat = table.concat({
+        -- Scala 2 pattern
+        '%f:%l:\\ error:\\ %m',
+        -- Scala 3 patterns
+        '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+        '--\\ %m:\\ %f:%l:%c%.%#',
+      }, ','),
+      strip_escape_codes = true,
+    },
+  },
+  ...
 }
 ```
 
 Note how the default mapping already includes mappings for some of Bazel's standard rules (for Java and C/C++).
-The Java Bazel rules include the rule kinds `java_binary` and `java_library`.
-Note also that our `errorformats` mapping matches on Java rules using a Lua string pattern: `java_*`, which will match with both rules of kind `java_binary` and `java_library`.
-Then any failed actions with the mnemonic `Javac` will be parsed and processed by the errorformat defined by Neovim's `javac` compiler plugin (`:help compiler`).
+Add more as needed.
+For a full explanation of the errorformat config and its types please see `:h pesto.Settings.errorformats`
 
 ## Commands
 
