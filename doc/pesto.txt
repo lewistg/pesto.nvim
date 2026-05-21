@@ -370,7 +370,7 @@ various sub-commands. Here is the format:
 <
 Listed below are the possible sub-commands:
 
-`build [target-resolver-id]`                                *pesto-commands-build*
+`build [target-resolver-id]`                                *pesto-build-command*
     `target-resolver-id`: This ID acts as a key into the map defined by the
     |pesto.Settings.build_target_resolvers| option.
 
