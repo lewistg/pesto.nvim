@@ -70,8 +70,12 @@ local M = {}
 ---@field auto_open_build_term boolean
 ---
 --- This list is used to determine the errorformat string to use to parse the
---- output of a failed action.
+--- output of a failed action. It effectively defines a mapping from Bazel
+--- action mnemonics to errorformats.
 ---@field errorformats pesto.ActionErrorformat[]
+---
+--- The default set of errorformats. Covers some of the major rule sets.
+---@field default_errorformats pesto.ActionErrorformat[]
 ---
 --- See pesto.ActionErrorformat.
 ---@field bytestream_client "pesto-python-remote-apis-helpers"|pesto.ByteStreamClient|nil
@@ -122,10 +126,10 @@ M.DEFAULT_RAW_SETTINGS = {
     require('pesto.components').default_runner(opts)
   end,
   build_target_resolvers = M.DEFAULT_TARGET_RESOLVERS,
-  log_level = 'info',
   enable_bep_integration = true,
   auto_open_build_term = true,
-  errorformats = {
+  errorformats = {},
+  default_errorformats = {
     -- rules_cc
     {
       action_mnemonic = 'CppCompile',
@@ -170,6 +174,7 @@ M.DEFAULT_RAW_SETTINGS = {
     bash_timeout = 15000,
     bash_completion_script = nil,
   },
+  log_level = 'info',
 }
 
 return M

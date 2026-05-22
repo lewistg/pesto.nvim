@@ -7,6 +7,7 @@
 # pesto.nvim: Neovim Bazel plugin
 
 `pesto.nvim` is a Bazel runner plugin for Neovim with quickfix support.
+Pesto integrates with Bazel through the Build Events Protocol logs
 It aims to make the edit-build-test cycle more seamless.
 
 <div align="center">
@@ -107,14 +108,16 @@ vim.g.pesto = {
     --- When this option is true and when you are using the default runner, a
     --- terminal buffer will be opened automatically when bazel is invoked.
 	auto_open_build_term = true,
-    --- Maps a (rule kind pattern, action mnemonic pattern)
-    --- pair to an errorformat string or compiler plugin name. Note that
-    --- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
-    --- string pattern.
+    --- This list is used to determine the errorformat string to use to parse the
+    --- output of a failed action. It effectively defines a mapping from Bazel
+    --- action mnemonics to errorformats.
     --- See the "Action errorformat" section below for details.
-	errorformats = {
-       ...
-	},
+	errorformats = {},
+    --- The default set of errorformats. Covers some of the major rule
+    --- sets. You shouldn't need to override this.
+    default_errorformats = {
+      ...
+    }
 	bytestream_client = nil,
     --- Configuration for the `:Pesto bazel` subcommand auto-completion
 	cli_completion = {
@@ -166,7 +169,7 @@ Here is `pesto.nvim`'s default mapping:
 ```lua
 vim.g.pesto = {
   ...
-  errorformats = {
+  default_errorformats = {
     -- rules_cc
     {
       action_mnemonic = 'CppCompile',

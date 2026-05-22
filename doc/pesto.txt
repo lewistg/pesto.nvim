@@ -40,14 +40,15 @@ instead just set `vim.g.pesto`. Here is the default configuration:
         --- When this option is true and when you are using the default runner, a
         --- terminal buffer will be opened automatically when bazel is invoked.
         auto_open_build_term = true,
-        --- Maps a (rule kind pattern, action mnemonic pattern)
-        --- pair to an errorformat string or compiler plugin name. Note that
-        --- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
-        --- string pattern.
-        --- See the "Action errorformat" section below for details.
-        errorformats = {
-           ...
-        },
+        --- This list is used to determine the errorformat string to use to parse the
+        --- output of a failed action. It effectively defines a mapping from Bazel
+        --- action mnemonics to errorformats.
+        errorformats = {},
+        --- The default set of errorformats. Covers some of the major rule
+        --- sets. You shouldn't need to override this.
+        default_errorformats = {
+          ...
+        }
         --- Configuration for the `:Pesto bazel` subcommand auto-completion
         cli_completion = {
             --- Completion strategy. There are three modes:
