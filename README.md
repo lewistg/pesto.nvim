@@ -20,7 +20,9 @@ It integrates with Bazel through the [Build Event Protocol](https://bazel.build/
 * Integrates with the [Build Event Protocol](https://bazel.build/remote/bep)
   - Failed actions' stderr files are parsed and loaded into the quickfix list
   - A build summary window shows a high-level overview of successful and failed targets
-* Quick navigation to BUILD or BUILD.bazel files
+* Quality of life commands:
+  - Open split to BUILD or BUILD.bazel files
+  - Yank label for the current source file's Bazel package
 
 ## Requirements
 
