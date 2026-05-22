@@ -168,6 +168,7 @@ M.DEFAULT_RAW_SETTINGS = {
       strip_escape_codes = true,
     },
   },
+  -- WIP
   bytestream_client = nil,
   cli_completion = {
     mode = 'automatic',

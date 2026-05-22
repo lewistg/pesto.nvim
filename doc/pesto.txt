@@ -442,6 +442,10 @@ For a more detailed explanation see |pesto-bazel-concepts|.
 --------------------------------------------------------------------------------
 Remote caching (experimental)                              *pesto-remote-caching*
 
+WARNING:
+  Support for the vim.g.pesto.bytestream_client override is still in
+  development. At the moment, only Pesto's first-party client is supported.
+
 More advanced Bazel setups often involve Remote Build Execution (RBE) or remote
 caching. Under these circumstances Bazel will store action logs in the remote
 cache.
@@ -463,12 +467,12 @@ Pesto ships with a ByteStream client written in Python. You can find it in the
 Pesto does the following when it detects logs are stored remotely at some
 ByteStream URI:
 
-    1. Checks to see if |bytestream_client| is configured. If client is
-    configured, Pesto will use it to fetch the logs.
-    2. If the client is not configured, Pesto checks to see if its own
-    `tools/pesto-remote-apis-helpers` script has been set up.
-    3. If `tools/pesto-remote-apis-helpers` has not been set up, then it will
-    prompt you to install the script.
+  1. Checks to see if |bytestream_client| is configured. If client is
+  configured, Pesto will use it to fetch the logs.
+  2. If the client is not configured, Pesto checks to see if its own
+  `tools/pesto-remote-apis-helpers` script has been set up.
+  3. If `tools/pesto-remote-apis-helpers` has not been set up, then it will
+  prompt you to install the script.
 
 ================================================================================
 vim:tw=80:ts=2:ft=help:norl:syntax=help:

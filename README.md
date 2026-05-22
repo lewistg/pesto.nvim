@@ -117,6 +117,7 @@ vim.g.pesto = {
     default_errorformats = {
       ...
     }
+    --- This option is still in development. See the "Note about remote execution/caching" section below
 	bytestream_client = nil,
     --- Configuration for the `:Pesto bazel` subcommand auto-completion
 	cli_completion = {
@@ -240,6 +241,25 @@ For a full explanation of the errorformat config and its types please see `:h pe
 " Yanks the label for the current source file's package.
 :Pesto yank-package-label
 ```
+
+## Note about remote execution/caching
+
+> [!WARNING]
+> **Work in progress**
+>
+> Pesto's default bytestream client is functional, but support for custom bytestream clients is still in progress.
+> This section alludes to how they will work.
+
+Mature Bazel setups will involve remote execution and remote caching.
+This means compiler logs will sometimes be stored in a remote cache.
+Pesto must fetch these logs in order to parse them and populate the quickfix list.
+
+Remote caching services for Bazel serve assets, like the stderr logs, through gRPC-based APIs.
+
+Since implementing a gRPC client in Lua would be a significant undertaking, Pesto delegates the remote log fetches to the configured "bytestream" client: `vim.g.pesto.bytestream_client`.
+
+Pesto ships with its own [default bytestream client](tools/pesto-remote-apis-helpers/README.md) written in Python.
+Pesto will prompt you to set up this client before attempting to use it the first time.
 
 ## Goals
 
