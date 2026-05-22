@@ -267,3 +267,7 @@ Pesto will prompt you to set up this client before attempting to use it the firs
 * A solid (not perfect) command line experience for the `:Pesto bazel` sub-command.
 * Somewhat low-level. Don't hide Bazel too much.
 * Extendable.
+
+## Similar plugins
+
+Pesto was inspired by [vim-bazel](https://github.com/bazelbuild/vim-bazel), which has since been archived.
