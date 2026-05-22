@@ -4,9 +4,9 @@
 ================================================================================
 Intro                                                              *pesto-intro*
 
-Pesto is a Bazel runner plugin for Neovim. It aims to make the edit-build-test
-cycle more seamless.
-
+`pesto.nvim` is a Bazel runner plugin for Neovim. It integrates with Bazel through the
+Build Event Protocol to support things like loading compilation errors into
+the quickfix list.
                                                                     *pesto-types*
 Note: Throughout this manual there are references to LuaLS types defined in
 Pesto's source code (e.g., `pesto.Settings`).
@@ -206,8 +206,8 @@ Options                                                            *pesto-option
     ---@field strip_escape_codes boolean|nil
 <
 
-    Finally, let's look at snippets from Pesto's default value in
-    `lua/pesto/settings.lua`:
+    Finally, let's look at a snippet that shows the value of Pesto's default
+    errorformats, as defined in `lua/pesto/settings.lua`:
 
 >lua
   {

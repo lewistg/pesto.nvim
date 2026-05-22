@@ -6,9 +6,8 @@
 
 # pesto.nvim: Neovim Bazel plugin
 
-`pesto.nvim` is a Bazel runner plugin for Neovim with quickfix support.
-Pesto integrates with Bazel through the Build Events Protocol logs
-It aims to make the edit-build-test cycle more seamless.
+`pesto.nvim` is a Bazel runner plugin for Neovim.
+It integrates with Bazel through the [Build Event Protocol](https://bazel.build/remote/bep) to support things like loading compilation errors into the quickfix list.
 
 <div align="center">
   <video src="https://github.com/user-attachments/assets/78895432-2730-4e7d-9e96-f028638e4f4a">
