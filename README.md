@@ -223,6 +223,11 @@ For a full explanation of the errorformat config and its types please see `:h pe
 " It supports auto-completion for targets.
 :Pesto bazel <bazel-subcommand> [subcommand-args]
 
+" Provides a way to quickly invoke a Bazel build without typing out a full bazel
+" command. "Target resolvers" are user-defined callbacks that return either a
+" target query or target pattern. For more info see `:h pesto-build-command`.
+:Pesto build [target-resolver-id]
+
 " Runs `bazel build --compile_one_dependency <current-file>`
 :Pesto compile-one-dep
 
