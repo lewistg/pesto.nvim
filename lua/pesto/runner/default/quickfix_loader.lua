@@ -36,16 +36,11 @@ function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded
 
   local logger = require('pesto.logger')
 
+  local BuildEventTreeQueries = require('pesto.bazel.build_event_tree_queries')
+  local build_event_tree_queries = BuildEventTreeQueries:new(build_event_tree)
+
   ---@type pesto.bep.BuildEvent[]
-  local failed_actions = vim
-    .iter(build_event_tree:find_events_by_kind({ 'action_completed' }))
-    :filter(function(action_completed_event)
-      if action_completed_event and action_completed_event.action then
-        return not action_completed_event.success
-      end
-      return true
-    end)
-    :totable()
+  local failed_actions = build_event_tree_queries:find_failed_action_completed_events()
 
   logger.debug(string.format('Found %d failed action(s)', #failed_actions))
 

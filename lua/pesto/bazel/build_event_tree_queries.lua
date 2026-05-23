@@ -64,7 +64,7 @@ function BuildEventTreeQueries:find_failed_action_completed_events()
     .iter(self._build_event_tree:find_events_by_kind({ 'action_completed' }))
     :filter(function(action_completed_event)
       if action_completed_event and action_completed_event.action then
-        return not action_completed_event.success
+        return not action_completed_event.action.success
       end
       return true
     end)

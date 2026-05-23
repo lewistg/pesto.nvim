@@ -36,22 +36,17 @@ function DumpFailedActionLogsSubcommand:_execute(opts)
     error(string.format('invalid dump dir: %s', dest_dir))
   end
 
-  local build_tree = self._default_runner:get_build_event_tree()
-  if build_tree == nil then
+  local build_event_tree = self._default_runner:get_build_event_tree()
+  if build_event_tree == nil then
     vim.notify('Pesto: Cannot dump logs. No current build.', vim.log.levels.WARN)
     return
   end
 
+  local BuildEventTreeQueries = require('pesto.bazel.build_event_tree_queries')
+  local build_event_tree_queries = BuildEventTreeQueries:new(build_event_tree)
+
   ---@type pesto.bep.BuildEvent[]
-  local failed_action_events = vim
-    .iter(build_tree:find_events_by_kind({ 'action_completed' }))
-    :filter(function(action_completed_event)
-      if action_completed_event and action_completed_event.action then
-        return not action_completed_event.success
-      end
-      return true
-    end)
-    :totable()
+  local failed_action_events = build_event_tree_queries:find_failed_action_completed_events()
 
   local logger = require('pesto.logger')
   logger.info(string.format('found %d failed action_completed events', #failed_action_events))
