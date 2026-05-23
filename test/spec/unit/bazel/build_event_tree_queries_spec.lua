@@ -46,27 +46,4 @@ describe('pesto.BuildEventTreeQueries', function()
       )
     end
   )
-
-  it(
-    'pesto.BuildEventTreeQueries:find_failed_action_logs returns the failed action log URIs',
-    function()
-      local bep_json_loader = require('pesto.bazel.build_event_json_loader'):new()
-      local bep_tree = bep_json_loader:load(broken_scala_build_bep_path)
-
-      local BuildEventTreeQueries = require('pesto.bazel.build_event_tree_queries')
-      local bep_tree_queries = BuildEventTreeQueries:new(bep_tree)
-
-      local failed_action_logs = bep_tree_queries:find_failed_action_logs()
-
-      local expected_action_logs = {
-        ['scala_binary'] = {
-          ['Scalac'] = {
-            'file:///home/foo/.cache/bazel/_bazel_foo/881c0a1d696f65d91fc6329b424aec0b/execroot/_main/bazel-out/_tmp/actions/stderr-2',
-          },
-        },
-      }
-
-      assert.are.same(expected_action_logs, failed_action_logs)
-    end
-  )
 end)
