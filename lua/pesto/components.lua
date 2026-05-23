@@ -158,7 +158,7 @@ end
 components.settings = _settings --[[@as pesto.InternalSettings ]]
 
 local _quick_fix_loader = function()
-  return require('pesto.runner.default.quickfix_loader'):new(
+  return require('pesto.runner.quickfix.quickfix_loader'):new(
     components.build_event_file_loader,
     components.settings
   )
