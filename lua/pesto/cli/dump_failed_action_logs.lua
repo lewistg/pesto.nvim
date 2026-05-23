@@ -36,29 +36,57 @@ function DumpFailedActionLogsSubcommand:_execute(opts)
     error(string.format('invalid dump dir: %s', dest_dir))
   end
 
-  local build_tree = self._default_runner:get_build_event_tree()
-  if build_tree == nil then
+  local build_event_tree = self._default_runner:get_build_event_tree()
+  if build_event_tree == nil then
     vim.notify('Pesto: Cannot dump logs. No current build.', vim.log.levels.WARN)
     return
   end
 
   local BuildEventTreeQueries = require('pesto.bazel.build_event_tree_queries')
-  local build_tree_queries = BuildEventTreeQueries:new(build_tree)
+  local build_event_tree_queries = BuildEventTreeQueries:new(build_event_tree)
 
-  local failed_action_log_uris = build_tree_queries:find_failed_action_logs()
-  local file_names = self:_get_file_names(failed_action_log_uris)
+  ---@type pesto.bep.BuildEvent[]
+  local failed_action_events = build_event_tree_queries:find_failed_action_completed_events()
 
-  if vim.tbl_count(file_names) == 0 then
+  local logger = require('pesto.logger')
+  logger.info(string.format('found %d failed action_completed events', #failed_action_events))
+
+  if vim.tbl_count(failed_action_events) == 0 then
     vim.notify('No failed action logs to dump', vim.log.levels.INFO)
     return
   end
 
-  local logger = require('pesto.logger')
-  logger.info(string.format('fetching %d action log files', #file_names))
+  local file_index = -1
+  local function get_next_filename(action_mnemonic)
+    file_index = file_index + 1
+    return string.format('%s-%d', action_mnemonic, file_index)
+  end
+
+  local uri_to_dump_file = vim
+    .iter(failed_action_events)
+    :fold({}, function(acc, failed_action_event)
+      local stderr_uri = vim.tbl_get(failed_action_event, 'action', 'stderr', 'uri')
+      local action_mnemonic = vim.tbl_get(failed_action_event, 'action', 'type')
+      if not stderr_uri then
+        logger.error(
+          string.format('failed get action stderr uri for action %s', failed_action_event.id_key)
+        )
+      end
+      if not action_mnemonic then
+        logger.error(
+          string.format(
+            'failed get action action_mnemonic for action %s',
+            failed_action_event.id_key
+          )
+        )
+      end
+      acc[stderr_uri] = get_next_filename(action_mnemonic)
+      return acc
+    end)
 
   local successes = 0
   local failures = 0
-  for file_name, uri in pairs(file_names) do
+  vim.iter(pairs(uri_to_dump_file)):each(function(uri, file_name)
     self._build_event_file_loader:fetch_file({
       uri = uri,
       on_load = function(lines)
@@ -67,11 +95,13 @@ function DumpFailedActionLogsSubcommand:_execute(opts)
         successes = successes + 1
       end,
       on_error = function(err)
-        logger.debug(string.format('Failed to fetch file. file=%s, error=%s', file_name, err))
+        logger.debug(
+          string.format('failed to fetch file. uri=%s, file=%s, error=%s', uri, file_name, err)
+        )
         failures = failures + 1
       end,
     })
-  end
+  end)
 
   ---@type string[]
   local notification_lines = {}
@@ -86,27 +116,6 @@ function DumpFailedActionLogsSubcommand:_execute(opts)
   end
 
   vim.notify(table.concat(notification_lines, '\n'), vim.log.levels.INFO)
-end
-
----@param failed_action_log_uris table<string, table<string, string[]>>
----@return table<string, string>
-function DumpFailedActionLogsSubcommand:_get_file_names(failed_action_log_uris)
-  ---@type table<string, string>
-  local file_names = {}
-
-  ---@type number
-  for rule_kind, failed_actions_uris in pairs(failed_action_log_uris) do
-    local file_index = 0
-    for action_mnemonic, uris in pairs(failed_actions_uris) do
-      for _, uri in ipairs(uris) do
-        local file_name = string.format('%s-%s-%d', rule_kind, action_mnemonic, file_index)
-        file_names[file_name] = uri
-        file_index = file_index + 1
-      end
-    end
-  end
-
-  return file_names
 end
 
 ---@private

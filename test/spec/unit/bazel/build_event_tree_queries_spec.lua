@@ -19,7 +19,7 @@ describe('pesto.BuildEventTreeQueries', function()
   end)
 
   it(
-    'pesto.BuildEventTree:find_command_line_option finds all options when there are multiple',
+    'pesto.BuildEventTreeQueries:find_command_line_option finds all options when there are multiple',
     function()
       local bep_json_loader = require('pesto.bazel.build_event_json_loader'):new()
       local bep_tree = bep_json_loader:load(broken_build_remote_cache_bep_path)
@@ -48,7 +48,7 @@ describe('pesto.BuildEventTreeQueries', function()
   )
 
   it(
-    'pesto.BuildEventTreeQueries:find_failed_action_logs returns the failed action log URIs',
+    'pesto.BuildEventTreeQueries:find_failed_action_completed_events finds all of the failed "action completed" events',
     function()
       local bep_json_loader = require('pesto.bazel.build_event_json_loader'):new()
       local bep_tree = bep_json_loader:load(broken_scala_build_bep_path)
@@ -56,17 +56,11 @@ describe('pesto.BuildEventTreeQueries', function()
       local BuildEventTreeQueries = require('pesto.bazel.build_event_tree_queries')
       local bep_tree_queries = BuildEventTreeQueries:new(bep_tree)
 
-      local failed_action_logs = bep_tree_queries:find_failed_action_logs()
+      local action_completed_events = bep_tree:find_events_by_kind({ 'action_completed' })
+      assert.are.same(2, #action_completed_events)
 
-      local expected_action_logs = {
-        ['scala_binary'] = {
-          ['Scalac'] = {
-            'file:///home/foo/.cache/bazel/_bazel_foo/881c0a1d696f65d91fc6329b424aec0b/execroot/_main/bazel-out/_tmp/actions/stderr-2',
-          },
-        },
-      }
-
-      assert.are.same(expected_action_logs, failed_action_logs)
+      local failed_action_completed_events = bep_tree_queries:find_failed_action_completed_events()
+      assert.are.same(1, #failed_action_completed_events)
     end
   )
 end)

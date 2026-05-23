@@ -6,8 +6,8 @@
 
 # pesto.nvim: Neovim Bazel plugin
 
-`pesto.nvim` is a Bazel runner plugin for Neovim with quickfix support.
-It aims to make the edit-build-test cycle more seamless.
+`pesto.nvim` is a Bazel runner plugin for Neovim.
+It integrates with Bazel through the [Build Event Protocol](https://bazel.build/remote/bep) to support things like loading compilation errors into the quickfix list.
 
 <div align="center">
   <video src="https://github.com/user-attachments/assets/78895432-2730-4e7d-9e96-f028638e4f4a">
@@ -20,7 +20,9 @@ It aims to make the edit-build-test cycle more seamless.
 * Integrates with the [Build Event Protocol](https://bazel.build/remote/bep)
   - Failed actions' stderr files are parsed and loaded into the quickfix list
   - A build summary window shows a high-level overview of successful and failed targets
-* Quick navigation to BUILD or BUILD.bazel files
+* Quality of life commands:
+  - Open split to BUILD or BUILD.bazel files
+  - Yank label for the current source file's Bazel package
 
 ## Requirements
 
@@ -107,14 +109,17 @@ vim.g.pesto = {
     --- When this option is true and when you are using the default runner, a
     --- terminal buffer will be opened automatically when bazel is invoked.
 	auto_open_build_term = true,
-    --- Maps a (rule kind pattern, action mnemonic pattern)
-    --- pair to an errorformat string or compiler plugin name. Note that
-    --- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
-    --- string pattern.
+    --- This list is used to determine the errorformat string to use to parse the
+    --- output of a failed action. It effectively defines a mapping from Bazel
+    --- action mnemonics to errorformats.
     --- See the "Action errorformat" section below for details.
-	errorformats = {
-       ...
-	},
+	errorformats = {},
+    --- The default set of errorformats. Covers some of the major rule
+    --- sets. You shouldn't need to override this.
+    default_errorformats = {
+      ...
+    }
+    --- This option is still in development. See the "Note about remote execution/caching" section below
 	bytestream_client = nil,
     --- Configuration for the `:Pesto bazel` subcommand auto-completion
 	cli_completion = {
@@ -147,7 +152,7 @@ Following a build, `pesto.nvim` parses the BEP output file, finds the failed bui
 As a multi-language build tool, it's possible Bazel will report errors coming from multiple compilers for different languages at once.
 How then do we pick which `errorformat` to use with `vim.fn.setqflist`?
 
-In `pesto.nvim`'s configuration we are able to map rule kind and action mnemonic pairs to an `errorformat` configuration (`(rule_kind, action_mnemonic) -> errrorformat`).
+In `pesto.nvim`'s configuration we we map action mnemonics to an `errorformat` configuration.
 `pesto.nvim` will resolve which `errorformat` to use based on this mapping.
 
 
@@ -165,35 +170,53 @@ Here is `pesto.nvim`'s default mapping:
 
 ```lua
 vim.g.pesto = {
-    ...
-	errorformats = {
-		{
-			rule_kind = "java_*",
-			action_errorformats = {
-				{
-					action_mnemonic = "Javac",
-					compiler = "javac",
-				},
-			},
-		},
-		{
-			rule_kind = "cc_*",
-			action_errorformats = {
-				{
-					action_mnemonic = "CppCompile",
-					compiler = "gcc",
-				},
-			},
-		},
-	},
-    ...
+  ...
+  default_errorformats = {
+    -- rules_cc
+    {
+      action_mnemonic = 'CppCompile',
+      compiler = 'gcc',
+    },
+    -- rules_go
+    {
+      action_mnemonic = 'GoCompilePkg',
+      compiler = 'go',
+    },
+    -- rules_java
+    {
+      action_mnemonic = 'Javac',
+      compiler = 'javac',
+    },
+    {
+      action_mnemonic = 'Turbine',
+      errorformat = "%f:%l: %m"
+    },
+    -- rules_rust
+    {
+      action_mnemonic = 'Rustc',
+      compiler = 'rustc',
+      strip_escape_codes = true,
+    },
+    -- rules_scala
+    {
+      action_mnemonic = 'Scalac',
+      errorformat = table.concat({
+        -- Scala 2 pattern
+        '%f:%l:\\ error:\\ %m',
+        -- Scala 3 patterns
+        '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+        '--\\ %m:\\ %f:%l:%c%.%#',
+      }, ','),
+      strip_escape_codes = true,
+    },
+  },
+  ...
 }
 ```
 
 Note how the default mapping already includes mappings for some of Bazel's standard rules (for Java and C/C++).
-The Java Bazel rules include the rule kinds `java_binary` and `java_library`.
-Note also that our `errorformats` mapping matches on Java rules using a Lua string pattern: `java_*`, which will match with both rules of kind `java_binary` and `java_library`.
-Then any failed actions with the mnemonic `Javac` will be parsed and processed by the errorformat defined by Neovim's `javac` compiler plugin (`:help compiler`).
+Add more as needed.
+For a full explanation of the errorformat config and its types please see `:h pesto.Settings.errorformats`
 
 ## Commands
 
@@ -202,6 +225,11 @@ Then any failed actions with the mnemonic `Javac` will be parsed and processed b
 " By default the Bazel command is run asyncronously in a terminal buffer.
 " It supports auto-completion for targets.
 :Pesto bazel <bazel-subcommand> [subcommand-args]
+
+" Provides a way to quickly invoke a Bazel build without typing out a full bazel
+" command. "Target resolvers" are user-defined callbacks that return either a
+" target query or target pattern. For more info see `:h pesto-build-command`.
+:Pesto build [target-resolver-id]
 
 " Runs `bazel build --compile_one_dependency <current-file>`
 :Pesto compile-one-dep
@@ -216,9 +244,32 @@ Then any failed actions with the mnemonic `Javac` will be parsed and processed b
 :Pesto yank-package-label
 ```
 
+## Note about remote execution/caching
+
+> [!WARNING]
+> **Work in progress**
+>
+> Pesto's default bytestream client is functional, but support for custom bytestream clients is still in progress.
+> This section alludes to how they will work.
+
+Mature Bazel setups will involve remote execution and remote caching.
+This means compiler logs will sometimes be stored in a remote cache.
+Pesto must fetch these logs in order to parse them and populate the quickfix list.
+
+Remote caching services for Bazel serve assets, like the stderr logs, through gRPC-based APIs.
+
+Since implementing a gRPC client in Lua would be a significant undertaking, Pesto delegates the remote log fetches to the configured "bytestream" client: `vim.g.pesto.bytestream_client`.
+
+Pesto ships with its own [default bytestream client](tools/pesto-remote-apis-helpers/README.md) written in Python.
+Pesto will prompt you to set up this client before attempting to use it the first time.
+
 ## Goals
 
 * General purpose. Try to be useful for all Bazel rule sets.
 * A solid (not perfect) command line experience for the `:Pesto bazel` sub-command.
 * Somewhat low-level. Don't hide Bazel too much.
 * Extendable.
+
+## Similar plugins
+
+Pesto was inspired by [vim-bazel](https://github.com/bazelbuild/vim-bazel), which has since been archived.

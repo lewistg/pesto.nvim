@@ -2,6 +2,10 @@
 ---@alias _TargetRuleKind string
 ---@alias _ActionType string
 
+---@class pesto.RemoteCacheInfo
+---@field uri string
+---@field remote_headers string[]
+
 ---@class pesto.QuickfixLoader
 ---@field private _build_event_file_loader pesto.BuildEventFileLoader
 ---@field private _settings pesto.InternalSettings
@@ -25,127 +29,95 @@ end
 ---@param build_event_tree pesto.BuildEventTree
 ---@param on_first_quickfix_loaded function
 function QuickfixLoader:load_quickfix(build_event_tree, on_first_quickfix_loaded)
-  local BuildEventsTreeQueries = require('pesto.bazel.build_event_tree_queries')
-  local build_event_tree_queries = BuildEventsTreeQueries:new(build_event_tree)
-
-  ---@type table<_TargetRuleKind, table<_ActionType, string[]>>
-  local stderr_uris = build_event_tree_queries:find_failed_action_logs()
-
-  local logger = require('pesto.logger')
-  logger.debug(
-    string.format('Loading the quickfix list. num_stderr_files_to_load=%s', #stderr_uris)
-  )
-
   -- clear quickfix list
   vim.fn.setqflist({}, 'r', { title = 'pesto: bazel build', lines = {} })
 
   local workspace_dir = self:_get_workspace_directory(build_event_tree)
 
-  ---@type string|nil
-  local remote_cache_uri
-  ---@type string[]|nil
-  local remote_headers
+  local logger = require('pesto.logger')
+
+  local BuildEventTreeQueries = require('pesto.bazel.build_event_tree_queries')
+  local build_event_tree_queries = BuildEventTreeQueries:new(build_event_tree)
+
+  ---@type pesto.bep.BuildEvent[]
+  local failed_actions = build_event_tree_queries:find_failed_action_completed_events()
+
+  logger.debug(string.format('Found %d failed action(s)', #failed_actions))
+
+  local BuildEventFileLoader = require('pesto.bazel.build_event_file_loader')
+  ---@type pesto.RemoteCacheInfo|nil
+  local remote_cache_info
   ---@type boolean
   local called_on_first_quickfix_loaded = false
-  for rule_kind, actions in pairs(stderr_uris) do
-    for action_type, uris in pairs(actions) do
-      for _, stderr_uri in ipairs(uris) do
-        local BuildEventFileLoader = require('pesto.bazel.build_event_file_loader')
-        if BuildEventFileLoader.is_byte_stream_uri(stderr_uri) then
-          logger.debug(
-            'Logs for some failed actions are stored remotely. Getting remote cache URI.'
-          )
-          local remote_cache_option = build_event_tree_queries:find_command_line_option(
-            'canonical',
-            'remote_cache'
-          )[1] or build_event_tree_queries:find_command_line_option(
-            'canonical',
-            'remote_executor'
-          )[1]
-          if not remote_cache_option then
-            error('Failed to find "remote_cache" command line option')
-          else
-            logger.info(
-              string.format('Extracted remote cache URI: %s', remote_cache_option.option_value)
-            )
-          end
-          remote_cache_uri = remote_cache_option.option_value
 
-          remote_headers =
-            build_event_tree_queries:find_command_line_option('canonical', 'remote_header')
-          if #remote_headers > 0 then
-            -- Do not log the header value; it's kind of sensitive value
-            logger.trace(string.format('Extracted remote %d header(s)', #remote_headers))
-            remote_headers = vim
-              .iter(remote_headers)
-              :map(function(h)
-                return h.option_value
-              end)
-              :totable()
-          end
-        end
+  vim.iter(failed_actions):each(function(action_completed_event)
+    ---@type string|nil
+    local stderr_uri = vim.tbl_get(action_completed_event, 'action', 'stderr', 'uri')
+    if stderr_uri == nil then
+      logger.trace(string.format('Failed to extract stderr_uri'))
+      return
+    end
 
-        logger.debug(
-          string.format(
-            'Loading errors from failed action. rule_kind=%s, action_mnemonic=%s, stderr_uri=%s',
-            rule_kind,
-            action_type,
-            stderr_uri
-          )
-        )
-        self._build_event_file_loader:fetch_file({
-          uri = stderr_uri,
-          on_load = function(stderr_lines)
-            logger.debug(string.format('Loaded stderr logs. uri=%s', stderr_uri))
-            local action_errorformat = self:_get_errorformat(rule_kind, action_type)
-            if action_errorformat then
-              if action_errorformat.strip_escape_codes then
-                logger.trace(
-                  string.format('Stripping ANSI CSI commands from logs. uri=%s', stderr_uri)
-                )
-                local ansi_escape_codes = require('pesto.util.ansi_escape_codes')
-                stderr_lines =
-                  vim.iter(stderr_lines):map(ansi_escape_codes.strip_csi_commands):totable()
-              end
-              local error_scratch_buf_nr = self:_get_scratch_buf_nr()
-              self:_set_errorformat_settings(error_scratch_buf_nr, action_errorformat)
-              vim.api.nvim_buf_call(error_scratch_buf_nr, function()
-                self:_append_quickfix_items(workspace_dir, stderr_lines, vim.o.errorformat)
-              end)
-              if not called_on_first_quickfix_loaded then
-                on_first_quickfix_loaded()
-                called_on_first_quickfix_loaded = true
-              end
-            end
-          end,
-          on_error = function(err)
-            if
-              err == BuildEventFileLoader.BazelRemoteHelpersNotSetupError
-              and not self._has_sent_missing_client_notification
-            then
-              vim.notify(
-                table.concat({
-                  'Pesto: Cannot load quickfix',
-                  '',
-                  'Failed action logs are stored remotely, and a download client has not been configured.',
-                  "Run `:Pesto install-remote-apis-helpers` to use Pesto's default client.",
-                  'For more information see `:help pesto-bazel-remote-apis-helpers`.',
-                }, '\n'),
-                vim.log.levels.WARN
-              )
-              self._has_sent_missing_client_notification = true
-            else
-              logger.error(
-                string.format('Error loading action stderr file %s: %s', stderr_uri, tostring(err))
-              )
-            end
-          end,
-          remote_cache_uri = remote_cache_uri,
-          remote_headers = remote_headers,
-        })
+    if BuildEventFileLoader.is_byte_stream_uri(stderr_uri) and remote_cache_info == nil then
+      remote_cache_info = self:_get_remote_cache_info(build_event_tree)
+      if remote_cache_info == nil then
+        error('Failed to find "remote_cache" command line option')
+      else
+        logger.info(string.format('Extracted remote cache URI: %s', remote_cache_info.uri))
       end
     end
-  end
+
+    logger.trace(string.format('Fetching stderr logs. uri=%s', stderr_uri))
+
+    self._build_event_file_loader:fetch_file({
+      uri = stderr_uri,
+      on_load = function(stderr_lines)
+        logger.debug(string.format('Fetched stderr logs. uri=%s', stderr_uri))
+        local action_errorformat = self:_get_action_errorformat(action_completed_event)
+        if action_errorformat then
+          if action_errorformat.strip_escape_codes then
+            logger.trace(string.format('Stripping ANSI CSI commands from logs. uri=%s', stderr_uri))
+            local ansi_escape_codes = require('pesto.util.ansi_escape_codes')
+            stderr_lines =
+              vim.iter(stderr_lines):map(ansi_escape_codes.strip_csi_commands):totable()
+          end
+          local error_scratch_buf_nr = self:_get_scratch_buf_nr()
+          self:_set_errorformat_settings(error_scratch_buf_nr, action_errorformat)
+          vim.api.nvim_buf_call(error_scratch_buf_nr, function()
+            self:_append_quickfix_items(workspace_dir, stderr_lines, vim.o.errorformat)
+          end)
+          if not called_on_first_quickfix_loaded then
+            on_first_quickfix_loaded()
+            called_on_first_quickfix_loaded = true
+          end
+        end
+      end,
+      on_error = function(err)
+        if
+          err == BuildEventFileLoader.BazelRemoteHelpersNotSetupError
+          and not self._has_sent_missing_client_notification
+        then
+          vim.notify(
+            table.concat({
+              'Pesto: Cannot load quickfix',
+              '',
+              'Failed action logs are stored remotely, and a download client has not been configured.',
+              "Run `:Pesto install-remote-apis-helpers` to use Pesto's default client.",
+              'For more information see `:help pesto-bazel-remote-apis-helpers`.',
+            }, '\n'),
+            vim.log.levels.WARN
+          )
+          self._has_sent_missing_client_notification = true
+        else
+          logger.error(
+            string.format('Error loading action stderr file %s: %s', stderr_uri, tostring(err))
+          )
+        end
+      end,
+      remote_cache_uri = vim.tbl_get(remote_cache_info or {}, 'uri'),
+      remote_headers = vim.tbl_get(remote_cache_info or {}, 'remote_headers'),
+    })
+  end)
 end
 
 ---@param workspace_dir string absolute path to the Bazel workspace's root
@@ -189,48 +161,66 @@ function QuickfixLoader:_get_scratch_buf_nr()
 end
 
 ---@param build_event_tree pesto.BuildEventTree
----@return string|nil
-function QuickfixLoader:_get_remote_cache_uri(build_event_tree)
-  local events = build_event_tree:find_events_by_kind({ 'structured_command_line' })
+---@return pesto.RemoteCacheInfo|nil
+function QuickfixLoader:_get_remote_cache_info(build_event_tree)
+  local BuildEventsTreeQueries = require('pesto.bazel.build_event_tree_queries')
+  local build_event_tree_queries = BuildEventsTreeQueries:new(build_event_tree)
 
-  ---@type pesto.bep.Option[]|nil
-  local command_options
-  for _, event in ipairs(events) do
-    if vim.tbl_get(event, 'command_line_label') == 'canonical' then
-      for _, section in ipairs(vim.tbl_get(event, 'sections') or {}) do
-        if vim.tbl_get(section, 'section_label') == 'command options' then
-          command_options = vim.tbl_get(section, 'option_list') or {}
-        end
-      end
-    end
+  local remote_cache_option = build_event_tree_queries:find_command_line_option(
+    'canonical',
+    'remote_cache'
+  )[1] or build_event_tree_queries:find_command_line_option('canonical', 'remote_executor')[1]
+
+  if not remote_cache_option or not remote_cache_option.option_value then
+    return nil
   end
-  for _, option in ipairs(command_options or {}) do
-    if vim.tbl_get(option, 'option_name') == 'remote_cache' then
-      return vim.tbl_get(option, 'option_value')
-    end
-  end
-  return nil
+
+  local remote_headers =
+    build_event_tree_queries:find_command_line_option('canonical', 'remote_header')
+
+  return {
+    uri = remote_cache_option.option_value,
+    remote_headers = vim
+      .iter(remote_headers)
+      :map(function(h)
+        return h.option_value
+      end)
+      :totable(),
+  }
 end
 
----@param rule_kind string
----@param action_type string
+---@param failed_action_completed_event pesto.bep.BuildEvent
 ---@return pesto.ActionErrorformat|nil
-function QuickfixLoader:_get_errorformat(rule_kind, action_type)
-  local errorformats = self._settings:get_errorformats()
-  for _, rule_action_errorformats in ipairs(errorformats) do
-    if string.match(rule_kind, rule_action_errorformats.rule_kind) then
-      for _, action_errorformat in ipairs(rule_action_errorformats.action_errorformats) do
-        if string.match(action_type, action_errorformat.action_mnemonic) then
-          return action_errorformat
-        end
+function QuickfixLoader:_get_action_errorformat(failed_action_completed_event)
+  ---@type pesto.ActionErrorformat|nil
+  local action_errorformat = vim
+    .iter(self._settings:get_errorformats())
+    :find(function(action_errorformat)
+      ---@type string[]
+      local mnemonic_patterns
+      if type(action_errorformat.action_mnemonic) == 'string' then
+        mnemonic_patterns = { action_errorformat.action_mnemonic }
+      else
+        mnemonic_patterns = action_errorformat.action_mnemonic
       end
-    end
-  end
+      return vim.iter(mnemonic_patterns):any(function(mnemonic_pattern)
+        return string.match(
+          vim.tbl_get(failed_action_completed_event, 'action', 'type'),
+          mnemonic_pattern
+        )
+      end)
+    end)
   local logger = require('pesto.logger')
-  logger.debug(
-    string.format('Failed to find error format. rule_kind=%s, mnemonic=%s', rule_kind, action_type)
-  )
-  return nil
+  logger.debug(function()
+    local id_key = failed_action_completed_event.id_key or ''
+    local action_mnemonic = vim.tbl_get(failed_action_completed_event, 'action', 'type')
+    return string.format(
+      'Failed to find errorforamt for action. action_id_key=%s, action_mnemonic=%s',
+      id_key or '',
+      action_mnemonic or ''
+    )
+  end)
+  return action_errorformat
 end
 
 ---@param buf_nr number

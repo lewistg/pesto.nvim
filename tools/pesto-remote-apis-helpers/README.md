@@ -42,13 +42,16 @@ Instead this helper Python CLI tool is provided, which pesto.nvim integrates wit
 
 ### Opting in
 
-To allow pesto.nvim to use `pesto-fetch-bytestreams` to download the remote log files, you'll need to add the following config:
-
-```lua
-vim.g.pesto.bytestream_client = "pesto-python-remote-apis-helpers"
-```
+Pesto will ask you if it can set up `pesto-fetch-bytestreams` prior to using it.
+Once installed Pesto will just use this bytestream client.
 
 ### Opting out
+
+> [!WARNING]
+> **Work in progress**
+>
+> Custom bytestream clients are still a work in progress.
+> This section roughly sketches out how they will work.
 
 If you would prefer to not use `pesto-fetch-bytestreams`, again you may concerned with supply-chain attacks, then you'll need to provide a client for pesto.nvim to fetch Byte Stream URLs:
 

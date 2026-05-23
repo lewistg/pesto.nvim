@@ -79,25 +79,30 @@ function DefaultRunner.__call(self, opts)
         return
       end
       if bep_file then
-        ---@diagnostic disable-next-line: invisible
-        self._build_event_tree = self._build_event_json_loader:load(bep_file)
-        ---@diagnostic disable-next-line: invisible
-        self._quickfix_loader:load_quickfix(self._build_event_tree, function()
-          ---@diagnostic disable-next-line
-          if self._build_window_manager:is_build_win_current() then
-            local win_util = require('pesto.util.window')
-            --- If the user is currently in the bazel terminal buffer, then we
-            --- keep it focused so they can close it quickly after it finishes
-            --- using one of the quick-exit hotkeys. (See usage of
-            --- BuildWindowManager.BAZEL_TERM_BUF_QUICK_EXIT_KEYS)
-            win_util.keep_current(function()
-              --- Open the quickfix window above the bazel output window
-              vim.cmd('leftabove copen')
-            end)
-          else
-            vim.cmd.copen()
-          end
-        end)
+        if not vim.uv.fs_stat(bep_file) then
+          local logger = require('pesto.logger')
+          logger.error(string.format('BEP logs file does not exist: %s', bep_file))
+        else
+          ---@diagnostic disable-next-line: invisible
+          self._build_event_tree = self._build_event_json_loader:load(bep_file)
+          ---@diagnostic disable-next-line: invisible
+          self._quickfix_loader:load_quickfix(self._build_event_tree, function()
+            ---@diagnostic disable-next-line
+            if self._build_window_manager:is_build_win_current() then
+              local win_util = require('pesto.util.window')
+              --- If the user is currently in the bazel terminal buffer, then we
+              --- keep it focused so they can close it quickly after it finishes
+              --- using one of the quick-exit hotkeys. (See usage of
+              --- BuildWindowManager.BAZEL_TERM_BUF_QUICK_EXIT_KEYS)
+              win_util.keep_current(function()
+                --- Open the quickfix window above the bazel output window
+                vim.cmd('leftabove copen')
+              end)
+            else
+              vim.cmd.copen()
+            end
+          end)
+        end
       end
     end,
     get_build_event_tree = function()

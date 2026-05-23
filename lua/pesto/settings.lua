@@ -5,7 +5,7 @@ local M = {}
 ---@class pesto.ActionErrorformat
 ---
 --- A lua string pattern
----@field action_mnemonic string
+---@field action_mnemonic string|string[]
 ---
 --- The compiler plugin that should define the errorformat to use for parsing
 --- the action's stderr output.
@@ -18,10 +18,6 @@ local M = {}
 --- codes. When `strip_escape_codes` is set to true, Pesto will strip out the
 --- escape codes before parsing the errors for the quickfix window.
 ---@field strip_escape_codes boolean|nil
-
----@class pesto.RuleActionErrorformats
----@field rule_kind string A lua string pattern
----@field action_errorformats pesto.ActionErrorformat[]
 
 ---@alias pesto.TargetResolverResult
 ---| {targets: string[]}
@@ -73,13 +69,15 @@ local M = {}
 --- terminal buffer will be opened automatically when bazel is invoked.
 ---@field auto_open_build_term boolean
 ---
---- Maps a (rule kind pattern, action mnemonic pattern)
---- pair to an errorformat string or compiler plugin name. Note that
---- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
---- string pattern.
----@field errorformats pesto.RuleActionErrorformats[]
+--- This list is used to determine the errorformat string to use to parse the
+--- output of a failed action. It effectively defines a mapping from Bazel
+--- action mnemonics to errorformats.
+---@field errorformats pesto.ActionErrorformat[]
 ---
---- See pesto.RuleActionErrorformats and pesto.ActionErrorformat.
+--- The default set of errorformats. Covers some of the major rule sets.
+---@field default_errorformats pesto.ActionErrorformat[]
+---
+--- See pesto.ActionErrorformat.
 ---@field bytestream_client "pesto-python-remote-apis-helpers"|pesto.ByteStreamClient|nil
 ---
 --- Configuration for the `:Pesto bazel` subcommand auto-completion
@@ -128,70 +126,56 @@ M.DEFAULT_RAW_SETTINGS = {
     require('pesto.components').default_runner(opts)
   end,
   build_target_resolvers = M.DEFAULT_TARGET_RESOLVERS,
-  log_level = 'info',
   enable_bep_integration = true,
   auto_open_build_term = true,
-  errorformats = {
+  errorformats = {},
+  default_errorformats = {
+    -- rules_cc
     {
-      rule_kind = 'cc_*',
-      action_errorformats = {
-        {
-          action_mnemonic = 'CppCompile',
-          compiler = 'gcc',
-        },
-      },
+      action_mnemonic = 'CppCompile',
+      compiler = 'gcc',
+    },
+    -- rules_go
+    {
+      action_mnemonic = 'GoCompilePkg',
+      compiler = 'go',
+    },
+    -- rules_java
+    {
+      action_mnemonic = 'Javac',
+      compiler = 'javac',
     },
     {
-      rule_kind = 'go_*',
-      action_errorformats = {
-        {
-          action_mnemonic = 'GoCompilePkg',
-          compiler = 'go',
-        },
-      },
+      action_mnemonic = 'Turbine',
+      errorformat = '%f:%l: %m',
     },
+    -- rules_rust
     {
-      rule_kind = 'java_*',
-      action_errorformats = {
-        {
-          action_mnemonic = 'Javac',
-          compiler = 'javac',
-        },
-      },
+      action_mnemonic = 'Rustc',
+      compiler = 'rustc',
+      strip_escape_codes = true,
     },
+    -- rules_scala
     {
-      rule_kind = 'rust_*',
-      action_errorformats = {
-        {
-          action_mnemonic = 'Rustc',
-          compiler = 'rustc',
-          strip_escape_codes = true,
-        },
-      },
-    },
-    {
-      rule_kind = 'scala_*',
-      action_errorformats = {
-        {
-          action_mnemonic = 'Scalac',
-          errorformat = table.concat({
-            -- Scala 2 pattern
-            '%f:%l:\\ error:\\ %m',
-            -- Scala 3 patterns
-            '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
-            '--\\ %m:\\ %f:%l:%c%.%#',
-          }, ','),
-          strip_escape_codes = true,
-        },
-      },
+      action_mnemonic = 'Scalac',
+      errorformat = table.concat({
+        -- Scala 2 pattern
+        '%f:%l:\\ error:\\ %m',
+        -- Scala 3 patterns
+        '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+        '--\\ %m:\\ %f:%l:%c%.%#',
+      }, ','),
+      strip_escape_codes = true,
     },
   },
+  -- WIP
   bytestream_client = nil,
   cli_completion = {
     mode = 'automatic',
     bash_timeout = 15000,
     bash_completion_script = nil,
   },
+  log_level = 'info',
 }
 
 return M

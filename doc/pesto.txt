@@ -4,9 +4,9 @@
 ================================================================================
 Intro                                                              *pesto-intro*
 
-Pesto is a Bazel runner plugin for Neovim. It aims to make the edit-build-test
-cycle more seamless.
-
+`pesto.nvim` is a Bazel runner plugin for Neovim. It integrates with Bazel through the
+Build Event Protocol to support things like loading compilation errors into
+the quickfix list.
                                                                     *pesto-types*
 Note: Throughout this manual there are references to LuaLS types defined in
 Pesto's source code (e.g., `pesto.Settings`).
@@ -40,14 +40,15 @@ instead just set `vim.g.pesto`. Here is the default configuration:
         --- When this option is true and when you are using the default runner, a
         --- terminal buffer will be opened automatically when bazel is invoked.
         auto_open_build_term = true,
-        --- Maps a (rule kind pattern, action mnemonic pattern)
-        --- pair to an errorformat string or compiler plugin name. Note that
-        --- the pesto.RuleActionErrorformats.rule_kind field is interpreted as a lua
-        --- string pattern.
-        --- See the "Action errorformat" section below for details.
-        errorformats = {
-           ...
-        },
+        --- This list is used to determine the errorformat string to use to parse the
+        --- output of a failed action. It effectively defines a mapping from Bazel
+        --- action mnemonics to errorformats.
+        errorformats = {},
+        --- The default set of errorformats. Covers some of the major rule
+        --- sets. You shouldn't need to override this.
+        default_errorformats = {
+          ...
+        }
         --- Configuration for the `:Pesto bazel` subcommand auto-completion
         cli_completion = {
             --- Completion strategy. There are three modes:
@@ -165,12 +166,12 @@ Options                                                            *pesto-option
     Regardless of whether or not the default runner opens, Pesto will always
     send a notification for the build result.
 
-`errorformats`
-    type: `pesto.RuleActionErrorformats[]`
+`errorformats`                                        *pesto.Settings.errorformats*
+    type: `pesto.ActionErrorformat[]`
     default: See `lua/pesto/settings.lua`
 
-    This option defines a mapping from a Bazel rule kind and action mnemonic to
-    an |errorformat|. This mapping is used by Pesto to load the quickfix list
+    This option defines a mapping from a Bazel action mnemonic to an
+    |errorformat|. This mapping is used by Pesto to load the quickfix list
     following a failed build.
 
     If you're a new or casual Bazel user "rule kind" and "action mnemonic" may
@@ -205,81 +206,71 @@ Options                                                            *pesto-option
     ---@field strip_escape_codes boolean|nil
 <
 
-    Finally, let's look at snippets from Pesto's default value in
-    `lua/pesto/settings.lua`:
+    Finally, let's look at a snippet that shows the value of Pesto's default
+    errorformats, as defined in `lua/pesto/settings.lua`:
 
 >lua
   {
+    -- rules_cc
     {
-      rule_kind = 'cc_*',
-      action_errorformats = {
-        {
-          action_mnemonic = 'CppCompile',
-          compiler = 'gcc',
-        },
-      },
+      action_mnemonic = 'CppCompile',
+      compiler = 'gcc',
     },
-    ...
+    -- rules_go
     {
-      rule_kind = 'java_*',
-      action_errorformats = {
-        {
-          action_mnemonic = 'Javac',
-          compiler = 'javac',
-        },
-      },
+      action_mnemonic = 'GoCompilePkg',
+      compiler = 'go',
+    },
+    -- rules_java
+    {
+      action_mnemonic = 'Javac',
+      compiler = 'javac',
     },
     {
-      rule_kind = 'rust_*',
-      action_errorformats = {
-        {
-          action_mnemonic = 'Rustc',
-          compiler = 'rustc',
-          strip_escape_codes = true,
-        },
-      },
+      action_mnemonic = 'Turbine',
+      errorformat = "%f:%l: %m"
     },
+    -- rules_rust
     {
-      rule_kind = 'scala_*',
-      action_errorformats = {
-        {
-          action_mnemonic = 'Scalac',
-          errorformat = table.concat({
-            -- Scala 2 pattern
-            '%f:%l:\\ error:\\ %m',
-            -- Scala 3 patterns
-            '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
-            '--\\ %m:\\ %f:%l:%c%.%#',
-          }, ','),
-          strip_escape_codes = true,
-        },
-      },
+      action_mnemonic = 'Rustc',
+      compiler = 'rustc',
+      strip_escape_codes = true,
+    },
+    -- rules_scala
+    {
+      action_mnemonic = 'Scalac',
+      errorformat = table.concat({
+        -- Scala 2 pattern
+        '%f:%l:\\ error:\\ %m',
+        -- Scala 3 patterns
+        '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+        '--\\ %m:\\ %f:%l:%c%.%#',
+      }, ','),
+      strip_escape_codes = true,
     },
   }
 <
 
-    Let's consider a few examples. First, let's say we compile a Scala test.
-    Scala test targets are created using the `scala_test` rule. Scala
-    compliation is executed using an action with the mnemonic `Scalac`. Now,
-    let's say the test fails. Pesto needs find the errorformat to use to parse
-    the error logs.
+    Let's consider a few examples. First, let's say we build a scala_library
+    target. Scala compilation is executed using an action with the mnemonic
+    `Scalac`. Now, let's say the test fails. Pesto needs find the errorformat
+    to use to parse the error logs.
 
-    The `scala_test` target name will be matched by the pattern `scala_*` and
-    the mnemonic will match `Scalac`. So Pesto will parse the error output
-    using this errorformat:
+    The failed action's mnemonic will be `Scalac`, so Pesto will parse the
+    error output using this errorformat:
 
 >lua
-    {
-      ...
-          errorformat = table.concat({
-            -- Scala 2 pattern
-            '%f:%l:\\ error:\\ %m',
-            -- Scala 3 patterns
-            '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
-            '--\\ %m:\\ %f:%l:%c%.%#',
-          }, ','),
-      ...
-    }
+  {
+    action_mnemonic = 'Scalac',
+    errorformat = table.concat({
+      -- Scala 2 pattern
+      '%f:%l:\\ error:\\ %m',
+      -- Scala 3 patterns
+      '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+      '--\\ %m:\\ %f:%l:%c%.%#',
+    }, ','),
+    strip_escape_codes = true,
+  }
 <
 
     Next let's say we triggered a failing Java build while trying to build a
@@ -287,8 +278,7 @@ Options                                                            *pesto-option
     `java_library` that triggered the compilation action with the mnemonic
     `Javac`.
 
-    In this case the relevant config `java_library`, `Javac` maps to is the
-    following:
+    In this case the relevant config maps `Javac` to is the following value:
 
 >lua
     {
@@ -370,7 +360,7 @@ various sub-commands. Here is the format:
 <
 Listed below are the possible sub-commands:
 
-`build [target-resolver-id]`                                *pesto-commands-build*
+`build [target-resolver-id]`                                *pesto-build-command*
     `target-resolver-id`: This ID acts as a key into the map defined by the
     |pesto.Settings.build_target_resolvers| option.
 
@@ -387,9 +377,9 @@ One of Pesto's key features is its quickfix integration. Here's how it works:
 
 When a Bazel build is executed, it can be configured to emit a log of "build
 events". When the BEP integration is enabled (|pesto-bep-integration|), Pesto
-configures Bazel to emit these events. After the build finishes, Pesto reads
-this build events log to find additional log files containing compilation
-errors that can be loaded into the quickfix window.
+configures Bazel to emit these events to a file by automatically injecting the
+--build_event_json_file option. After the build finishes, Pesto parses and
+processes the events in the log file.
 
 When you trigger a Bazel build you specify one or more build targets. A build
 target is defined in BUILD (or BUILD.bazel) files using "rules." For example in
@@ -405,15 +395,14 @@ Actions are given short memorable names called "mnemonics." For example, the
 Java Bazel rules often involve an action that invokes the Java compiler. This
 action is given the mnemonic "Javac".
 
-When action fails--for example the Java compiler found compilation
+When an action fails--for example the Java compiler found compilation
 errors--Bazel emits a build event for the failed action. Following the build
-Pesto finds this event and is able to identify the "rule kind" and action
-mnemonic associated with the failed action (e.g., `java_library` and `Javac`).
-It is also able to get a URI pointing to the action's output.
+Pesto finds this failed action event. The failed action includes the actions
+mnemonic and a URI pointing to the action's stderr output.
 
-Pesto fetches the failed action's output and then uses the rule kind and
-action mnemonic as a key to look up which errorformat it should use to parse
-the output load into the quickfix list.
+Pesto fetches the failed action's output and then uses the mnemonic as a key to
+look up which errorformat it should use to parse the output load into the
+quickfix list (|pesto.Settings.errorformats|)
 
 Note: Pesto does not parse the progress output that Bazel emits during
 execution. Pesto's primary source of build information is the build events log.
@@ -453,6 +442,10 @@ For a more detailed explanation see |pesto-bazel-concepts|.
 --------------------------------------------------------------------------------
 Remote caching (experimental)                              *pesto-remote-caching*
 
+WARNING:
+  Support for the vim.g.pesto.bytestream_client override is still in
+  development. At the moment, only Pesto's first-party client is supported.
+
 More advanced Bazel setups often involve Remote Build Execution (RBE) or remote
 caching. Under these circumstances Bazel will store action logs in the remote
 cache.
@@ -474,12 +467,12 @@ Pesto ships with a ByteStream client written in Python. You can find it in the
 Pesto does the following when it detects logs are stored remotely at some
 ByteStream URI:
 
-    1. Checks to see if |bytestream_client| is configured. If client is
-    configured, Pesto will use it to fetch the logs.
-    2. If the client is not configured, Pesto checks to see if its own
-    `tools/pesto-remote-apis-helpers` script has been set up.
-    3. If `tools/pesto-remote-apis-helpers` has not been set up, then it will
-    prompt you to install the script.
+  1. Checks to see if |bytestream_client| is configured. If client is
+  configured, Pesto will use it to fetch the logs.
+  2. If the client is not configured, Pesto checks to see if its own
+  `tools/pesto-remote-apis-helpers` script has been set up.
+  3. If `tools/pesto-remote-apis-helpers` has not been set up, then it will
+  prompt you to install the script.
 
 ================================================================================
 vim:tw=80:ts=2:ft=help:norl:syntax=help:

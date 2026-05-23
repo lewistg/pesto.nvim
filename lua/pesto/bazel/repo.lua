@@ -16,7 +16,7 @@ local function get_buffer_dir(buf_nr)
     -- Get the current buffer's path
     buffer_dir = vim.fn.expand('%:p:h')
   else
-    local buffers = vim.fn.getbufinfo(buf_nr)
+    local buffers = vim.fn.getbufinfo(buf_nr or '%')
     if #buffers < 1 then
       error('invalid buffer number')
     elseif buffers[1].name == '' then
@@ -55,10 +55,12 @@ end
 function M.find_build_file(buf_nr)
   local project_root_dir = M.find_project_root_dir(buf_nr)
   local buffer_dir = get_buffer_dir(buf_nr)
-  local files = vim.fs.find(
-    PACKAGE_MARKERS,
-    { type = 'file', path = buffer_dir, upward = true, stop = project_root_dir }
-  )
+  local files = vim.fs.find(PACKAGE_MARKERS, {
+    type = 'file',
+    path = buffer_dir,
+    upward = true,
+    stop = vim.fs.joinpath(project_root_dir, '..'),
+  })
   return files[1]
 end
 
