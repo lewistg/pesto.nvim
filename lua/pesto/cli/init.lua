@@ -84,7 +84,7 @@ function M.make_cli(subcommands)
       })
     elseif string.len(subcommand_name) > 0 then
       vim.notify(
-        string.format("[%s] Invalid subcommand '%s'", M.COMMAND_NAME, subcommand),
+        string.format("[%s] Invalid subcommand '%s'", M.COMMAND_NAME, subcommand_name),
         vim.log.levels.ERROR
       )
     end
