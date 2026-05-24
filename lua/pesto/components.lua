@@ -9,6 +9,7 @@ local LazyTable = require('pesto.util.lazy_table')
 -- This plugin does manual dependency injection. This class contains the
 -- plugin's global set of components.
 ---@class Components
+---@field action_logs_quickfix_item_loader pesto.ActionLogsQuickfixItemLoader
 ---@field bazel_sub_command pesto.BazelSubcommand
 ---@field bazel_bash_completion pesto.BazelBashCompletion
 ---@field bazel_bash_completion_client pesto.BazelBashCompletionClient
@@ -21,9 +22,11 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field dump_failed_action_logs_subcommand pesto.DumpFailedActionLogsSubcommand
 ---@field functional_test_hooks pesto.FunctionalTestHooks
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
+---@field mnemonic_errorformat_resolver pesto.MnemonicErrorformatResolver
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
 ---@field quick_fix_loader pesto.QuickfixLoader
+---@field quickfix_item_parser pesto.QuickfixItemParser
 ---@field remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
 ---@field run_bazel_fn pesto.RunBazelFn
 ---@field settings pesto.InternalSettings
@@ -34,6 +37,16 @@ local LazyTable = require('pesto.util.lazy_table')
 
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
+
+---@return pesto.ActionLogsQuickfixItemLoader
+local function _action_logs_quickfix_item_loader()
+  return require('pesto.runner.quickfix.action_logs_quickfix_item_loader'):new(
+    components.quickfix_item_parser,
+    components.build_event_file_loader,
+    components.mnemonic_errorformat_resolver
+  )
+end
+components.action_logs_quickfix_item_loader = _action_logs_quickfix_item_loader --[[@as pesto.ActionLogsQuickfixItemLoader]]
 
 ---@return pesto.BazelBashCompletion
 local function _bazel_bash_completion()
@@ -152,18 +165,32 @@ local function _pesto_cli()
 end
 components.pesto_cli = _pesto_cli --[[@as PestoCli]]
 
+---@return pesto.InternalSettings
 local _settings = function()
   return require('pesto.internal_settings'):new()
 end
 components.settings = _settings --[[@as pesto.InternalSettings ]]
 
+---@return pesto.MnemonicErrorformatResolver
+local _mnemonic_errorformat_resolver = function()
+  return require('pesto.runner.quickfix.mnemonic_errorformat_resolver'):new(components.settings)
+end
+components.mnemonic_errorformat_resolver = _mnemonic_errorformat_resolver --[[@as pesto.MnemonicErrorformatResolver]]
+
+---@return pesto.QuickfixItemParser
+local _quickfix_item_parser = function()
+  return require('pesto.runner.quickfix.quickfix_item_parser'):new()
+end
+components.quickfix_item_parser = _quickfix_item_parser --[[@as pesto.QuickfixItemParser]]
+
+---@return pesto.QuickfixLoader
 local _quick_fix_loader = function()
   return require('pesto.runner.quickfix.quickfix_loader'):new(
-    components.build_event_file_loader,
+    components.action_logs_quickfix_item_loader,
     components.settings
   )
 end
-components.quick_fix_loader = _quick_fix_loader --[[ @as pesto.QuickfixLoader ]]
+components.quick_fix_loader = _quick_fix_loader --[[@as pesto.QuickfixLoader]]
 
 ---@return pesto.RemoteApisHelpersCommandBuilder
 local _remote_apis_helpers_command_builder = function()
