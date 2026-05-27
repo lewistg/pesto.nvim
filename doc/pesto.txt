@@ -351,7 +351,7 @@ Options                                                            *pesto-option
     locations.
 
 ================================================================================
-Commands                                                          *pesto-commands*
+Commands                                                         *pesto-commands*
 
 Pesto's CLI is similar to `git`: There is a single top-level command and
 various sub-commands. Here is the format:
@@ -367,6 +367,14 @@ Listed below are the possible sub-commands:
     The `build` command provides a way to quickly invoke a Bazel build. Its
     primary use case is invoking a build for targets that directly depend on
     the source file currently being edited.
+
+`sp-build`                                               *pesto-sp-build-command*
+    Opens the BUILD or BUILD.bazel file for the current file's package in a
+    horizontal split.
+
+`vs-build`                                               *pesto-vs-build-command*
+    Opens the BUILD or BUILD.bazel file for the current file's package in a
+    vertical split.
 
 ================================================================================
 Bazel concepts                                              *pesto-bazel-concepts*

@@ -234,10 +234,9 @@ For a full explanation of the errorformat config and its types please see `:h pe
 " Runs `bazel build --compile_one_dependency <current-file>`
 :Pesto compile-one-dep
 
-" Opens the `BUILD` or `BUILD.bazel` file for the current source file in a horizontal split.
+" Commands to open the `BUILD` or `BUILD.bazel` file for the current source
+" file in a horizontal or vertical split.
 :Pesto sp-build
-
-" The same as the `sp-build` command but splits vertically.
 :Pesto vs-build
 
 " Yanks the label for the current source file's package.
