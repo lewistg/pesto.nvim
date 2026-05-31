@@ -57,7 +57,7 @@ describe('inject_bep_option', function()
   for _, test_case in ipairs(test_cases) do
     local bazel_command_str = table.concat(test_case.bazel_command, ' ')
     it(string.format('handles bazel command: %s', bazel_command_str), function()
-      local bazel_build_event_util = require('pesto.cli.bazel_build_event_util')
+      local bazel_build_event_util = require('pesto.bazel.bazel_command')
       bazel_build_event_util.inject_bep_option(test_case.bazel_command, lazy_temp_file)
       assert.are.same(test_case.expected_bazel_command, test_case.bazel_command)
     end)

@@ -45,7 +45,7 @@ end
 
 ---@param opts pesto.RunBazelOpts
 function DefaultRunner.__call(self, opts)
-  local bazel_build_event_util = require('pesto.cli.bazel_build_event_util')
+  local bazel_command = require('pesto.bazel.bazel_command')
 
   ---@type string|nil
   local _temp_bep_file = nil
@@ -59,8 +59,8 @@ function DefaultRunner.__call(self, opts)
   ---@type string|nil
   local bep_file = nil
   if self._settings:get_enable_bep_integration() then
-    bazel_build_event_util.inject_bep_option(opts.bazel_command, temp_bep_file)
-    bep_file = bazel_build_event_util.extract_bep_option(opts.bazel_command)
+    bazel_command.inject_bep_option(opts.bazel_command, temp_bep_file)
+    bep_file = bazel_command.extract_bep_option(opts.bazel_command)
   end
 
   if _temp_bep_file ~= nil then
