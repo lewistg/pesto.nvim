@@ -45,32 +45,10 @@ end
 
 ---@param opts pesto.RunBazelOpts
 function DefaultRunner.__call(self, opts)
-  local bazel_command = require('pesto.bazel.bazel_command')
-
-  local logger = require('pesto.logger')
-
   ---@type string|nil
   local bep_file = nil
   if self._settings:get_enable_bep_integration() then
-    ---@type fun(): string
-    local temp_bep_file = function()
-      ---@diagnostic disable-next-line: invisible
-      return self._temp_bep_files:get_temp_bep_file()
-    end
-
-    local result = bazel_command.inject_option(
-      opts.bazel_command,
-      bazel_command.BUILD_EVENT_JSON_FILE_OPTION_SPEC,
-      temp_bep_file
-    )
-    if result then
-      bep_file = result.option_value
-      if result.was_injected then
-        self:_add_temp_bep_file(bep_file)
-      end
-    else
-      logger.error('failed to inject BEP option')
-    end
+    bep_file = self:_inject_bep_file_option(opts.bazel_command)
   end
 
   self._build_event_tree = nil
@@ -116,6 +94,34 @@ function DefaultRunner.__call(self, opts)
       return self._build_event_tree
     end,
   })
+end
+
+---@private
+---@param bzl_command string[]
+function DefaultRunner:_inject_bep_file_option(bzl_command)
+  ---@type fun(): string
+  local temp_bep_file = function()
+    ---@diagnostic disable-next-line: invisible
+    return self._temp_bep_files:get_temp_bep_file()
+  end
+
+  local bazel_command = require('pesto.bazel.bazel_command')
+  local result = bazel_command.inject_option(
+    bzl_command,
+    bazel_command.BUILD_EVENT_JSON_FILE_OPTION_SPEC,
+    temp_bep_file
+  )
+  if result then
+    local bep_file = result.option_value
+    if result.was_injected then
+      self:_add_temp_bep_file(bep_file)
+    end
+    return bep_file
+  else
+    local logger = require('pesto.logger')
+    logger.error('failed to inject BEP option')
+  end
+  return nil
 end
 
 ---@private
