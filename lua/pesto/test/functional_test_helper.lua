@@ -41,6 +41,19 @@ function FunctionalTestHelper:set_completion_mode(mode)
   )
 end
 
+---@param enabled boolean
+function FunctionalTestHelper:set_config_enable_bep_integration(enabled)
+  vim.rpcrequest(
+    self.nvim_chan,
+    'nvim_exec_lua',
+    string.format(
+      "require('pesto.components').functional_test_hooks:extend_global_table('pesto', { enable_bep_integration = %s })",
+      tostring(enabled)
+    ),
+    {}
+  )
+end
+
 function FunctionalTestHelper:get_temp_dir()
   return vim.rpcrequest(
     self.nvim_chan,

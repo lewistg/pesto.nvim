@@ -34,6 +34,8 @@ function ActionLogsQuickfixItemLoader:new(
 end
 
 ---@param build_events pesto.BuildEventTree
+---@param on_items_loaded fun(qf_items: table[]) Called when a batch quickfix items have been parsed
+---@param on_error fun(err: any) Called when an error occurs
 function ActionLogsQuickfixItemLoader:get_quickfix_items(build_events, on_items_loaded, on_error)
   local logger = require('pesto.logger')
 

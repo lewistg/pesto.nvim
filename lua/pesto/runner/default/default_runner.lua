@@ -45,10 +45,25 @@ end
 
 ---@param opts pesto.RunBazelOpts
 function DefaultRunner.__call(self, opts)
+  local logger = require('pesto.logger')
+
   ---@type string|nil
   local bep_file = nil
+
   if self._settings:get_enable_bep_integration() then
     bep_file = self:_inject_bep_file_option(opts.bazel_command)
+  else
+    local bazel_command = require('pesto.bazel.bazel_command')
+    local result = bazel_command.inject_option(
+      opts.bazel_command,
+      bazel_command.CURSES_OPTION_SPEC,
+      function()
+        return 'no'
+      end
+    )
+    if not result then
+      logger.error('failed to inject nocurses option')
+    end
   end
 
   self._build_event_tree = nil
@@ -57,36 +72,52 @@ function DefaultRunner.__call(self, opts)
     term_command = opts.bazel_command,
     cwd = opts.context.package_dir or opts.context.workspace_dir,
     auto_open = self._settings:get_auto_open_build_term(),
-    on_exit = function(is_current)
+    capture_stdout = not bep_file,
+    on_exit = function(is_current, stdout_lines)
       self:_maybe_clean_temp_bep_files()
       if not is_current then
         return
       end
+
+      local function on_first_quickfix_loaded()
+        ---@diagnostic disable-next-line
+        if self._build_window_manager:is_build_win_current() then
+          local win_util = require('pesto.util.window')
+          --- If the user is currently in the bazel terminal buffer, then we
+          --- keep it focused so they can close it quickly after it finishes
+          --- using one of the quick-exit hotkeys. (See usage of
+          --- BuildWindowManager.BAZEL_TERM_BUF_QUICK_EXIT_KEYS)
+          win_util.keep_current(function()
+            --- Open the quickfix window above the bazel output window
+            vim.cmd('leftabove copen')
+          end)
+        else
+          vim.cmd.copen()
+        end
+      end
+
       if bep_file then
         if not vim.uv.fs_stat(bep_file) then
-          local logger = require('pesto.logger')
           logger.error(string.format('BEP logs file does not exist: %s', bep_file))
         else
           ---@diagnostic disable-next-line: invisible
           self._build_event_tree = self._build_event_json_loader:load(bep_file)
           ---@diagnostic disable-next-line: invisible
-          self._quickfix_loader:load_quickfix(self._build_event_tree, function()
-            ---@diagnostic disable-next-line
-            if self._build_window_manager:is_build_win_current() then
-              local win_util = require('pesto.util.window')
-              --- If the user is currently in the bazel terminal buffer, then we
-              --- keep it focused so they can close it quickly after it finishes
-              --- using one of the quick-exit hotkeys. (See usage of
-              --- BuildWindowManager.BAZEL_TERM_BUF_QUICK_EXIT_KEYS)
-              win_util.keep_current(function()
-                --- Open the quickfix window above the bazel output window
-                vim.cmd('leftabove copen')
-              end)
-            else
-              vim.cmd.copen()
-            end
-          end)
+          self._quickfix_loader:load_quickfix({
+            ---@diagnostic disable-next-line: invisible
+            build_event_tree = self._build_event_tree,
+            on_first_quickfix_loaded = on_first_quickfix_loaded,
+            workspace_root = opts.context.workspace_dir,
+          })
         end
+      elseif stdout_lines then
+        ---@diagnostic disable-next-line: invisible
+        self._quickfix_loader:load_quickfix({
+          ---@diagnostic disable-next-line: invisible
+          progress_logs = stdout_lines,
+          on_first_quickfix_loaded = on_first_quickfix_loaded,
+          workspace_root = opts.context.workspace_dir,
+        })
       end
     end,
     get_build_event_tree = function()

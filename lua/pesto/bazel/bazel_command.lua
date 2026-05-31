@@ -35,6 +35,13 @@ M.ASYNC_OPTION_SPEC = {
   is_boolean = true,
 }
 
+---@type pesto.BazelOptionSpec
+M.CURSES_OPTION_SPEC = {
+  long_name = 'curses',
+  has_value = true,
+  category = 'build',
+}
+
 ---@param bazel_command string[]
 ---@param names {[pesto.BazelSubcommandName]: boolean}
 ---@return number|nil

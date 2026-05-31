@@ -25,6 +25,7 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field mnemonic_errorformat_resolver pesto.MnemonicErrorformatResolver
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
+---@field progress_logs_quickfix_item_loader pesto.ProgressLogsQuickfixItemLoader
 ---@field quick_fix_loader pesto.QuickfixLoader
 ---@field quickfix_item_parser pesto.QuickfixItemParser
 ---@field remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
@@ -165,6 +166,15 @@ local function _pesto_cli()
 end
 components.pesto_cli = _pesto_cli --[[@as PestoCli]]
 
+---@return pesto.ProgressLogsQuickfixItemLoader
+local function _progress_logs_quickfix_item_loader()
+  return require('pesto.runner.quickfix.progress_logs_quickfix_item_loader'):new(
+    components.quickfix_item_parser,
+    components.mnemonic_errorformat_resolver
+  )
+end
+components.progress_logs_quickfix_item_loader = _progress_logs_quickfix_item_loader --[[@as pesto.ProgressLogsQuickfixItemLoader]]
+
 ---@return pesto.InternalSettings
 local _settings = function()
   return require('pesto.internal_settings'):new()
@@ -187,6 +197,7 @@ components.quickfix_item_parser = _quickfix_item_parser --[[@as pesto.QuickfixIt
 local _quick_fix_loader = function()
   return require('pesto.runner.quickfix.quickfix_loader'):new(
     components.action_logs_quickfix_item_loader,
+    components.progress_logs_quickfix_item_loader,
     components.settings
   )
 end

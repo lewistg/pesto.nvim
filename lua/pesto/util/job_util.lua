@@ -30,6 +30,22 @@ function M.jobstart_get_on_line_completed(callback)
   end
 end
 
+---@param lines string[]
+---@param data string[]
+function M.append_data(lines, data)
+  if M.is_eof(data) then
+    return
+  end
+  lines[#lines] = lines[#lines] .. data[1]
+  for i = 2, #data do
+    table.insert(lines, data[i])
+  end
+end
+
+function M.is_eof(data)
+  return #data == 1 and data[1] == ''
+end
+
 --- This method returns a callback method that can be used passed as a handler
 --- for one of vim.system's output handlers (e.g., stdout). It's useful
 --- for cases where you'd rather operate on emitted lines instead of emitted
