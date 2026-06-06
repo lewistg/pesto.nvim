@@ -40,9 +40,14 @@ function ActionLogsQuickfixItemLoader:get_quickfix_items(build_events, on_items_
   local BuildEventTreeQueries = require('pesto.bazel.build_event_tree_queries')
   local build_event_tree_queries = BuildEventTreeQueries:new(build_events)
 
+  local workspace_root = build_event_tree_queries:get_workspace_directory()
+  if workspace_root == nil then
+    logger.debug('Failed to extract workspace root')
+    workspace_root = ''
+  end
+
   ---@type pesto.bep.BuildEvent[]
   local failed_actions = build_event_tree_queries:find_failed_action_completed_events()
-
   logger.debug(string.format('Found %d failed action(s)', #failed_actions))
 
   vim.iter(failed_actions):each(function(action_completed_event)
@@ -91,7 +96,7 @@ function ActionLogsQuickfixItemLoader:get_quickfix_items(build_events, on_items_
       uri = stderr_uri,
       on_load = function(stderr_lines)
         logger.debug(string.format('Fetched stderr logs. uri=%s', stderr_uri))
-        local items = self._quickfix_item_parser:parse(stderr_lines, errorformat, build_events)
+        local items = self._quickfix_item_parser:parse(stderr_lines, errorformat, workspace_root)
         on_items_loaded(items)
       end,
       on_error = function(err)

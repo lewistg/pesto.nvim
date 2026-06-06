@@ -10,9 +10,9 @@ end
 
 ---@param lines string[]
 ---@param errorformat pesto.ActionErrorformat
----@param build_events pesto.BuildEventTree
+---@param workspace_root string
 ---@return any[]
-function QuickfixItemParser:parse(lines, errorformat, build_events)
+function QuickfixItemParser:parse(lines, errorformat, workspace_root)
   if errorformat.strip_escape_codes then
     local ansi_escape_codes = require('pesto.util.ansi_escape_codes')
     lines = vim.iter(lines):map(ansi_escape_codes.strip_csi_commands):totable()
@@ -30,8 +30,7 @@ function QuickfixItemParser:parse(lines, errorformat, build_events)
       .. enter_workspace_prefix_pattern
       .. '%f,'
       .. vim.o.errorformat
-    local workspace_dir = self:_get_workspace_directory(build_events)
-    table.insert(lines, 1, string.format(enter_workspace_prefix_pattern .. '%s', workspace_dir))
+    table.insert(lines, 1, string.format(enter_workspace_prefix_pattern .. '%s', workspace_root))
 
     return vim.fn.getqflist({
       lines = lines,
@@ -62,13 +61,6 @@ function QuickfixItemParser:_set_errorformat_settings(buf_nr, rule_errorformat)
       })
     end)
   end
-end
-
----@param build_events pesto.BuildEventTree
----@return string
-function QuickfixItemParser:_get_workspace_directory(build_events)
-  local build_started_event = build_events:find_events_by_kind({ 'started' })[1]
-  return build_started_event.started.workspace_directory
 end
 
 return QuickfixItemParser

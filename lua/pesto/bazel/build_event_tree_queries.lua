@@ -71,4 +71,10 @@ function BuildEventTreeQueries:find_failed_action_completed_events()
     :totable()
 end
 
+---@return string|nil
+function BuildEventTreeQueries:get_workspace_directory()
+  local build_started_event = self._build_event_tree:find_events_by_kind({ 'started' })[1]
+  return build_started_event.started.workspace_directory
+end
+
 return BuildEventTreeQueries
