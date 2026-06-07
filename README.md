@@ -146,77 +146,101 @@ local settings = {...}
 require("pesto").setup(settings)
 ```
 
-### Action errorformat
+### Quickfix integration
 
-Following a build, `pesto.nvim` parses the BEP output file, finds the failed build actions, and then uses `vim.fn.setqflist` to parse and load errors from the actions' stderr file into the quickfix list.
-As a multi-language build tool, it's possible Bazel will report errors coming from multiple compilers for different languages at once.
-How then do we pick which `errorformat` to use with `vim.fn.setqflist`?
+One of `pesto.nvim`'s key features is showing build errors in the quickfix list.
+This section gives a brief overview of how the feature works and how to configure it.
 
-In `pesto.nvim`'s configuration we we map action mnemonics to an `errorformat` configuration.
-`pesto.nvim` will resolve which `errorformat` to use based on this mapping.
+#### Quick Bazel primer
 
+First, we'll cover some essential background information on Bazel and Bazel builds.
+If you're already familiar with the concept of "actions" and "action mnemonics" you can skip this section.
 
-> [!NOTE]
->
-> This errorformat configuration touches on some Bazel concepts that may be unfamiliar to casual Bazel users. 
-> If that's you, then here is a quick rundown:
-> * Most of the time a Bazel build involves the execution of rule targets. 
-> * Rule targets spawn actions, such as invoking a compiler.
-> * A rule target action has a name called the "mnemonic."
-> * An action may produce output such as compiler errors written to stderr. Bazel captures this output to stderr and saves it as a build artifact, as a file stored in the build cache.
-> * `pesto.nvim` discovers and processes these stderr files through the BEP output file.
+With Bazel we declare build targets in BUILD (BUILD.bazel) files using various "rules."
+These rules take inputs such as source files and produce outputs such as executable binaries.
+The rules also define the "actions" that must be taken to turn the inputs into the outputs.
+Many times these actions will be something like invoking a compiler.
 
-Here is `pesto.nvim`'s default mapping:
+Actions are given short memorable names called the "action mnemonic."
+For example, `rules_java` (the official rules for Java) uses `Javac` as the action mnemonic for the Java compiler action.
+
+#### BEP logs
+
+When you invoke a Bazel build with `pesto.nvim`, the plugin runs bazel with the [`--build_event_json_file <log_file>`](https://bazel.build/reference/command-line-reference#common_options-flag--build_event_json_file) option to capture the BEP logs.
+If a build fails, the BEP logs will identify the failed actions (e.g., compilation actions that failed) along with a path to the action's logs.
+
+#### Mapping action mnemonics to errorformats
+
+Following a build, `pesto.nvim` parses the build's BEP logs for failed actions.
+It then fetches the logs associated with the failed actions and notes their respective mnemonics.
+
+The action mnemonic is then used as a key to lookup the `errorformat` string ([`:help errorformat`](https://neovim.io/doc/user/quickfix/#_7.-the-error-format)) that should be used to parse the action's logs.
+
+`pesto.nvim` already comes with a mapping from action mnemonics to `errorformat` strings for some of Bazel's more popular rule sets.
+Let's take a look at this default mapping:
+
+```lua
+---@type pesto.ActionErrorformat[]
+local default_errorformats = {
+  -- rules_cc
+  {
+    action_mnemonic = 'CppCompile',
+    compiler = 'gcc',
+  },
+  -- rules_go
+  {
+    action_mnemonic = 'GoCompilePkg',
+    compiler = 'go',
+  },
+  -- rules_java
+  {
+    action_mnemonic = 'Javac',
+    compiler = 'javac',
+  },
+  {
+    action_mnemonic = 'Turbine',
+    errorformat = '%f:%l: %m',
+  },
+  -- rules_rust
+  {
+    action_mnemonic = 'Rustc',
+    compiler = 'rustc',
+    strip_escape_codes = true,
+  },
+  -- rules_scala
+  {
+    action_mnemonic = 'Scalac',
+    errorformat = table.concat({
+      -- Scala 2 pattern
+      '%f:%l:\\ error:\\ %m',
+      -- Scala 3 patterns
+      '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
+      '--\\ %m:\\ %f:%l:%c%.%#',
+    }, ','),
+    strip_escape_codes = true,
+  },
+}
+```
+
+Compare the mapping that's listed for `rules_cc` (the C/C++ rule set) with the mapping defined for `rules_scala`.
+In `rules_cc` there is no direct definition for `errorformat` like there is for `rules_scala`.
+This is because Neovim already ships with a number of existing compiler plugins ([`:help write-compiler-plugin`](https://neovim.io/doc/user/usr_41/#_writing-a-compiler-plugin), [`:help compiler`](https://neovim.io/doc/user/quickfix/#_6.-selecting-a-compiler)).
+`pesto.nvim` gives you the option of using `errorformat` from these existing compiler plugins by setting the `compiler` field in the mapping.
+Neovim does not ship with a compiler plugin for Scala, so we have to resort to manually defining the `errorformat` string using the `errorformat` field.
+
+`pesto.nvim` lets you expand this mapping from action mnemonic to `errorformat` string through the `errorformats` config:
 
 ```lua
 vim.g.pesto = {
   ...
-  default_errorformats = {
-    -- rules_cc
-    {
-      action_mnemonic = 'CppCompile',
-      compiler = 'gcc',
-    },
-    -- rules_go
-    {
-      action_mnemonic = 'GoCompilePkg',
-      compiler = 'go',
-    },
-    -- rules_java
-    {
-      action_mnemonic = 'Javac',
-      compiler = 'javac',
-    },
-    {
-      action_mnemonic = 'Turbine',
-      errorformat = "%f:%l: %m"
-    },
-    -- rules_rust
-    {
-      action_mnemonic = 'Rustc',
-      compiler = 'rustc',
-      strip_escape_codes = true,
-    },
-    -- rules_scala
-    {
-      action_mnemonic = 'Scalac',
-      errorformat = table.concat({
-        -- Scala 2 pattern
-        '%f:%l:\\ error:\\ %m',
-        -- Scala 3 patterns
-        '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
-        '--\\ %m:\\ %f:%l:%c%.%#',
-      }, ','),
-      strip_escape_codes = true,
-    },
-  },
+  errorformats = {
+   <define your own mappings>
+  }
   ...
 }
 ```
 
-Note how the default mapping already includes mappings for some of Bazel's standard rules (for Java and C/C++).
-Add more as needed.
-For a full explanation of the errorformat config and its types please see `:h pesto.Settings.errorformats`
+See `:help pesto.Settings.errorformats` for more details.
 
 ## Commands
 
