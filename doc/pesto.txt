@@ -143,18 +143,74 @@ Options                                                            *pesto-option
     buffer level. Pesto merges buffer-level options with the global-level
     options, giving priority to the buffer level.
 
-`log_level`                                            *pesto.Settings.log_level*
-    type: `"trace"|"debug"|"info"|"warn"|"error"`
-    default: "info"
-
-    This option defines the minimum level of logs that are output.
-
 `enable_bep_integration`                  *pesto.Settings.enable_bep_integration*
     type: `boolean`
     default: `true`
 
     This option enables the default runner's (|pesto-default-runner|) BEP
     integration (|pesto-bep-integration|).
+
+`quickfix_log_source`                        *pesto.Settings.quickfix_log_source*
+    type: `"bep"|"pty_output"`
+    default: `"bep"`
+
+    This option indicates which logs Pesto should use to populate the quickfix
+    window following a build.
+
+    There are two options:
+    * `"bep"`: Pesto will find and fetch failed action logs using the log file
+    paths found in BEP logs.
+    * `"pty_output"`: Pesto will do its best to parse the bazel command's output
+    sent to the Neovim pseudo terminal.
+
+    Note: When `quickfix_log_source` is set to `"bep"` the
+    `enable_bep_integration` option (|pesto.Settings.enable_bep_integration|)
+    is always taken to be true.
+
+    Pesto defaults to using the `"bep"` option. This is because failed action
+    logs are cleaner compared to the commands bazel command's progress logs.
+    For example, here's the failed action logs for Java compilation error:
+
+>bash
+    src/main/java/net/starlark/java/syntax/LambdaExpression.java:43: error: cannot find symbol
+      public xpression getBody() {
+             ^
+      symbol:   class xpression
+      location: class LambdaExpression
+<
+
+    Compare those logs with bazel command's raw output:
+
+>bash
+    INFO: Analyzed target //src/main/java/net/starlark/java/syntax:syntax (0 packages loaded, 0 targets configured).
+    ERROR: /home/user/dev/bazel/src/main/java/net/starlark/java/syntax/BUILD:17:13: Building src/main/java/net/starlark/java/syntax/libsyntax.
+    jar (42 source files) and running annotation processors (AutoAnnotationProcessor, AutoBuilderProcessor, AutoOneOfProcessor, AutoValuePro
+    cessor, AutoValueGsonAdapterFactoryProcessor) failed: (Exit 1): java failed: error executing Javac command (from target //src/main/java/
+    net/starlark/java/syntax:syntax) external/rules_java++toolchains+remotejdk21_linux/bin/java '--add-exports=jdk.compiler/com.sun.tools.ja
+    vac.api=ALL-UNNAMED' '--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED' ... (remaining 19 arguments skipped)
+    src/main/java/net/starlark/java/syntax/LambdaExpression.java:43: error: cannot find symbol
+      public xpression getBody() {
+             ^
+      symbol:   class xpression
+      location: class LambdaExpression
+    Target //src/main/java/net/starlark/java/syntax:syntax failed to build
+    Use --verbose_failures to see the command lines of failed build steps.
+    INFO: Elapsed time: 1.008s, Critical Path: 0.75s
+    INFO: 2 processes: 2 internal.
+    ERROR: Build did NOT complete successfully
+    INFO: Build Event Protocol files produced successfully.
+
+    [Process exited 1]
+<
+    Notice how the compilation error is embedded among various other unrelated
+    status logs.
+
+    When `quickfix_log_source` is set to `pty_output`, Pesto does its best to
+    tease out individual action logs, but there may be cases where it gets it
+    wrong. If you encounter such cases, please log an issue.
+
+    For a deeper discussion of Pesto's BEP integration please see
+    |pesto-bazel-concepts|.
 
 `auto_open_build_term`
     type: `boolean`
@@ -350,6 +406,12 @@ Options                                                            *pesto-option
     `require('pesto.settings').DEFAULT_BASH_COMPLETION_SCRIPTS` for the default
     locations.
 
+`log_level`                                            *pesto.Settings.log_level*
+    type: `"trace"|"debug"|"info"|"warn"|"error"`
+    default: "info"
+
+    This option defines the minimum level of logs that are output.
+
 ================================================================================
 Commands                                                         *pesto-commands*
 
@@ -382,6 +444,9 @@ Bazel concepts                                              *pesto-bazel-concept
 This section gives a quick primer on key Bazel concepts underpinning Pesto.
 
 One of Pesto's key features is its quickfix integration. Here's how it works:
+
+First, we'll assume you're using BEP logs as your quickfix source. In other
+words, the |pesto.Settings.quickfix_log_source| option is set to `"bep"`.
 
 When a Bazel build is executed, it can be configured to emit a log of "build
 events". When the BEP integration is enabled (|pesto-bep-integration|), Pesto

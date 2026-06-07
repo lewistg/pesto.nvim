@@ -47,10 +47,13 @@ end
 function DefaultRunner.__call(self, opts)
   local logger = require('pesto.logger')
 
+  ---@type pesto.QuickfixLogSource
+  local quickfix_log_source = self._settings:get_quickfix_log_source()
+
   ---@type string|nil
   local bep_file = nil
 
-  if self._settings:get_enable_bep_integration() then
+  if self._settings:get_enable_bep_integration() or quickfix_log_source == 'bep' then
     bep_file = self:_inject_bep_file_option(opts.bazel_command)
   else
     local bazel_command = require('pesto.bazel.bazel_command')
@@ -72,7 +75,7 @@ function DefaultRunner.__call(self, opts)
     term_command = opts.bazel_command,
     cwd = opts.context.package_dir or opts.context.workspace_dir,
     auto_open = self._settings:get_auto_open_build_term(),
-    capture_stdout = not bep_file,
+    capture_stdout = quickfix_log_source == 'pty_output',
     on_exit = function(is_current, stdout_lines)
       self:_maybe_clean_temp_bep_files()
       if not is_current then
@@ -102,22 +105,30 @@ function DefaultRunner.__call(self, opts)
         else
           ---@diagnostic disable-next-line: invisible
           self._build_event_tree = self._build_event_json_loader:load(bep_file)
-          ---@diagnostic disable-next-line: invisible
-          self._quickfix_loader:load_quickfix({
-            ---@diagnostic disable-next-line: invisible
-            build_event_tree = self._build_event_tree,
-            on_first_quickfix_loaded = on_first_quickfix_loaded,
-            workspace_root = opts.context.workspace_dir,
-          })
         end
-      elseif stdout_lines then
+      end
+
+      if quickfix_log_source == 'bep' then
         ---@diagnostic disable-next-line: invisible
         self._quickfix_loader:load_quickfix({
           ---@diagnostic disable-next-line: invisible
-          progress_logs = stdout_lines,
+          build_event_tree = self._build_event_tree,
           on_first_quickfix_loaded = on_first_quickfix_loaded,
           workspace_root = opts.context.workspace_dir,
         })
+      elseif quickfix_log_source == 'pty_output' then
+        if stdout_lines then
+          ---@diagnostic disable-next-line: invisible
+          self._quickfix_loader:load_quickfix({
+            progress_logs = stdout_lines,
+            on_first_quickfix_loaded = on_first_quickfix_loaded,
+            workspace_root = opts.context.workspace_dir,
+          })
+        else
+          logger.error("log source is 'pty_output' but stdout_lines were not captured")
+        end
+      else
+        assert(false, string.format('unrecognized log source: %s', quickfix_log_source))
       end
     end,
     get_build_event_tree = function()

@@ -33,6 +33,10 @@ local M = {}
 ---| "bash"
 ---| "automatic"
 
+---@alias pesto.QuickfixLogSource
+---| "bep"
+---| "pty_output"
+
 ---@class pesto.CliCompletionSettings
 ---
 --- Completion strategy
@@ -56,8 +60,20 @@ local M = {}
 --- Callback invoked to run bazel.
 ---@field bazel_runner pesto.RunBazelFn Method invoked to run bazel.
 ---
--- Logging level (see `:checkhealth pesto` to get the log file's path).
+--- Logging level (see `:checkhealth pesto` to get the log file's path).
 ---@field log_level string
+---
+--- Indicates which logs Pesto should use to populate the quickfix window
+--- following a build.
+--- There are two options:
+--- * `bep`: Pesto will find and fetch failed action logs using the log file
+--- paths found in BEP logs.
+--- * `pty_output`: Pesto will do its best to parse the bazel command's output
+--- sent to the a Neovim pseudo terminal.
+---
+--- Note: When quickfix_log_source is set to `bep`, enable_bep_integration
+--- always taken to be true.
+---@field quickfix_log_source pesto.QuickfixLogSource
 ---
 --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
 --- Bazel command line option. If you use the default runner, then following
@@ -126,6 +142,7 @@ M.DEFAULT_RAW_SETTINGS = {
     require('pesto.components').default_runner(opts)
   end,
   build_target_resolvers = M.DEFAULT_TARGET_RESOLVERS,
+  quickfix_log_source = 'bep',
   enable_bep_integration = true,
   auto_open_build_term = true,
   errorformats = {},
