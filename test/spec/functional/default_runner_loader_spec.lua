@@ -26,7 +26,9 @@ describe('default runner loader', function()
     vim.fn.jobstop(nvim_chan)
   end)
 
-  it('loads errors into the quickfix window', function()
+  local function quickfix_window_test(bep_integration)
+    functional_test_helper:set_config_enable_bep_integration(bep_integration)
+
     -- Note: hello-error/main.c has an  error
     vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'edit', args = { 'hello-error/main.c' } }, {})
 
@@ -94,7 +96,18 @@ describe('default runner loader', function()
     -- Confirm the jump
     local current_buf_id = vim.rpcrequest(nvim_chan, 'nvim_get_current_buf')
     assert.are.same(error_source_file_buf_id, current_buf_id)
+  end
+
+  it('loads errors into the quickfix window when BEP log is the quickfix source', function()
+    quickfix_window_test(true)
   end)
+
+  it(
+    'loads errors into the quickfix window when the bazel progress output is the quickfix source',
+    function()
+      quickfix_window_test(false)
+    end
+  )
 
   it('the Bazel output window can be closed by with <CR>', function()
     vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'edit', args = { 'hello-error/main.c' } }, {})

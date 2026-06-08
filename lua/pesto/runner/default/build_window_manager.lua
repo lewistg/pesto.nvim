@@ -3,7 +3,13 @@
 ---@field cwd string
 ---@field auto_open boolean
 ---@field get_build_event_tree (fun(): pesto.BuildEventTree|nil)|nil
----@field on_exit fun(is_current: boolean)|nil
+---@field capture_stdout boolean
+---
+--- Params:
+--- - `is_current`: parameter indicates whether or not the build is the one
+--- currently being displayed in the build window.
+--- - `stdout_lines`: When capture_stdout is true,
+---@field on_exit fun(is_current: boolean, stdout_lines: string[]|nil)|nil
 
 ---@class pesto.BuildWindowManager.BuildInfo
 ---@field term_buf_id number
@@ -67,10 +73,20 @@ function BuildWindowManager:start_new_build(opts)
   ---@type boolean
   local scrolled_to_bottom = false
 
+  ---@type string[]|nil
+  local stdout_lines = nil
+
   build_info.job_id = vim.api.nvim_buf_call(build_info.term_buf_id, function()
     local job_id = vim.fn.jobstart(opts.term_command, {
       cwd = opts.cwd,
-      on_stdout = function(_, chunks)
+      on_stdout = function(_, data)
+        if opts.capture_stdout then
+          if stdout_lines == nil then
+            stdout_lines = { '' }
+          end
+          local job_util = require('pesto.util.job_util')
+          job_util.append_data(stdout_lines, data)
+        end
         if scrolled_to_bottom then
           return
         end
@@ -87,7 +103,7 @@ function BuildWindowManager:start_new_build(opts)
         build_info.exit_code = exit_code
         ---@diagnostic disable-next-line: invisible
         if opts.on_exit ~= nil then
-          opts.on_exit(build_info == self._current_build_info)
+          opts.on_exit(build_info == self._current_build_info, stdout_lines)
         end
 
         if build_info ~= self._current_build_info then
@@ -215,6 +231,13 @@ function BuildWindowManager:_set_status_lines(term_buf_id)
   vim.iter(self:find_build_windows()):each(function(win_id)
     vim.api.nvim_win_call(win_id, set_statusline)
   end)
+end
+
+---@return number|nil
+function BuildWindowManager:get_term_buf_id()
+  if self._current_build_info ~= nil then
+    return self._current_build_info.term_buf_id
+  end
 end
 
 function BuildWindowManager:open_build_term()

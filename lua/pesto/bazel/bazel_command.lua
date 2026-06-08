@@ -1,34 +1,54 @@
 local M = {}
 
 ---@class pesto.OptionInjectionResult
----@field existing_option_value string|nil
----@field injected_option_value string|nil
+---@field option_value string
+---@field was_injected boolean
 
 ---@class pesto.FindBazelOptionResult
 ---@field name string
 ---@field value string|nil
+
+---@alias pesto.BazelSubcommandName
+---| "build"
+---| "test"
+---| "run"
+---| "clean"
 
 ---@class pesto.BazelOptionSpec
 ---@field long_name string
 ---@field short_name string|nil
 ---@field has_value boolean|nil
 ---@field is_boolean boolean|nil
+---@field category "startup" | pesto.BazelSubcommandName | "common"
 
----@type string
-local BUILD_EVENT_JSON_FILE_OPTION = '--build_event_json_file'
+---@type pesto.BazelOptionSpec
+M.BUILD_EVENT_JSON_FILE_OPTION_SPEC = {
+  long_name = 'build_event_json_file',
+  has_value = true,
+  category = 'common',
+}
 
-local VALID_BAZEL_SUBCOMMANDS = {
-  ['build'] = true,
-  ['test'] = true,
-  ['run'] = true,
+---@type pesto.BazelOptionSpec
+M.ASYNC_OPTION_SPEC = {
+  long_name = 'async',
+  category = 'clean',
+  is_boolean = true,
+}
+
+---@type pesto.BazelOptionSpec
+M.CURSES_OPTION_SPEC = {
+  long_name = 'curses',
+  has_value = true,
+  category = 'build',
 }
 
 ---@param bazel_command string[]
+---@param names {[pesto.BazelSubcommandName]: boolean}
 ---@return number|nil
-local function find_bazel_subcommand_index(bazel_command)
+local function find_bazel_subcommand_index(bazel_command, names)
   -- Start at 2 since we assume the first element is "bazel"
   for i = 2, #bazel_command do
-    if VALID_BAZEL_SUBCOMMANDS[bazel_command[i]] then
+    if names[bazel_command[i]] then
       return i
     end
   end
@@ -46,9 +66,9 @@ function M.find_option(bazel_command, option_spec)
     ---@type string
     local pattern
     if name:len() > 1 then
-      pattern = '%-%-' .. name
+      pattern = '^%-%-' .. name .. '$'
     elseif name:len() == 1 then
-      pattern = '%-' .. name
+      pattern = '^%-' .. name .. '$'
     else
       error(string.format('invalid option name: %s', name))
     end
@@ -69,21 +89,21 @@ function M.find_option(bazel_command, option_spec)
   ---@param name string
   ---@return {name: string, value: string|nil}|nil
   local function parse_option_with_eq(part_index, name)
-    if not option_spec.has_value then
+    if not option_spec.has_value and not option_spec.is_boolean then
       return
     end
 
     ---@type string
     local pattern
     if name:len() > 1 then
-      pattern = '%-%-' .. name .. '=(.+)'
+      pattern = '^%-%-' .. name .. '=(.+)$'
     elseif name:len() == 1 then
-      pattern = '%-' .. name .. '=(.+)'
+      pattern = '^%-' .. name .. '=(.+)$'
     else
       error(string.format('invalid option name: %s', name))
     end
 
-    local _, value = string.match(bazel_command[part_index], pattern)
+    local value = string.match(bazel_command[part_index], pattern)
     if not value then
       return
     end
@@ -136,35 +156,60 @@ function M.find_option(bazel_command, option_spec)
   return ret
 end
 
----@param bazel_command string[]
----@param bep_file fun(): string Lazy value of the temp BEP file to use if needed
----@return pesto.OptionInjectionResult
-function M.inject_bep_option(bazel_command, bep_file)
-  local subcommand_index = find_bazel_subcommand_index(bazel_command)
-  if subcommand_index == nil then
-    return {}
+---@param option_spec pesto.BazelOptionSpec
+---@return {[pesto.BazelSubcommandName]: boolean}
+local function get_applicable_commands(option_spec)
+  if option_spec.category == 'build' or option_spec.category == 'common' then
+    --- The "test" and and "run" subcommands inherit "build"'s options
+    return { ['build'] = true, ['test'] = true, ['run'] = true }
+  elseif option_spec.category == 'test' then
+    return { ['test'] = true }
+  elseif option_spec.category == 'run' then
+    return { ['run'] = true }
   end
-
-  for _, arg in ipairs(bazel_command) do
-    if vim.startswith(arg, BUILD_EVENT_JSON_FILE_OPTION) then
-      -- Do not override this option if it's already defined by the user
-      return {}
-    end
-  end
-
-  local _bep_file = bep_file()
-  table.insert(bazel_command, subcommand_index + 1, BUILD_EVENT_JSON_FILE_OPTION)
-  table.insert(bazel_command, subcommand_index + 2, _bep_file)
+  return {
+    [option_spec.category --[[ @as pesto.BazelSubcommandName ]]] = true,
+  }
 end
 
+--- Note: We don't currently handle all of bazel's options
 ---@param bazel_command string[]
----@return string|nil
-function M.extract_bep_option(bazel_command)
-  ---@type number|nil
-  for i, value in ipairs(bazel_command) do
-    if value == BUILD_EVENT_JSON_FILE_OPTION then
-      return bazel_command[i + 1]
+---@param option_spec pesto.BazelOptionSpec
+---@param value fun(): string Lazy value of the temp BEP file to use if needed
+---@return pesto.OptionInjectionResult|nil
+function M.inject_option(bazel_command, option_spec, value)
+  local find_result = M.find_option(bazel_command, option_spec)
+  if find_result then
+    return {
+      option_value = find_result.value,
+      was_injected = false,
+    }
+  end
+
+  local _value = value()
+
+  if option_spec.category == 'startup' then
+    table.insert(bazel_command, 2, '--' .. option_spec.long_name)
+    table.insert(bazel_command, 3, _value)
+
+    return {
+      option_value = _value,
+      was_injected = true,
+    }
+  else
+    local subcommand_index =
+      find_bazel_subcommand_index(bazel_command, get_applicable_commands(option_spec))
+    if subcommand_index == nil then
+      return nil
     end
+
+    table.insert(bazel_command, subcommand_index + 1, '--' .. option_spec.long_name)
+    table.insert(bazel_command, subcommand_index + 2, _value)
+
+    return {
+      option_value = _value,
+      was_injected = true,
+    }
   end
 end
 

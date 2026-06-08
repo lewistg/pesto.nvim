@@ -62,6 +62,11 @@ function InternalSettings:get_cli_completion_settings()
   return self:_resolve_setting('cli_completion')
 end
 
+---@return pesto.QuickfixLogSource
+function InternalSettings:get_quickfix_log_source()
+  return self:_resolve_setting('quickfix_log_source')
+end
+
 ---@return string
 function InternalSettings:get_bazel_executable()
   return self:_resolve_setting('bazel_executable')
