@@ -2,17 +2,29 @@
 *Pesto* *pesto* *pesto.nvim*
 
 ================================================================================
-Intro                                                              *pesto-intro*
+Contents                                                         *pesto-contents*
 
-`pesto.nvim` is a Bazel runner plugin for Neovim. It integrates with Bazel through the
-Build Event Protocol to support things like loading compilation errors into
-the quickfix list.
+1. Intro .......................................................... |pesto-intro|
+2. Configuration ................................................. |pesto-config|
+3. Options ...................................................... |pesto-options|
+4. Commands .................................................... |pesto-commands|
+5. Bazel concepts ........................................ |pesto-bazel-concepts|
+6. Default runner ........................................ |pesto-default-runner|
+7. BEP integration ...................................... |pesto-bep-integration|
+8. Remote caching ........................................ |pesto-remote-caching|
+
+================================================================================
+Intro                                                               *pesto-intro*
+
+`pesto.nvim` is a Bazel runner plugin for Neovim. It integrates with Bazel
+through the Build Event Protocol to support things like loading compilation
+errors into the quickfix list.
                                                                     *pesto-types*
 Note: Throughout this manual there are references to LuaLS types defined in
 Pesto's source code (e.g., `pesto.Settings`).
 
 ================================================================================
-Configuration                                                     *pesto-config*
+Configuration                                                      *pesto-config*
 
 You don't need to call a `setup` function to configure `pesto.nvim`. You can
 instead just set `vim.g.pesto`. Here is the default configuration:
@@ -32,6 +44,9 @@ instead just set `vim.g.pesto`. Here is the default configuration:
         build_target_resolvers = require("pesto.settings").DEFAULT_TARGET_RESOLVERS,
         --- Logging level (see `:checkhealth pesto` to get the log file's path)
         log_level = "info",
+        --- Indicates which logs Pesto should use to populate the quickfix window
+        --- following a build.
+        quickfix_log_source = "bep",
         --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
         --- Bazel command line option. If you use the default runner, then following
         --- the build Pesto will parse the resulting build events tree and the quickfix
@@ -224,7 +239,7 @@ Options                                                            *pesto-option
 
 `errorformats`                                        *pesto.Settings.errorformats*
     type: `pesto.ActionErrorformat[]`
-    default: See `lua/pesto/settings.lua`
+    default: {}
 
     This option defines a mapping from a Bazel action mnemonic to an
     |errorformat|. This mapping is used by Pesto to load the quickfix list
@@ -263,7 +278,8 @@ Options                                                            *pesto-option
 <
 
     Finally, let's look at a snippet that shows the value of Pesto's default
-    errorformats, as defined in `lua/pesto/settings.lua`:
+    errorformats, as defined in `lua/pesto/settings.lua`
+    (|pesto.Settings.default_errorformats|):
 
 >lua
   {
@@ -352,6 +368,22 @@ Options                                                            *pesto-option
 
     Neovim doesn't ship with a compiler plugin for Scala, so we had to define
     the errorformat manually.
+
+`default_errorformats`                      *pesto.Settings.default_errorformats*
+    type: `pesto.ActionErrorformat[]`
+    default: See `lua/pesto/settings.lua`
+
+    This option defines Pesto's default mapping from a Bazel action mnemonic to
+    an |errorformat|. This mapping is used by Pesto to load the quickfix list
+    following a failed build.
+
+    This option mirrors |pesto.Settings.errorformats| but comes already
+    populated with mappings for some of Bazel's more well-known rule sets
+    (e.g., rules_cc, rules_go, rules_java, etc.)
+
+    The full definition is defined in `lua/pesto/settings.lua`. You can also
+    see a copy of the configuration in the documentation for
+    |pesto.Settings.errorformats|.
 
 `cli_completion`                           *pesto.Settings.CliCompletionSettings*
     type: `pesto.CliCompletionSettings`
@@ -481,7 +513,7 @@ Note: Pesto does not parse the progress output that Bazel emits during
 execution. Pesto's primary source of build information is the build events log.
 
 ================================================================================
-Default runner                                              *pesto-default-runner*
+Default runner                                             *pesto-default-runner*
 
 When Pesto needs to invoke Bazel it calls the callback given by the
 |pesto.Settings.bazel_runner| option. This section describes Pesto's default

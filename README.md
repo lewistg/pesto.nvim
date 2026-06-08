@@ -86,21 +86,15 @@ vim.g.pesto = {
         require("pesto.components").default_runner(opts)
 	end,
     --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
+    --- Please see `:help pesto.Settings.build_target_resolvers` for more details.
     build_target_resolvers = {
-      --- These are the default resolvers. For more information see `:h pesto.Settings.build_target_resolvers`
-      ['all'] = function(context)
-        return {
-          targets = { string.format('%s:all', context.package_label) },
-        }
-      end,
-      ['tests'] = function(context)
-        return {
-          query = string.format('tests(%s:*)', context.package_label),
-        }
-      end,
+      ...
     }
     --- Logging level (see `:checkhealth pesto` to get the log file's path)
 	log_level = "info",
+    --- Indicates which logs Pesto should use to populate the quickfix window
+    --- following a build.
+    quickfix_log_source = "bep",
     --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
     --- Bazel command line option. If you use the default runner, then following
     --- the build Pesto will parse the resulting build events tree and the quickfix
@@ -112,7 +106,7 @@ vim.g.pesto = {
     --- This list is used to determine the errorformat string to use to parse the
     --- output of a failed action. It effectively defines a mapping from Bazel
     --- action mnemonics to errorformats.
-    --- See the "Action errorformat" section below for details.
+    --- See the "Quickfix integration" section below for details.
 	errorformats = {},
     --- The default set of errorformats. Covers some of the major rule
     --- sets. You shouldn't need to override this.
@@ -148,99 +142,16 @@ require("pesto").setup(settings)
 
 ### Quickfix integration
 
-One of `pesto.nvim`'s key features is showing build errors in the quickfix list.
-This section gives a brief overview of how the feature works and how to configure it.
+One of `pesto.nvim`'s key features is loading build errors into the quickfix list.
 
-#### Quick Bazel primer
+Here's how it works at a high-level:
 
-First, we'll cover some essential background information on Bazel and Bazel builds.
-If you're already familiar with the concept of "actions" and "action mnemonics" you can skip this section.
+1. Following a build, `pesto.nvim` finds the logs for failed build actions.
+2. To load the errors into the quickfix list, `pesto.nvim` needs an `errorformat` string to parse the logs.
+`pesto.nvim` handles this by defining a mapping from action mnemonic to `errorformat` string.
+    - `pesto.nvim` comes with a default mapping for some of the more popular rule sets (`:help pesto.Settings.default_errorformats`) but also lets users extend this mapping through the `pesto.Settings.errorformats` config setting.
 
-With Bazel we declare build targets in BUILD (BUILD.bazel) files using various "rules."
-These rules take inputs such as source files and produce outputs such as executable binaries.
-The rules also define the "actions" that must be taken to turn the inputs into the outputs.
-Many times these actions will be something like invoking a compiler.
-
-Actions are given short memorable names called the "action mnemonic."
-For example, `rules_java` (the official rules for Java) uses `Javac` as the action mnemonic for the Java compiler action.
-
-#### BEP logs
-
-When you invoke a Bazel build with `pesto.nvim`, the plugin runs bazel with the [`--build_event_json_file <log_file>`](https://bazel.build/reference/command-line-reference#common_options-flag--build_event_json_file) option to capture the BEP logs.
-If a build fails, the BEP logs will identify the failed actions (e.g., compilation actions that failed) along with a path to the action's logs.
-
-#### Mapping action mnemonics to errorformats
-
-Following a build, `pesto.nvim` parses the build's BEP logs for failed actions.
-It then fetches the logs associated with the failed actions and notes their respective mnemonics.
-
-The action mnemonic is then used as a key to lookup the `errorformat` string ([`:help errorformat`](https://neovim.io/doc/user/quickfix/#_7.-the-error-format)) that should be used to parse the action's logs.
-
-`pesto.nvim` already comes with a mapping from action mnemonics to `errorformat` strings for some of Bazel's more popular rule sets.
-Let's take a look at this default mapping:
-
-```lua
----@type pesto.ActionErrorformat[]
-local default_errorformats = {
-  -- rules_cc
-  {
-    action_mnemonic = 'CppCompile',
-    compiler = 'gcc',
-  },
-  -- rules_go
-  {
-    action_mnemonic = 'GoCompilePkg',
-    compiler = 'go',
-  },
-  -- rules_java
-  {
-    action_mnemonic = 'Javac',
-    compiler = 'javac',
-  },
-  {
-    action_mnemonic = 'Turbine',
-    errorformat = '%f:%l: %m',
-  },
-  -- rules_rust
-  {
-    action_mnemonic = 'Rustc',
-    compiler = 'rustc',
-    strip_escape_codes = true,
-  },
-  -- rules_scala
-  {
-    action_mnemonic = 'Scalac',
-    errorformat = table.concat({
-      -- Scala 2 pattern
-      '%f:%l:\\ error:\\ %m',
-      -- Scala 3 patterns
-      '--\\ [E%n]\\ %m:\\ %f:%l:%c%.%#',
-      '--\\ %m:\\ %f:%l:%c%.%#',
-    }, ','),
-    strip_escape_codes = true,
-  },
-}
-```
-
-Compare the mapping that's listed for `rules_cc` (the C/C++ rule set) with the mapping defined for `rules_scala`.
-In `rules_cc` there is no direct definition for `errorformat` like there is for `rules_scala`.
-This is because Neovim already ships with a number of existing compiler plugins ([`:help write-compiler-plugin`](https://neovim.io/doc/user/usr_41/#_writing-a-compiler-plugin), [`:help compiler`](https://neovim.io/doc/user/quickfix/#_6.-selecting-a-compiler)).
-`pesto.nvim` gives you the option of using `errorformat` from these existing compiler plugins by setting the `compiler` field in the mapping.
-Neovim does not ship with a compiler plugin for Scala, so we have to resort to manually defining the `errorformat` string using the `errorformat` field.
-
-`pesto.nvim` lets you expand this mapping from action mnemonic to `errorformat` string through the `errorformats` config:
-
-```lua
-vim.g.pesto = {
-  ...
-  errorformats = {
-   <define your own mappings>
-  }
-  ...
-}
-```
-
-See `:help pesto.Settings.errorformats` for more details.
+If you're new to Bazel and the terms "action" and "action mnemonic" are new to you, please see `:help pesto-bazel-concepts` for a quick primer on these Bazel concepts.
 
 ## Commands
 
