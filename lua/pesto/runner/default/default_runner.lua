@@ -55,7 +55,9 @@ function DefaultRunner.__call(self, opts)
 
   if self._settings:get_enable_bep_integration() or quickfix_log_source == 'bep' then
     bep_file = self:_inject_bep_file_option(opts.bazel_command)
-  else
+  end
+
+  if quickfix_log_source == 'pty_output' then
     local bazel_command = require('pesto.bazel.bazel_command')
     local result = bazel_command.inject_option(
       opts.bazel_command,
