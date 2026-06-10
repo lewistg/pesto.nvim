@@ -103,7 +103,7 @@ vim.g.pesto = {
     --- When this option is true and when you are using the default runner, a
     --- terminal buffer will be opened automatically when bazel is invoked.
 	auto_open_build_term = true,
-    --- This list is used to determine the errorformat string to use to parse the
+    --- This list is used to determine the errorformat string used to parse the
     --- output of a failed action. It effectively defines a mapping from Bazel
     --- action mnemonics to errorformats.
     --- See the "Quickfix integration" section below for details.

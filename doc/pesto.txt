@@ -227,6 +227,9 @@ Options                                                            *pesto-option
     For a deeper discussion of Pesto's BEP integration please see
     |pesto-bazel-concepts|.
 
+    One reason to consider `pty_output` over `bep` is if remote caching is
+    involved. Please see |pesto-remote-caching| for more information.
+
 `auto_open_build_term`
     type: `boolean`
     default: `true`
@@ -551,16 +554,27 @@ WARNING:
   Support for the vim.g.pesto.bytestream_client override is still in
   development. At the moment, only Pesto's first-party client is supported.
 
+This section explains how Pesto handles quickfix loading under these conditions:
+
+    * |pesto.Settings.quickfix_log_source| is set to `bep`.
+    * You're using Bazel with remote execution or caching.
+    * Action logs are stored in the remote cache.
+
+Before getting into Pesto's behavior under these circumstances, consider trying
+|pesto.Settings.quickfix_log_source| with the `pty_output` option first. It may
+work well-enough and avoids some of the latency of fetching action logs from
+the remote cache discussed below.
+
 More advanced Bazel setups often involve Remote Build Execution (RBE) or remote
-caching. Under these circumstances Bazel will store action logs in the remote
-cache.
+caching. When RBE is used Bazel will store action logs in the remote cache.
 
 When action logs are stored remotely, the `{BEP_FILE}` will refer the logs using
 a `bytestream` URI like this:
 >
     bytestream://rbe.util.acme.org:8980/blobs/477b2a3983637d7633933691800642a388a38e1dd81ebe12304a603dc3b3dfba/226
 <
-Pesto must fetch these logs in order to populate the quickfix list.
+When |pesto.Settings.quickfix_log_source| is set to `bep` Pesto must fetch
+these logs in order to populate the quickfix list.
 
 A `bytestream` URI is served by a gRPC endpoint. Since implementing a gRPC
 client in Lua would be a significant undertaking, Pesto delegates the remote
@@ -576,8 +590,13 @@ ByteStream URI:
   configured, Pesto will use it to fetch the logs.
   2. If the client is not configured, Pesto checks to see if its own
   `tools/pesto-remote-apis-helpers` script has been set up.
-  3. If `tools/pesto-remote-apis-helpers` has not been set up, then it will
-  prompt you to install the script.
+  3. If the `tools/pesto-remote-apis-helpers` script has been set up, Pesto
+  uses it to fetch the logs; otherwise, Pesto prompts you to install the
+  script.
+
+One disadvantage of this flow is the action log download latency. This is where
+using `pty_output` for |pesto.Settings.quickfix_log_source| may be more
+practical; Bazel's progress output is immediately available.
 
 ================================================================================
 vim:tw=80:ts=2:ft=help:norl:syntax=help:
