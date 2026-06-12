@@ -26,11 +26,11 @@ function FunctionalTestHooks:get_quickfix_items()
 end
 
 ---@param quickfix_id number|nil Quickfix ID. nil for the current quickfix list
----@param quickfix_line_index number 0-based index of the line to select (i.e., press <Enter> on this line)
-function FunctionalTestHooks:jump_via_quickfix_item(quickfix_id, quickfix_line_index)
+---@param qf_line_index 1-based line index
+function FunctionalTestHooks:jump_via_quickfix_item(quickfix_id, qf_line_index)
   local quickfix_win_id = vim.fn.getqflist({ id = quickfix_id, winid = true }).winid
   vim.api.nvim_set_current_win(quickfix_win_id)
-  vim.api.nvim_win_set_cursor(0, { quickfix_line_index, 0 })
+  vim.api.nvim_win_set_cursor(0, { qf_line_index, 0 })
   local ENTER_KEY = vim.api.nvim_replace_termcodes('<CR>', true, false, true)
   vim.api.nvim_feedkeys(ENTER_KEY, 't', false)
 end
@@ -43,8 +43,7 @@ function FunctionalTestHooks:get_quickfix_buf_id(tab_id)
   end
   local win_ids = vim.api.nvim_tabpage_list_wins(tab_id)
   for _, win_id in ipairs(win_ids) do
-    local win_nr = vim.api.nvim_win_get_number(win_id)
-    local win_info = vim.fn.getwininfo(win_nr)
+    local win_info = vim.fn.getwininfo(win_id)[1]
     if win_info.quickfix == 1 then
       return vim.api.nvim_win_get_buf(win_id)
     end

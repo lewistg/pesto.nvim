@@ -63,6 +63,49 @@ function FunctionalTestHelper:get_temp_dir()
   )
 end
 
+function FunctionalTestHelper:get_quickfix_buf_id()
+  return vim.rpcrequest(
+    self.nvim_chan,
+    'nvim_exec_lua',
+    "return require('pesto.components').functional_test_hooks:get_quickfix_buf_id()",
+    {}
+  )
+end
+
+function FunctionalTestHelper:get_quickfix_items()
+  return vim.rpcrequest(
+    self.nvim_chan,
+    'nvim_exec_lua',
+    "return require('pesto.components').functional_test_hooks:get_quickfix_items()",
+    {}
+  )
+end
+
+---@return {qf_item: any, line_index: number}[]
+function FunctionalTestHelper:get_jumpable_quickfix_items()
+  local qf_items = self:get_quickfix_items()
+  local qf_items_with_index = {}
+  for i, item in ipairs(qf_items or {}) do
+    if item.bufnr ~= 0 then
+      table.insert(qf_items_with_index, { qf_item = item, line_index = i })
+    end
+  end
+  return qf_items_with_index
+end
+
+---@param qf_line_index 1-based line index
+function FunctionalTestHelper:jump_via_quickfix_item(qf_line_index)
+  return vim.rpcrequest(
+    self.nvim_chan,
+    'nvim_exec_lua',
+    string.format(
+      "return require('pesto.components').functional_test_hooks:jump_via_quickfix_item(0, %d)",
+      qf_line_index
+    ),
+    {}
+  )
+end
+
 --[[
 -- Default runner helpers
 --]]

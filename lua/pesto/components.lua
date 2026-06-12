@@ -22,6 +22,7 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field dump_failed_action_logs_subcommand pesto.DumpFailedActionLogsSubcommand
 ---@field functional_test_hooks pesto.FunctionalTestHooks
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
+---@field load_quickfix_subcommand pesto.LoadQuickfixSubcommand
 ---@field mnemonic_errorformat_resolver pesto.MnemonicErrorformatResolver
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field pesto_cli PestoCli
@@ -155,6 +156,15 @@ local function _install_remote_apis_helpers_subcommand()
 end
 components.install_remote_apis_helpers_subcommand = _install_remote_apis_helpers_subcommand --[[@as pesto.InstallRemoteApisHelpersSubcommand]]
 
+---@return pesto.LoadQuickfixSubcommand
+local function _load_quickfix_subcommand()
+  return require('pesto.cli.load_quickfix_subcommand'):new(
+    components.build_event_json_loader,
+    components.quick_fix_loader
+  )
+end
+components.load_quickfix_subcommand = _load_quickfix_subcommand --[[@as pesto.LoadQuickfixSubcommand]]
+
 ---@return pesto.OpenBuildTermSubcommand
 local function _open_build_term_subcommand()
   return require('pesto.cli.open_build_term_subcommand'):new(components.build_window_manager)
@@ -225,6 +235,7 @@ local _subcommands = function()
     build_subcommand = components.build_subcommand,
     dump_failed_action_logs_subcommand = components.dump_failed_action_logs_subcommand,
     install_remote_apis_helpers_subcommand = components.install_remote_apis_helpers_subcommand,
+    load_quickfix_subcommand = components.load_quickfix_subcommand,
     open_build_events_summary_subcommand = components.open_build_events_summary_subcommand,
     run_bazel_fn = components.run_bazel_fn,
     open_build_term_subcommand = components.open_build_term_subcommand,

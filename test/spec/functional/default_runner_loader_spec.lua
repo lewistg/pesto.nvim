@@ -67,31 +67,17 @@ describe('default runner loader', function()
     assert.are.same(0, wait_status)
 
     -- Test quickfix navigation by making sure it jumps to the error
-    local quickfix_items = vim.rpcrequest(
-      nvim_chan,
-      'nvim_exec_lua',
-      "return require('pesto.components').functional_test_hooks:get_quickfix_items()",
-      {}
-    )
+    local quickfix_items = functional_test_helper:get_jumpable_quickfix_items()
+    assert.is_true(#quickfix_items > 0)
 
-    -- We open a separate window, to observe the the navigation back to the original source file
+    local qf_line_index = quickfix_items[1].line_index
+    local qf_item = quickfix_items[1].qf_item
+
+    -- We open a separate window to observe the the navigation back to the original source file
     vim.rpcrequest(nvim_chan, 'nvim_set_current_win', original_win_id)
     vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'edit', args = { 'hello-error/BUILD' } }, {})
 
-    for _, quickfix_entry in ipairs(quickfix_items) do
-      if quickfix_entry.bufnr ~= 0 then
-        vim.rpcrequest(
-          nvim_chan,
-          'nvim_exec_lua',
-          string.format(
-            "return require('pesto.components').functional_test_hooks:jump_via_quickfix_item(0, %d)",
-            quickfix_entry.lnum - 1
-          ),
-          {}
-        )
-        break
-      end
-    end
+    functional_test_helper:jump_via_quickfix_item(qf_line_index)
 
     -- Confirm the jump
     local current_buf_id = vim.rpcrequest(nvim_chan, 'nvim_get_current_buf')

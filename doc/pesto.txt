@@ -473,6 +473,16 @@ Listed below are the possible sub-commands:
     Opens the BUILD or BUILD.bazel file for the current file's package in a
     vertical split.
 
+`load-quickfix <bep-json-file>`                             *pesto-load-quickfix*
+    `bep-json-file`: Path to a BEP JSON log file
+
+    Loads the quickfix list for the failed actions logged to the given BEP JSON
+    file.
+
+    This command can be useful if you're writing your own runner or if you need
+    to load errors from a BEP log file that was generated elsewhere (e.g., a
+    CI/CD pipeline artifact).
+
 ================================================================================
 Bazel concepts                                              *pesto-bazel-concepts*
 
