@@ -155,6 +155,8 @@ If you're new to Bazel and the terms "action" and "action mnemonic" are new to y
 
 ## Commands
 
+This list shows a subset of the commands. For a full list see `:help pesto-commands`.
+
 ```viml
 " This command is somewhat equivalent to `:!bazel <bazel-subcommand> [subcommand-args]`. 
 " By default the Bazel command is run asyncronously in a terminal buffer.
@@ -176,6 +178,10 @@ If you're new to Bazel and the terms "action" and "action mnemonic" are new to y
 
 " Yanks the label for the current source file's package.
 :Pesto yank-package-label
+
+" Load the quickfix list using a BEP JSON file generated elsewhere (perhaps by
+" your CI/CD pipeline).
+:Pesto load-quickfix <bep-json-file>
 ```
 
 ## Note about remote execution/caching

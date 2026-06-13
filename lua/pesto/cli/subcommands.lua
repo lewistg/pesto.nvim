@@ -96,6 +96,7 @@ end
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
+---@field load_quickfix_subcommand pesto.LoadQuickfixSubcommand
 ---@field build_subcommand pesto.BuildSubcommand
 ---@field run_bazel_fn pesto.RunBazelFn
 ---@field settings pesto.InternalSettings
@@ -110,6 +111,7 @@ function M.make_subcommands(deps)
     get_compile_one_dep_subcommand(deps.run_bazel_fn, deps.settings),
     deps.dump_failed_action_logs_subcommand,
     deps.install_remote_apis_helpers_subcommand,
+    deps.load_quickfix_subcommand,
     deps.open_build_term_subcommand,
     {
       name = 'sp-build',

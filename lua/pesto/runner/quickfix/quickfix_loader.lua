@@ -2,7 +2,7 @@
 ---@field build_event_tree pesto.BuildEventTree|nil
 ---@field progress_logs string[]|nil
 ---@field workspace_root string
----@field on_first_quickfix_loaded function
+---@field on_first_quickfix_loaded function|nil
 
 ---@class pesto.QuickfixLoader
 ---@field private _action_logs_quickfix_item_loader pesto.ActionLogsQuickfixItemLoader
@@ -42,7 +42,9 @@ function QuickfixLoader:load_quickfix(opts)
   local function on_items_loaded(qf_items)
     vim.fn.setqflist(qf_items, 'a')
     if not called_on_first_quickfix_loaded then
-      opts.on_first_quickfix_loaded()
+      if opts.on_first_quickfix_loaded ~= nil then
+        opts.on_first_quickfix_loaded()
+      end
       called_on_first_quickfix_loaded = true
     end
   end
