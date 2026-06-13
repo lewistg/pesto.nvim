@@ -14,14 +14,17 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field bazel_bash_completion pesto.BazelBashCompletion
 ---@field bazel_bash_completion_client pesto.BazelBashCompletionClient
 ---@field bazel_basic_completion pesto.BazelBasicCompletion
+---@field bazel_run_history pesto.BazelRunHistory
 ---@field build_event_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
 ---@field build_window_manager pesto.BuildWindowManager
 ---@field byte_stream_client pesto.ByteStreamClient
+---@field copy_last_bazel_command_subcommand pesto.CopyLastBazelCommandSubcommand
 ---@field default_runner pesto.DefaultRunner
 ---@field dump_failed_action_logs_subcommand pesto.DumpFailedActionLogsSubcommand
 ---@field functional_test_hooks pesto.FunctionalTestHooks
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
+---@field internal_run_bazel_fn pesto.InternalRunBazelFn
 ---@field load_quickfix_subcommand pesto.LoadQuickfixSubcommand
 ---@field mnemonic_errorformat_resolver pesto.MnemonicErrorformatResolver
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
@@ -73,6 +76,12 @@ local function _bazel_bash_completion_client()
 end
 components.bazel_bash_completion_client = _bazel_bash_completion_client --[[@as pesto.BazelBashCompletionClient]]
 
+---@return pesto.BazelRunHistory
+local function _bazel_run_history()
+  return require('pesto.runner.bazel_run_history'):new()
+end
+components.bazel_run_history = _bazel_run_history --[[@as pesto.BazelRunHistory]]
+
 ---@return pesto.BuildEventJsonLoader
 local function _build_event_json_loader()
   return require('pesto.bazel.build_event_json_loader'):new()
@@ -85,9 +94,18 @@ local function _build_event_file_loader()
 end
 components.build_event_file_loader = _build_event_file_loader --[[@as pesto.BuildEventFileLoader]]
 
+---@return pesto.CopyLastBazelCommandSubcommand
+local function _copy_last_bazel_command_subcommand()
+  return require('pesto.cli.copy_last_bazel_command_subcommand'):new(components.bazel_run_history)
+end
+components.copy_last_bazel_command_subcommand = _copy_last_bazel_command_subcommand --[[@as pesto.CopyLastBazelCommandSubcommand]]
+
 ---@return pesto.BuildSubcommand
 local function _build_subcommand()
-  return require('pesto.cli.build_subcommand'):new(components.settings)
+  return require('pesto.cli.build_subcommand'):new(
+    components.internal_run_bazel_fn,
+    components.settings
+  )
 end
 components.build_subcommand = _build_subcommand --[[@as pesto.BuildSubcommand]]
 
@@ -106,7 +124,7 @@ local function _bazel_sub_command()
     components.settings,
     components.bazel_basic_completion,
     components.bazel_bash_completion,
-    components.run_bazel_fn
+    components.internal_run_bazel_fn
   )
 end
 components.bazel_sub_command = _bazel_sub_command --[[@as pesto.BazelSubcommand]]
@@ -219,14 +237,14 @@ local _remote_apis_helpers_command_builder = function()
 end
 components.remote_apis_helpers_command_builder = _remote_apis_helpers_command_builder --[[ @as pesto.RemoteApisHelpersCommandBuilder ]]
 
----@return pesto.RunBazelFn
-local _run_bazel_fn = function()
-  ---@params opts RunBazelOpts
-  return function(opts)
-    return components.settings:get_bazel_runner()(opts)
-  end
+---@return pesto.InternalRunBazelFn
+local _internal_run_bazel_fn = function()
+  return require('pesto.runner.internal_run_bazel_fn'):new(
+    components.settings,
+    components.bazel_run_history
+  )
 end
-components.run_bazel_fn = _run_bazel_fn --[[@as pesto.RunBazelFn ]]
+components.internal_run_bazel_fn = _internal_run_bazel_fn --[[@as pesto.InternalRunBazelFn ]]
 
 ---@return pesto.Subcommands
 local _subcommands = function()
@@ -237,8 +255,9 @@ local _subcommands = function()
     install_remote_apis_helpers_subcommand = components.install_remote_apis_helpers_subcommand,
     load_quickfix_subcommand = components.load_quickfix_subcommand,
     open_build_events_summary_subcommand = components.open_build_events_summary_subcommand,
-    run_bazel_fn = components.run_bazel_fn,
+    internal_run_bazel_fn = components.internal_run_bazel_fn,
     open_build_term_subcommand = components.open_build_term_subcommand,
+    copy_last_bazel_command_subcommand = components.copy_last_bazel_command_subcommand,
     settings = components.settings,
   })
 end

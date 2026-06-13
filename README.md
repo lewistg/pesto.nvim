@@ -179,6 +179,9 @@ This list shows a subset of the commands. For a full list see `:help pesto-comma
 " Yanks the label for the current source file's package.
 :Pesto yank-package-label
 
+" Yanks the last run Bazel command to the unnamed ("") and plus registers ("+).
+:Pesto copy-last-bazel-command
+
 " Load the quickfix list using a BEP JSON file generated elsewhere (perhaps by
 " your CI/CD pipeline).
 :Pesto load-quickfix <bep-json-file>

@@ -3,7 +3,7 @@
 ---@field private _completion pesto.SubcommandCompletion|nil
 ---@field private _basic_completion pesto.BazelBasicCompletion
 ---@field private _bash_completion pesto.BazelBashCompletion
----@field private _run_bazel_fn pesto.RunBazelFn
+---@field private _internal_run_bazel_fn pesto.InternalRunBazelFn
 local BazelSubcommand = {}
 BazelSubcommand.__index = BazelSubcommand
 
@@ -12,8 +12,13 @@ BazelSubcommand.name = 'bazel'
 ---@param settings pesto.InternalSettings
 ---@param bazel_basic_completion pesto.BazelBasicCompletion
 ---@param bazel_bash_completion pesto.BazelBashCompletion
----@param run_bazel_fn pesto.RunBazelFn
-function BazelSubcommand:new(settings, bazel_basic_completion, bazel_bash_completion, run_bazel_fn)
+---@param internal_run_bazel_fn pesto.InternalRunBazelFn
+function BazelSubcommand:new(
+  settings,
+  bazel_basic_completion,
+  bazel_bash_completion,
+  internal_run_bazel_fn
+)
   local o = setmetatable({}, BazelSubcommand)
 
   o._settings = settings
@@ -21,7 +26,7 @@ function BazelSubcommand:new(settings, bazel_basic_completion, bazel_bash_comple
   o._basic_completion = bazel_basic_completion
   o._bash_completion = bazel_bash_completion
 
-  o._run_bazel_fn = run_bazel_fn
+  o._internal_run_bazel_fn = internal_run_bazel_fn
 
   o.complete = function(opts)
     return o:_complete(opts)
@@ -92,7 +97,7 @@ function BazelSubcommand:_execute(opts)
 
   table.insert(bazel_command, 1, self._settings:get_bazel_executable())
 
-  self._run_bazel_fn({
+  self._internal_run_bazel_fn({
     bazel_command = bazel_command,
     context = context,
   })

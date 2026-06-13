@@ -23,6 +23,9 @@ end
 ---@param key string
 function LazyTable.__index(lazy_table, key)
   if lazy_table.cache[key] == nil then
+    if lazy_table.lazy_values[key] == nil then
+      error(string.format('missing initialization function for key: %s', key))
+    end
     lazy_table.cache[key] = lazy_table.lazy_values[key]()
   end
   return lazy_table.cache[key]
