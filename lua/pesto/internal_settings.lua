@@ -32,8 +32,11 @@ function InternalSettings:_resolve_setting(key)
   )[key]
 end
 
+--- Note: Genreally, the only consumer of this method should be
+--- pesto.InternalRunBazelFn. Other consumers should use
+--- pesto.InternalRunBazelFn to run Bazel.
 ---@return pesto.RunBazelFn
-function InternalSettings:get_bazel_runner()
+function InternalSettings:_get_bazel_runner()
   return self:_resolve_setting('bazel_runner')
 end
 

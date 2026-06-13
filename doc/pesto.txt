@@ -473,6 +473,12 @@ Listed below are the possible sub-commands:
     Opens the BUILD or BUILD.bazel file for the current file's package in a
     vertical split.
 
+`copy-last-bazel-command`                         *pesto-copy-last-bazel-command*
+    Yanks the last run Bazel command to the unnamed ("") and plus registers
+    ("+). So assuming the clipboard provider is provided, then the Bazel
+    command should be available to paste into an external terminal via the
+    system clipboard.
+
 `load-quickfix <bep-json-file>`                             *pesto-load-quickfix*
     `bep-json-file`: Path to a BEP JSON log file
 
