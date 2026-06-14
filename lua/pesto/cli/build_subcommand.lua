@@ -5,17 +5,20 @@
 ---@field on_error fun(err: string, stderr_lines)
 
 ---@class pesto.BuildSubcommand: pesto.Subcommand
----@field _settings pesto.InternalSettings
+---@field private _settings pesto.InternalSettings
+---@field private _internal_run_bazel_fn pesto.InternalRunBazelFn
 local BuildSubcommand = {}
 BuildSubcommand.__index = BuildSubcommand
 
 BuildSubcommand.name = 'build'
 
+---@param internal_run_bazel_fn pesto.InternalRunBazelFn
 ---@param settings pesto.InternalSettings
 ---@return pesto.BuildSubcommand
-function BuildSubcommand:new(settings)
+function BuildSubcommand:new(internal_run_bazel_fn, settings)
   local o = setmetatable({}, BuildSubcommand)
 
+  o._internal_run_bazel_fn = internal_run_bazel_fn
   o._settings = settings
 
   o.execute = function(opts)
@@ -88,7 +91,7 @@ function BuildSubcommand:_execute(opts)
             'build',
             unpack(labels),
           }
-          self._settings:get_bazel_runner()({
+          self._internal_run_bazel_fn({
             bazel_command = bazel_command,
             context = context,
           })
@@ -113,7 +116,7 @@ function BuildSubcommand:_execute(opts)
         'build',
         unpack(target_resolver_result.targets),
       }
-      self._settings:get_bazel_runner()({
+      self._internal_run_bazel_fn({
         bazel_command = bazel_command,
         context = context,
       })
