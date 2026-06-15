@@ -1,13 +1,7 @@
-> [!WARNING]
-> **Work in progress**
->
-> This plugin is under active development but stable enough to try. Feel free
-> to open an issue if you have feedback or encounter a bug.
-
 # pesto.nvim: Neovim Bazel plugin
 
 `pesto.nvim` is a Bazel runner plugin for Neovim.
-It integrates with Bazel through the [Build Event Protocol](https://bazel.build/remote/bep) to support things like loading compilation errors into the quickfix list.
+It integrates with Bazel through the [Build Event Protocol](https://bazel.build/remote/bep) to support loading compilation errors into the quickfix list.
 
 <div align="center">
   <video src="https://github.com/user-attachments/assets/78895432-2730-4e7d-9e96-f028638e4f4a">
@@ -15,18 +9,26 @@ It integrates with Bazel through the [Build Event Protocol](https://bazel.build/
 
 ## Features
 
+* Quickfix integration
+  - Failed actions' stderr files are parsed and loaded into the quickfix list.
+  - As a first option, `pesto.nvim` identifies and fetches failed action logs using the [Build Event Protocol](https://bazel.build/remote/bep); as a fallback `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.Settings.quickfix_log_source`).
+  - Error logs are parsed using Neovim's standard `errorformat` system (`:help errorformat`), so logs from most rule sets should be quickfix loadable.
+  - A build summary window shows a high-level overview of successful and failed targets
 * A `bazel` wrapper command with autocomplete support:
   - `:Pesto bazel <bazel-subcommand> [subcommand-args]`
-* Integrates with the [Build Event Protocol](https://bazel.build/remote/bep)
-  - Failed actions' stderr files are parsed and loaded into the quickfix list
-  - A build summary window shows a high-level overview of successful and failed targets
+  - Auto-completion is backed by Bazel's own bash completion script; a simpler fallback experience is also provided if the script is unavailable.
 * Quality of life commands:
   - Open split to BUILD or BUILD.bazel files
   - Yank label for the current source file's Bazel package
+  - Copy the last Bazel command that was run
 
 ## Requirements
 
 * Neovim 0.11.0 or later
+* [`uv`](https://docs.astral.sh/uv/) (optional)
+    - With Bazel's remote execution, compilation logs may be stored remotely.
+      `pesto.nvim` ships with a simple gRPC client written in Python to fetch the logs.
+      See ["Remote caching (experimental)"](#remote-caching-experimental) below for more information.
 
 ## Installation
 
@@ -187,31 +189,23 @@ This list shows a subset of the commands. For a full list see `:help pesto-comma
 :Pesto load-quickfix <bep-json-file>
 ```
 
-## Note about remote execution/caching
-
-> [!WARNING]
-> **Work in progress**
->
-> Pesto's default bytestream client is functional, but support for custom bytestream clients is still in progress.
-> This section alludes to how they will work.
+## Remote caching (experimental)
 
 Mature Bazel setups will involve remote execution and remote caching.
 This means compiler logs will sometimes be stored in a remote cache.
 Pesto must fetch these logs in order to parse them and populate the quickfix list.
 
 Remote caching services for Bazel serve assets, like the stderr logs, through gRPC-based APIs.
-
-Since implementing a gRPC client in Lua would be a significant undertaking, Pesto delegates the remote log fetches to the configured "bytestream" client: `vim.g.pesto.bytestream_client`.
-
-Pesto ships with its own [default bytestream client](tools/pesto-remote-apis-helpers/README.md) written in Python.
+Since implementing a gRPC client in Lua would be a significant undertaking, Pesto delegates the remote log fetches to a [helper "bytestream" client](tools/pesto-remote-apis-helpers/README.md) written in Python.
 Pesto will prompt you to set up this client before attempting to use it the first time.
+
+Before setting up the helper bytestream client, consider trying `pty_output` for `quickfix_log_source` (`:help pesto.Settings.quickfix_log_source`).
+It is simpler and may work well enough for your needs.
 
 ## Goals
 
 * General purpose. Try to be useful for all Bazel rule sets.
-* A solid (not perfect) command line experience for the `:Pesto bazel` sub-command.
 * Somewhat low-level. Don't hide Bazel too much.
-* Extendable.
 
 ## Similar plugins
 
