@@ -457,6 +457,36 @@ various sub-commands. Here is the format:
 <
 Listed below are the possible sub-commands:
 
+                                                            *pesto-bazel-command*
+`bazel <args>`
+    The `bazel` sub-command is a thin wrapper around the actual `bazel`
+    executable. The `<args>` that you give it are the same ones you'd give when
+    invoking `bazel` directly from a shell.
+
+    By default auto-completion for the Pesto `bazel` sub-command is backed by
+    Bazel's own bash completion script (e.g., `/etc/bash_completion.d/bazel`).
+    You may point Pesto at the completion script to use through the
+    |pesto.Settings.CliCompletionSettings.bash_completion_script| setting. If
+    the bash completion script is not available, Pesto falls back to a simpler,
+    Lua-based auto-completion implementation.
+
+    Auto-completion implicitly uses the current source file's directory as the
+    CWD. Say you are editing some file `foo/bar/baz.c` in the package
+    `//foo/bar`. You then trigger auto-completion by typing out the following
+    at the Neovim command line:
+>viml
+    :Pesto bazel build :<TAB>
+<
+    You should get the same target completion options had you triggered
+    auto-completion from the `foo/bar` directory in the shell:
+>bash
+    # Starting from the repo root
+    $ cd foo/bar
+    $ bazel build :<TAB>
+<
+    This can be helpful for avoiding typing out the fully qualified targets
+    when invoking Bazel.
+
 `build [target-resolver-id]`                                *pesto-build-command*
     `target-resolver-id`: This ID acts as a key into the map defined by the
     |pesto.Settings.build_target_resolvers| option.
