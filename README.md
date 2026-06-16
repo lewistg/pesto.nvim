@@ -1,7 +1,7 @@
 # pesto.nvim: Neovim Bazel plugin
 
-`pesto.nvim` is a Bazel runner plugin for Neovim.
-It integrates with Bazel through the [Build Event Protocol](https://bazel.build/remote/bep) to support loading compilation errors into the quickfix list.
+`pesto.nvim` is a Bazel runner plugin for Neovim with quickfix support.
+It integrates with Bazel using the [Build Event Protocol](https://bazel.build/remote/bep) to find, fetch, and parse error logs for failed build actions, including logs stored remotely.
 
 <div align="center">
   <video src="https://github.com/user-attachments/assets/78895432-2730-4e7d-9e96-f028638e4f4a">
@@ -11,9 +11,14 @@ It integrates with Bazel through the [Build Event Protocol](https://bazel.build/
 
 * Quickfix integration
   - Failed actions' stderr files are parsed and loaded into the quickfix list.
-  - As a first option, `pesto.nvim` identifies and fetches failed action logs using the [Build Event Protocol](https://bazel.build/remote/bep); as a fallback `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.Settings.quickfix_log_source`).
-  - Error logs are parsed using Neovim's standard `errorformat` system (`:help errorformat`), so logs from most rule sets should be quickfix loadable.
-  - A build summary window shows a high-level overview of successful and failed targets
+  - As a first option, `pesto.nvim` identifies and fetches failed action logs using the BEP logs; as a fallback `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.Settings.quickfix_log_source`).
+  - Error logs are parsed using Neovim's standard `errorformat` system (`:help errorformat`), so logs from most rule sets should be quickfix loadable (see `:help pesto.Settings.errorformats`).
+  - The following rule sets come pre-configured and should work out of the box: 
+    - `rules_java`
+    - `rules_cc`
+    - `rules_go`
+    - `rules_rust`
+    - `rules_scala`
 * A `bazel` wrapper command with autocomplete support:
   - `:Pesto bazel <bazel-subcommand> [subcommand-args]`
   - Auto-completion is backed by Bazel's own bash completion script; a simpler fallback experience is also provided if the script is unavailable.
@@ -55,21 +60,35 @@ This repository includes a few example Bazel repositories in the `./examples` di
 You can use them to try out `pesto.nvim`.
 Below is a suggested exercise using the example C project.
 
-0. Make sure things are properly configured by running a health check on Pesto: `:checkhealth pesto`
-    - The first two checks are the most important.
-    You must have Neovim version >= 0.11.0, and Pesto needs a valid Bazel executable to run.
-1. `cd` into `./examples/c-example`
-2. Open up `./src/main.c`
-3. Type `:Pesto bazel build :<Tab>`
-    - The command should complete to `:Pesto bazel build :main`.
-    The `//src` package has a `cc_binary` target named `main`.
-4. Now press `<Enter>` to run the command.
+0. Make sure things are properly configured by running a health check on Pesto: 
+   ```
+   :checkhealth pesto
+   ```
+   The checks for the Neovim version and Bazel executable are the most important.
+1. Navigate to the example project, and open `main.c`:
+   ```
+   $ cd ./examples/c-example
+   $ nvim ./src/main.c
+   ```
+2. From the Neovim command line type the following:
+   ```
+   :Pesto bazel build :<Tab>
+   ```
+   It should auto-complete to the following:
+   ```
+   :Pesto bazel build :main
+   ```
+   The `//src` package has a `cc_binary` target named `main`.
+3. Following the completion, press `<Enter>`.
     - A terminal buffer should open at the bottom of the window, and Bazel should execute the build.
-5. After the build finishes, close the terminal by pressing `<Enter>`.
+4. After the build finishes, close the terminal by pressing `<Enter>`.
     - Similar to `:make`, Pesto adds the `<Enter>` keymap to quickly dismiss the build output terminal buffer.
-6. Introduce some type of syntax error into `main.c` or some other source file (e.g., `ids.c`).
-7. Instead of using the Bazel wrapper command, `:Pesto bazel`, command, this time try using the `:Pesto build` command.
-     - For more information about this command see `:h pesto-build-command`
+5. To see the quickfix integration, introduce some type of syntax error into `main.c` or some other source file (e.g., `ids.c`).
+6. This time we'll invoke `bazel` by running the `build` sub-command (`:help pesto-build-command`):
+   ```
+   :Pesto build
+   ```
+   - Now that there's errors, the quickfix window should load.
 
 ## Configuration
 
