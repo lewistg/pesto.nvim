@@ -14,11 +14,13 @@ The scripts are written in Python and invoked using `uv`. Python has firstclass 
 
 ### Are these scripts necessary? 
 
-No, you don't have to use these scripts, but opting out may require a little more work on your part.
-pesto.nvim won't use them for builds that don't use remote execution.
-Also, unless configured otherwise, pesto.nvim will ask for permission to use these Python-based scripts for the first time.
+No, you don't have to use these scripts.
+Try using `pty_output` for `quickfix_log_source` (`:help pesto.Settings.quickfix_log_source`).
+It may work well enough, and Pesto won't use this helper script at all.
 
-If you would like to avoid these scripts, pesto.nvim provides hooks to slot in your own helper scripts.
+Pesto also won't use these scripts unless they've been set up using the Pesto's `install-remote-apis-helpers` command.
+
+Support for custom bytestream clients is not supported yet; if you need this, please open a feature request.
 
 ## Requirements
 
@@ -39,32 +41,6 @@ The remote cache service that serves these URLs implements the [Byte Stream gRPC
 
 Implementing a gRPC client directly in Lua using Neovim's provided libraries seemed like more effort than its worth.
 Instead this helper Python CLI tool is provided, which pesto.nvim integrates with.
-
-### Opting in
-
-Pesto will ask you if it can set up `pesto-fetch-bytestreams` prior to using it.
-Once installed Pesto will just use this bytestream client.
-
-### Opting out
-
-> [!WARNING]
-> **Work in progress**
->
-> Custom bytestream clients are still a work in progress.
-> This section roughly sketches out how they will work.
-
-If you would prefer to not use `pesto-fetch-bytestreams`, again you may concerned with supply-chain attacks, then you'll need to provide a client for pesto.nvim to fetch Byte Stream URLs:
-
-```lua
-vim.g.pesto.bytestream_client = {
-    get_byte_streams = function(bytestream_uris, on_download)
-      ...
-    end,
-    abort = function(job_id)
-      ...
-    end
-}
-```
 
 [1]: https://github.com/bazelbuild/remote-apis
 [2]: https://docs.astral.sh/uv/

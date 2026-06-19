@@ -457,6 +457,36 @@ various sub-commands. Here is the format:
 <
 Listed below are the possible sub-commands:
 
+                                                            *pesto-bazel-command*
+`bazel <args>`
+    The `bazel` sub-command is a thin wrapper around the actual `bazel`
+    executable. The `<args>` that you give it are the same ones you'd give when
+    invoking `bazel` directly from a shell.
+
+    By default auto-completion for the Pesto `bazel` sub-command is backed by
+    Bazel's own bash completion script (e.g., `/etc/bash_completion.d/bazel`).
+    You may point Pesto at the completion script to use through the
+    |pesto.Settings.CliCompletionSettings.bash_completion_script| setting. If
+    the bash completion script is not available, Pesto falls back to a simpler,
+    Lua-based auto-completion implementation.
+
+    Auto-completion implicitly uses the current source file's directory as the
+    CWD. Say you are editing some file `foo/bar/baz.c` in the package
+    `//foo/bar`. You then trigger auto-completion by typing out the following
+    at the Neovim command line:
+>viml
+    :Pesto bazel build :<TAB>
+<
+    You should get the same target completion options had you triggered
+    auto-completion from the `foo/bar` directory in the shell:
+>bash
+    # Starting from the repo root
+    $ cd foo/bar
+    $ bazel build :<TAB>
+<
+    This can be helpful for avoiding typing out the fully qualified targets
+    when invoking Bazel.
+
 `build [target-resolver-id]`                                *pesto-build-command*
     `target-resolver-id`: This ID acts as a key into the map defined by the
     |pesto.Settings.build_target_resolvers| option.
@@ -566,10 +596,6 @@ For a more detailed explanation see |pesto-bazel-concepts|.
 --------------------------------------------------------------------------------
 Remote caching (experimental)                              *pesto-remote-caching*
 
-WARNING:
-  Support for the vim.g.pesto.bytestream_client override is still in
-  development. At the moment, only Pesto's first-party client is supported.
-
 This section explains how Pesto handles quickfix loading under these conditions:
 
     * |pesto.Settings.quickfix_log_source| is set to `bep`.
@@ -594,25 +620,25 @@ these logs in order to populate the quickfix list.
 
 A `bytestream` URI is served by a gRPC endpoint. Since implementing a gRPC
 client in Lua would be a significant undertaking, Pesto delegates the remote
-log fetches to the configured |bytestream_client|.
+log fetches to an external ByteStream gRPC client.
 
-Pesto ships with a ByteStream client written in Python. You can find it in the
+The ByteStream client Pesto uses is written in Python. You can find it in the
 `tools/pesto-remote-apis-helpers` directory.
 
 Pesto does the following when it detects logs are stored remotely at some
 ByteStream URI:
 
-  1. Checks to see if |bytestream_client| is configured. If client is
-  configured, Pesto will use it to fetch the logs.
-  2. If the client is not configured, Pesto checks to see if its own
-  `tools/pesto-remote-apis-helpers` script has been set up.
-  3. If the `tools/pesto-remote-apis-helpers` script has been set up, Pesto
+  1. Checks to see if the helper Python script is set up; the script
+  has a few dependencies (see
+  `tools/pesto-remote-apis-helpers/pyproject.toml`)
+  2. If the `tools/pesto-remote-apis-helpers` script has been set up, Pesto
   uses it to fetch the logs; otherwise, Pesto prompts you to install the
-  script.
+  script using the |install-remote-apis-helpers| command.
 
-One disadvantage of this flow is the action log download latency. This is where
-using `pty_output` for |pesto.Settings.quickfix_log_source| may be more
-practical; Bazel's progress output is immediately available.
+One disadvantage of loading the quickfix list using the remotely stored
+compiler logs is the latency. This is where using `pty_output` for
+|pesto.Settings.quickfix_log_source| may be more practical; Bazel's progress
+output is immediately available.
 
 ================================================================================
 vim:tw=80:ts=2:ft=help:norl:syntax=help:
