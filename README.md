@@ -11,7 +11,7 @@ It integrates with Bazel using the [Build Event Protocol](https://bazel.build/re
 
 * Quickfix integration
   - Failed actions' stderr files are parsed and loaded into the quickfix list.
-  - As a first option, `pesto.nvim` identifies and fetches failed action logs using the BEP logs; as a fallback `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.Settings.quickfix_log_source`).
+  - As a first option, `pesto.nvim` identifies and fetches failed action logs using the BEP logs; as an alternative `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.Settings.quickfix_log_source`).
   - Error logs are parsed using Neovim's standard `errorformat` system (`:help errorformat`), so logs from most rule sets should be quickfix loadable (see `:help pesto.Settings.errorformats`).
   - The following rule sets come pre-configured and should work out of the box: 
     - `rules_java`
@@ -88,7 +88,7 @@ Below is a suggested exercise using the example C project.
    ```
    :Pesto build
    ```
-   - Now that there's errors, the quickfix window should load.
+   - Now that there are errors, the quickfix window should load.
 
 ## Configuration
 
@@ -104,7 +104,7 @@ vim.g.pesto = {
   bazel_executable = "bazel",
     -- Callback invoked to run bazel.
   bazel_runner = function(opts)
-        require("pesto.components").default_runner(opts)
+    require("pesto.components").default_runner(opts)
   end,
   --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
   --- Please see `:help pesto.Settings.build_target_resolvers` for more details.
@@ -133,7 +133,7 @@ vim.g.pesto = {
   --- sets. You shouldn't need to override this.
   default_errorformats = {
     ...
-  }
+  },
   --- This option is still in development. See the "Note about remote execution/caching" section below
   bytestream_client = nil,
   --- Configuration for the `:Pesto bazel` subcommand auto-completion
