@@ -99,57 +99,57 @@ Here is the default configuration:
 ```lua
 ---@type pesto.Settings
 vim.g.pesto = {
-    --- Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a
-    --- path to an executable.
-	bazel_executable = "bazel",
+  --- Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a
+  --- path to an executable.
+  bazel_executable = "bazel",
     -- Callback invoked to run bazel.
-	bazel_runner = function(opts)
+  bazel_runner = function(opts)
         require("pesto.components").default_runner(opts)
-	end,
-    --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
-    --- Please see `:help pesto.Settings.build_target_resolvers` for more details.
-    build_target_resolvers = {
-      ...
-    }
-    --- Logging level (see `:checkhealth pesto` to get the log file's path)
-	log_level = "info",
-    --- Indicates which logs Pesto should use to populate the quickfix window
-    --- following a build.
-    quickfix_log_source = "bep",
-    --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
-    --- Bazel command line option. If you use the default runner, then following
-    --- the build Pesto will parse the resulting build events tree and the quickfix
-    --- list.
-	enable_bep_integration = true,
-    --- When this option is true and when you are using the default runner, a
-    --- terminal buffer will be opened automatically when bazel is invoked.
-	auto_open_build_term = true,
-    --- This list is used to determine the errorformat string used to parse the
-    --- output of a failed action. It effectively defines a mapping from Bazel
-    --- action mnemonics to errorformats.
-    --- See the "Quickfix integration" section below for details.
-	errorformats = {},
-    --- The default set of errorformats. Covers some of the major rule
-    --- sets. You shouldn't need to override this.
-    default_errorformats = {
-      ...
-    }
-    --- This option is still in development. See the "Note about remote execution/caching" section below
-	bytestream_client = nil,
-    --- Configuration for the `:Pesto bazel` subcommand auto-completion
-	cli_completion = {
-        --- Completion strategy. There are three modes:
-        --- * "bash": With this mode completion gets powered by the Bazel's own bash completion script (e.g., /etc/bash_completion.d/bazel)
-        --- * "lua": A less sophisticated lua implementation of Bazel
-        --- * "automatic": With this mode, we attempt to first use the bash completion script. If it's unavailable, then we fallback to the lua implementation.
-		mode = "automatic",
-        --- For the "bash" completion strategy, this is the amount of time to wait
-        --- for the bash completion script to finish before timing out.
-		bash_timeout = 15000,
-        --- Absolute path to the bash completion script. If the setting is not defined,
-        --- then Pesto falls back to searching for the script in `/etc/bash_completion.d/`
-		bash_completion_script = nil,
-	},
+  end,
+  --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
+  --- Please see `:help pesto.Settings.build_target_resolvers` for more details.
+  build_target_resolvers = {
+    ...
+  }
+  --- Logging level (see `:checkhealth pesto` to get the log file's path)
+  log_level = "info",
+  --- Indicates which logs Pesto should use to populate the quickfix window
+  --- following a build.
+  quickfix_log_source = "bep",
+  --- When set to true, Pesto will inject the `--build_event_json_file=$BEP_FILE`
+  --- Bazel command line option. If you use the default runner, then following
+  --- the build Pesto will parse the resulting build events tree and the quickfix
+  --- list.
+  enable_bep_integration = true,
+  --- When this option is true and when you are using the default runner, a
+  --- terminal buffer will be opened automatically when bazel is invoked.
+  auto_open_build_term = true,
+  --- This list is used to determine the errorformat string used to parse the
+  --- output of a failed action. It effectively defines a mapping from Bazel
+  --- action mnemonics to errorformats.
+  --- See the "Quickfix integration" section below for details.
+  errorformats = {},
+  --- The default set of errorformats. Covers some of the major rule
+  --- sets. You shouldn't need to override this.
+  default_errorformats = {
+    ...
+  }
+  --- This option is still in development. See the "Note about remote execution/caching" section below
+  bytestream_client = nil,
+  --- Configuration for the `:Pesto bazel` subcommand auto-completion
+  cli_completion = {
+    --- Completion strategy. There are three modes:
+    --- * "bash": With this mode completion gets powered by the Bazel's own bash completion script (e.g., /etc/bash_completion.d/bazel)
+    --- * "lua": A less sophisticated lua implementation of Bazel
+    --- * "automatic": With this mode, we attempt to first use the bash completion script. If it's unavailable, then we fallback to the lua implementation.
+    mode = "automatic",
+    --- For the "bash" completion strategy, this is the amount of time to wait
+    --- for the bash completion script to finish before timing out.
+    bash_timeout = 15000,
+    --- Absolute path to the bash completion script. If the setting is not defined,
+    --- then Pesto falls back to searching for the script in `/etc/bash_completion.d/`
+    bash_completion_script = nil,
+  },
 }
 ```
 
