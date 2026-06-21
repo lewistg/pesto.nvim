@@ -1,4 +1,4 @@
-# pesto.nvim remote APIs helpers
+# `pesto.nvim` remote APIs helpers
 
 This directory contains helper scripts for working with [Bazel's remote APIs][1].
 At the moment there is only one helper script, `pesto-fetch-bytestreams`, which is described further on.
@@ -20,7 +20,8 @@ It may work well enough, and Pesto won't use this helper script at all.
 
 Pesto also won't use these scripts unless they've been set up using the Pesto's `install-remote-apis-helpers` command.
 
-Support for custom bytestream clients is not supported yet; if you need this, please open a feature request.
+Support for custom bytestream clients is not supported yet.
+If you need this--perhaps you'd like to avoid a Python dependency--please open a feature request.
 
 ## Requirements
 
@@ -31,7 +32,7 @@ The scripts in this directory depend on [`uv`][2].
 The `pesto-fetch-bytestreams` command takes as input Byte Stream URIs (the kind found in BEP log files).
 As output `pesto-fetch-bytestreams` writes `google.byestream.ReadResponse`s to stdout.
 
-After a build finishes, pesto.nvim can process the Build Event Protocol (BEP) log to do things like populate the quickfix list.
+After a build finishes, `pesto.nvim` can process the Build Event Protocol (BEP) log to do things like populate the quickfix list.
 When a remote cache is involved, BEP will refer to log files by "bytestream" URLs.
 Here is an example of one such URL:
 ```
@@ -40,7 +41,7 @@ bytestream://localhost:8980/blobs/477b2a3983637d7633933691800642a388a38e1dd81ebe
 The remote cache service that serves these URLs implements the [Byte Stream gRPC service][3].
 
 Implementing a gRPC client directly in Lua using Neovim's provided libraries seemed like more effort than its worth.
-Instead this helper Python CLI tool is provided, which pesto.nvim integrates with.
+Instead this helper Python CLI tool is provided, which `pesto.nvim` integrates with.
 
 [1]: https://github.com/bazelbuild/remote-apis
 [2]: https://docs.astral.sh/uv/
