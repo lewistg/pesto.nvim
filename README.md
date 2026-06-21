@@ -11,14 +11,15 @@ It integrates with Bazel using the [Build Event Protocol](https://bazel.build/re
 
 * Quickfix integration
   - Failed actions' stderr files are parsed and loaded into the quickfix list.
+  - Error logs are parsed using Neovim's standard `errorformat` system, so logs from most rule sets should be quickfix loadable.
+    - The following rule sets come pre-configured and should work out of the box: 
+      - `rules_java`
+      - `rules_cc`
+      - `rules_go`
+      - `rules_rust`
+      - `rules_scala`
+    - For other rule sets, see `:help pesto-adding-rule-sets` and `:help pesto.Settings.errorformats`.
   - As a first option, `pesto.nvim` identifies and fetches failed action logs using the BEP logs; as an alternative `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.Settings.quickfix_log_source`).
-  - Error logs are parsed using Neovim's standard `errorformat` system (`:help errorformat`), so logs from most rule sets should be quickfix loadable (see `:help pesto.Settings.errorformats`).
-  - The following rule sets come pre-configured and should work out of the box: 
-    - `rules_java`
-    - `rules_cc`
-    - `rules_go`
-    - `rules_rust`
-    - `rules_scala`
 * A `bazel` wrapper command with autocomplete support:
   - `:Pesto bazel <bazel-subcommand> [subcommand-args]`
   - Auto-completion is backed by Bazel's own bash completion script; a simpler fallback experience is also provided if the script is unavailable.

@@ -1,0 +1,232 @@
+*pesto-adding-rule-sets*
+
+Pesto comes pre-configured to support quickfix-loading for a few well-known
+rule sets. This guide explains how you might go about configuring Pesto to load
+errors produced by other rule sets.
+
+If you haven't already, consider reading |pesto-bazel-concepts| for a quick
+primer on Pesto's quickfix implementation. Here also is a recap of that
+section: To load the quickfix list, Pesto does the following:
+
+* Parses the BEP JSON log file for the build that just completed
+* Searches the build events for failed actions
+* Fetches the stderr logs for the failed actions
+* Maps a failed action's mnemonic to an errorformat string
+* Parses quickfix items using the failed action's stderr logs and the resolved
+  errorformat string
+
+The first step to adding support for a new rule set is identifying the mnemonic
+for actions emitting parseable error logs.
+
+--------------------------------------------------------------------------------
+Determining the action mnemonic                  *pesto-adding-rule-sets-mnemonic*
+
+There are a couple ways we can determine the mnemonic. For one, Bazel currently
+includes the mnemonic in its stderr output.
+
+For example, here's the stderr output for a failed Java compilation:
+
+>bash
+    Computing main repo mapping:
+    Loading:
+    Loading: 0 packages loaded
+    Analyzing: target //src/main/java/net/starlark/java/syntax:syntax (1 packages loaded, 0 targets configured)
+    Analyzing: target //src/main/java/net/starlark/java/syntax:syntax (1 packages loaded, 0 targets configured)
+
+    INFO: Analyzed target //src/main/java/net/starlark/java/syntax:syntax (2 packages loaded, 1639 targets configured).
+    ERROR: /home/me/dev/bazel/src/main/java/net/starlark/java/syntax/BUILD:17:13: Building src/main/java/net/starlark/java/syntax/libsyntax.jar
+    (42 source files) and running annotation processors (AutoAnnotationProcessor, AutoBuilderProcessor, AutoOneOfProcessor, AutoValueProcessor,
+    AutoValueGsonAdapterFactoryProcessor) failed: (Exit 1): java failed: error executing Javac command (from target //src/main/java/net/starlark
+    /java/syntax:syntax) external/rules_java++toolchains+remotejdk21_linux/bin/java '--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNA
+    MED' '--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED' ... (remaining 19 arguments skipped)
+    src/main/java/net/starlark/java/syntax/LambdaExpression.java:42: error: cannot find symbol
+      public xpression getBody() {
+             ^
+      symbol:   class xpression
+      location: class LambdaExpression
+    Target //src/main/java/net/starlark/java/syntax:syntax failed to build
+    Use --verbose_failures to see the command lines of failed build steps.
+    INFO: Elapsed time: 1.100s, Critical Path: 0.68s
+    INFO: 2 processes: 2 internal.
+    ERROR: Build did NOT complete successfully
+    FAILED: 
+    INFO: Build Event Protocol files produced successfully.
+
+    [Process exited 1]
+<
+Buried in those logs is the following snippet:
+
+>bash
+  ...
+  ...java failed: error executing Javac command...
+  ...
+<
+
+In this case "Javac" is the mnemonic. You should see similar phrasing for other
+rule sets.
+
+Pesto's `dump-failed-action-logs` command
+(|pesto-dump-failed-action-logs-command|) offers an alternative way to
+determine the mnemonic:
+
+>viml
+   :Pesto dump-failed-action-logs
+<
+
+When you invoke this command following a failed build, Pesto will do the
+following:
+
+1. Search the BEP log file for failed actions
+2. Fetch the logs associated with the failed actions
+3. Write the logs to a temporary directory
+    - The directory path gets echoed after the command finishes.
+
+The error log files use the following naming scheme:
+`<action-mnemonic>-<some-number>`.
+So the mnemonic is encoded in the filename.
+
+For example, if I ran `dump-failed-action-logs` following the failed Java build
+from earlier, I would see the following log file:
+
+>bash
+    /tmp/nvim.me/iOjl84/2/pesto.nvim/failed_action_logs/dump_1/Javac-0
+<
+
+It would have the following contents:
+>text
+    src/main/java/net/starlark/java/syntax/LambdaExpression.java:42: error: cannot find symbol
+      public xpression getBody() {
+             ^
+      symbol:   class xpression
+      location: class LambdaExpression
+<
+
+--------------------------------------------------------------------------------
+Getting the errorformat string                *pesto-adding-rule-sets-errorformat*
+
+The next thing we'll need is an |errorformat| string for the failed action logs.
+
+It's possible the `errorformat` string we're looking for is already defined for
+us. Neovim ships with a number of compiler plugins (|write-compiler-plugin|)
+that include `errorformat` strings. You can see a list of these compiler plugins
+by invoking `:compiler`.
+
+Let's say you find a compiler plugin that appears to match the compiler invoked
+by Bazel. Here's how you can test whether the plugin's `errorformat` will work:
+
+1. Load the error logs Bazel emitted into a buffer in Neovim.
+
+   Continuing with our Java example from the previous section, I could either
+   copy the error from Bazel's stderr into a new file. In this case, I'd be
+   copying the following lines:
+
+>text
+    src/main/java/net/starlark/java/syntax/LambdaExpression.java:42: error: cannot find symbol
+      public xpression getBody() {
+             ^
+      symbol:   class xpression
+      location: class LambdaExpression
+<
+
+   Or I could just open the file output by `dump-failed-action-logs`:
+   `/tmp/nvim.me/iOjl84/2/pesto.nvim/failed_action_logs/dump_1/Javac-0`. It would
+   contain the same lines shown above.
+
+2. Set the compiler plugin. In the case of Java I would use `:compiler javac`.
+
+3. Open the quickfix window using `:copen`, and then switch back to the log
+   file buffer (CTRL-W k)
+
+4. Run `:cbuffer`.
+
+   The |cbuffer| command causes Neovim to parse and load the quickfixlist by
+   parsing the current buffer using the current `errorformat` string. If the
+   `errorformat` string from the compiler plugin matches the logs we're trying
+   to parse, you should see the quickfix list populate.
+
+If you get through those steps and the quickfix window populates, then you now
+have enough information to configure Pesto. You would simply add the following
+to your `vim.g.pesto.errorformats` value (|pesto.Settings.errorformats|):
+
+>lua
+    vim.g.pesto = {
+      ...
+      errorformats = {
+        {
+          action_mnemonic = '<ACTION_MNEMONIC>',
+          compiler = '<COMPILER_PLUGIN>'
+        }
+      }
+      ...
+    }
+<
+
+In the case of Java, we would have the following, which is actually part of
+Pesto's default errorformat config (|pesto.Settings.default_errorformats|)
+
+>lua
+    vim.g.pesto = {
+      ...
+      errorformats = {
+        {
+          action_mnemonic = 'Javac',
+          compiler = 'javac'
+        }
+      }
+      ...
+    }
+<
+
+Let's say we're working with a rule set that does not have a compiler plugin. In
+this case, you'll need to develop the `errorformat` string yourself. 
+
+Writing an `errorformat` is often an iterative process; some may call it
+arduous. You might use the steps we covered earlier with a slight modification.
+Instead of setting the `compiler` plugin like we did on step 2, you would
+instead set the `errorformat` option. Here is a simplified version of the
+modified steps:
+
+1. Load the error logs into a buffer
+2. Set the `errorformat` setting
+    - You would do `:set errorformat=<ERRORFORMAT_STRING>`
+3. Run `:cbuffer` to see if Neovim can parse the error logs using the
+`errorformat`
+    - If it fails to parse, be sure you have the syntax right by checking `:help
+      errorformat`.
+
+Once you've refined the `errorformat` string, you would then use the following
+alternate config for Pesto:
+
+>lua
+    vim.g.pesto = {
+      ...
+      errorformats = {
+        {
+          action_mnemonic = 'Javac',
+          errorformat = '<ERRORFORMAT_STRING>'
+        }
+      }
+      ...
+    }
+<
+
+Tip:
+    Sometimes compilers will emit colored output using ANSI color escape codes.
+    You can configure Pesto to automatically strip out these escape codes by
+    setting the `strip_escape_codes` option:
+
+>lua
+    vim.g.pesto = {
+      ...
+      errorformats = {
+        {
+          action_mnemonic = '<ACTION_MNEMONIC>',
+          compiler = '<COMPILER_PLUGIN>',
+          strip_escape_codes = true
+        }
+      }
+      ...
+    }
+<
+
+vim:tw=78:ts=8:noet:ft=help:norl:

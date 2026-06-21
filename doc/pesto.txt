@@ -519,6 +519,30 @@ Listed below are the possible sub-commands:
     to load errors from a BEP log file that was generated elsewhere (e.g., a
     CI/CD pipeline artifact).
 
+`dump-failed-action-logs [dest-dir]`      *pesto-dump-failed-action-logs-command*
+    `dest-dir`: Destination for the log files
+
+    This command is useful for debugging and adding support for additional rule
+    sets. See the |pesto-adding-rule-sets| guide for an illustration of its
+    usage.
+
+    The command should be invoked following a failed build. It does the
+    following things:
+
+    1. Searches the BEP logs for failed actions
+    2. Fetches the stderr output for the failed actions it finds
+    3. Writes the action logs to files in [dest-dir] if it is given or to some
+       temporary directory if [dest-dir] is not given
+
+    Each failed action that has stderr logs to dump will produce a single file
+    containing the logs. The name of the file follows this format:
+
+>text
+    <action_mnemonic>-<number>
+<
+    The `<action_mnemonic>` is the mnemonic for the failed action, the
+    `<number>` part is not meaningful and is added to ensure uniqueness.
+
 ================================================================================
 Bazel concepts                                              *pesto-bazel-concepts*
 
