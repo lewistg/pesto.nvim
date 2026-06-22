@@ -102,7 +102,7 @@ components.copy_last_bazel_command_subcommand = _copy_last_bazel_command_subcomm
 
 ---@return pesto.BuildSubcommand
 local function _build_subcommand()
-  return require('pesto.cli.build_subcommand'):new(
+  return require('pesto.cli.build_subcommand').new(
     components.internal_run_bazel_fn,
     components.settings
   )

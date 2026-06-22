@@ -26,7 +26,7 @@ local M = {}
 ---@alias pesto.TargetResolver fun(context: pesto.RunBazelContext): pesto.TargetResolverResult
 
 --- Map from a "target resolver ID" to a method that returns a Bazel target resolver.
----@alias pesto.BuildTargetResolvers {[string]: pesto.TargetResolver}
+---@alias pesto.TargetResolvers {[string]: pesto.TargetResolver}
 
 ---@alias pesto.CliCompletionMode
 ---| "lua"
@@ -100,7 +100,7 @@ local M = {}
 ---@field cli_completion pesto.CliCompletionSettings
 ---
 --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
----@field build_target_resolvers pesto.BuildTargetResolvers
+---@field build_target_resolvers pesto.TargetResolvers
 ---
 --- The temporary directory to use. Useful for debugging.
 ---
@@ -119,7 +119,7 @@ M.DEFAULT_BASH_COMPLETION_SCRIPTS = {
   vim.fs.joinpath('/etc/bash_completion.d', 'bazel-completion'),
 }
 
----@type pesto.BuildTargetResolvers
+---@type pesto.TargetResolvers
 M.DEFAULT_TARGET_RESOLVERS = {
   ['all'] = function(context)
     return {
