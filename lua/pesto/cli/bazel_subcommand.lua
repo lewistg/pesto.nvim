@@ -13,6 +13,7 @@ BazelSubcommand.name = 'bazel'
 ---@param bazel_basic_completion pesto.BazelBasicCompletion
 ---@param bazel_bash_completion pesto.BazelBashCompletion
 ---@param internal_run_bazel_fn pesto.InternalRunBazelFn
+---@return pesto.BazelSubcommand
 function BazelSubcommand:new(
   settings,
   bazel_basic_completion,

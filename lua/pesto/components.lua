@@ -15,6 +15,7 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field bazel_bash_completion_client pesto.BazelBashCompletionClient
 ---@field bazel_basic_completion pesto.BazelBasicCompletion
 ---@field bazel_run_history pesto.BazelRunHistory
+---@field build_subcommand pesto.BuildSubcommand
 ---@field build_event_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
 ---@field build_window_manager pesto.BuildWindowManager
@@ -37,8 +38,8 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field settings pesto.InternalSettings
 ---@field subcommands pesto.Subcommands
 ---@field temp_bep_files pesto.TempBepFiles
+---@field test_subcommand pesto.TestSubcommand
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
----@field build_subcommand pesto.BuildSubcommand
 
 ---@type Components
 local components = LazyTable:new() --[[@as Components]]
@@ -259,6 +260,7 @@ local _subcommands = function()
     open_build_term_subcommand = components.open_build_term_subcommand,
     copy_last_bazel_command_subcommand = components.copy_last_bazel_command_subcommand,
     settings = components.settings,
+    test_subcommand = components.test_subcommand,
   })
 end
 components.subcommands = _subcommands --[[@as pesto.Subcommands]]
@@ -268,6 +270,15 @@ local _temp_bep_files = function()
   return require('pesto.runner.default.temp_bep_files'):new()
 end
 components.temp_bep_files = _temp_bep_files --[[@as pesto.TempBepFiles]]
+
+---@return pesto.TestSubcommand
+local _test_subcommand = function()
+  return require('pesto.cli.test_subcommand').new(
+    components.internal_run_bazel_fn,
+    components.settings
+  )
+end
+components.test_subcommand = _test_subcommand --[[@as pesto.TestSubcommand]]
 
 ---@return pesto.OpenBuildEventsSummarySubcommand
 local _open_build_events_summary_subcommand = function()
