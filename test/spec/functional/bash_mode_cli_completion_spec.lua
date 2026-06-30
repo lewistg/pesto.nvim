@@ -47,8 +47,9 @@ describe("CLI completion with 'bash' mode", function()
     },
     {
       prefix_keys = 'Pesto bazel build //',
-      expected_command_line = 'Pesto bazel build //bar/',
+      expected_command_line = 'Pesto bazel build //:',
       expected_completions = {
+        '//:',
         '//bar/',
         '//bar:',
         '//baz/',

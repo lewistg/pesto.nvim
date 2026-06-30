@@ -98,6 +98,7 @@ end
 ---@field install_remote_apis_helpers_subcommand pesto.InstallRemoteApisHelpersSubcommand
 ---@field load_quickfix_subcommand pesto.LoadQuickfixSubcommand
 ---@field build_subcommand pesto.BuildSubcommand
+---@field test_subcommand pesto.TestSubcommand
 ---@field internal_run_bazel_fn pesto.InternalRunBazelFn
 ---@field copy_last_bazel_command_subcommand pesto.CopyLastBazelCommandSubcommand
 ---@field settings pesto.InternalSettings
@@ -120,6 +121,7 @@ function M.make_subcommands(deps)
       execute = execute_sp_build_subcommand,
     },
     deps.open_build_events_summary_subcommand,
+    deps.test_subcommand,
     {
       name = 'vs-build',
       execute = execute_vs_build_subcommand,

@@ -7,7 +7,15 @@ public class Grid {
     private int width;
     private int height;
 
-    public static record Point(int i, int j) {}
+    public static record Point(int i, int j) {
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Point other) {
+                return this.i == other.i && this.j == j;
+            }
+            return false;
+        }
+    }
 
     public Grid(int width, int height) {
         if (width <= 0 || height <= 0) {

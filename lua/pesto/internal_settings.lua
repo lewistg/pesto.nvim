@@ -75,7 +75,7 @@ function InternalSettings:get_bazel_executable()
   return self:_resolve_setting('bazel_executable')
 end
 
----@return pesto.BuildTargetResolvers
+---@return pesto.TargetResolvers
 function InternalSettings:get_build_target_resolvers()
   return self:_resolve_setting('build_target_resolvers')
 end

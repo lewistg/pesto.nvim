@@ -137,7 +137,7 @@ Options                                                            *pesto-option
     (`require("pesto.settings").DEFAULT_TARGET_RESOLVERS`):
 
 >lua
-    ---@type pesto.BuildTargetResolvers
+    ---@type pesto.TargetResolvers
     local DEFAULT_TARGET_RESOLVERS = {
       ['all'] = function(context)
         return {
