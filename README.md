@@ -229,4 +229,7 @@ It is simpler and may work well enough for your needs.
 
 ## Similar plugins
 
-Pesto was inspired by [vim-bazel](https://github.com/bazelbuild/vim-bazel), which has since been archived.
+* [vim-bazel](https://github.com/bazelbuild/vim-bazel): The original inspiration for `pesto.nvim`, now archived.
+* [neovim-tasks](https://github.com/Shatur/neovim-tasks): A general-purpose build runner plugin that adapts to various build systems including Bazel. Where `pesto.nvim` may have an advantage:
+    - `neovim-tasks`'s approach is more "on-rails." `pesto.nvim`'s `bazel` wrapper command with auto-complete provides more flexibility in comparison.
+    - `neovim-tasks` parses Bazel's stderr to load the quickfix list. If your build mixes compilers (e.g., C++, Java, Rust, etc..), you may need to craft an `errorformat` that covers all possible error outputs. `pesto.nvim`'s approach to the quickfix list and `errorformat` lets you avoid this.
