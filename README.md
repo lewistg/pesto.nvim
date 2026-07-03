@@ -222,11 +222,6 @@ Pesto will prompt you to set up this client before attempting to use it the firs
 Before setting up the helper bytestream client, consider trying `pty_output` for `quickfix_log_source` (`:help pesto.Settings.quickfix_log_source`).
 It is simpler and may work well enough for your needs.
 
-## Goals
-
-* General purpose. Try to be useful for all Bazel rule sets.
-* Somewhat low-level. Don't hide Bazel too much.
-
 ## Similar plugins
 
 * [vim-bazel](https://github.com/bazelbuild/vim-bazel): The original inspiration for `pesto.nvim`, now archived.
