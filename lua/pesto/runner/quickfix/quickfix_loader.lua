@@ -7,25 +7,25 @@
 ---@class pesto.QuickfixLoader
 ---@field private _action_logs_quickfix_item_loader pesto.ActionLogsQuickfixItemLoader
 ---@field private _progress_logs_quickfix_item_loader pesto.ProgressLogsQuickfixItemLoader
----@field private _settings pesto.InternalSettings
+---@field private _internal_config pesto.InternalConfig
 ---@field private _has_sent_missing_client_notification boolean
 local QuickfixLoader = {}
 QuickfixLoader.__index = QuickfixLoader
 
 ---@param action_logs_quickfix_item_loader pesto.ActionLogsQuickfixItemLoader
 ---@param progress_logs_quickfix_item_loader pesto.ProgressLogsQuickfixItemLoader
----@param settings pesto.InternalSettings
+---@param internal_config pesto.InternalConfig
 ---@return pesto.QuickfixLoader
 function QuickfixLoader:new(
   action_logs_quickfix_item_loader,
   progress_logs_quickfix_item_loader,
-  settings
+  internal_config
 )
   local o = setmetatable({}, QuickfixLoader)
 
   o._action_logs_quickfix_item_loader = action_logs_quickfix_item_loader
   o._progress_logs_quickfix_item_loader = progress_logs_quickfix_item_loader
-  o._settings = settings
+  o._internal_config = internal_config
   o._has_sent_missing_client_notification = false
 
   return o

@@ -1,5 +1,5 @@
 ---@class pesto.DefaultRunner
----@field private _settings pesto.InternalSettings
+---@field private _internal_config pesto.InternalConfig
 ---@field private _build_window_manager pesto.BuildWindowManager
 ---@field private _build_event_json_loader pesto.BuildEventJsonLoader
 ---@field private _quickfix_loader pesto.QuickfixLoader
@@ -18,13 +18,13 @@ DefaultRunner.__index = DefaultRunner
 DefaultRunner.TEMP_BEP_FILE_CLEANUP_INTERVAL = 10
 DefaultRunner.MAX_TEMP_BEP_FILES_TO_KEEP = DefaultRunner.TEMP_BEP_FILE_CLEANUP_INTERVAL / 2
 
----@param settings pesto.InternalSettings
+---@param internal_config pesto.InternalConfig
 ---@param build_window_manager pesto.BuildWindowManager
 ---@param build_event_json_loader pesto.BuildEventJsonLoader
 ---@param quickfix_loader pesto.QuickfixLoader
 ---@param temp_bep_files pesto.TempBepFiles
 function DefaultRunner:new(
-  settings,
+  internal_config,
   build_window_manager,
   build_event_json_loader,
   quickfix_loader,
@@ -32,7 +32,7 @@ function DefaultRunner:new(
 )
   local o = setmetatable({}, DefaultRunner)
 
-  o._settings = settings
+  o._internal_config = internal_config
   o._build_window_manager = build_window_manager
   o._build_event_json_loader = build_event_json_loader
   o._quickfix_loader = quickfix_loader
@@ -48,12 +48,12 @@ function DefaultRunner.__call(self, opts)
   local logger = require('pesto.logger')
 
   ---@type pesto.QuickfixLogSource
-  local quickfix_log_source = self._settings:get_quickfix_log_source()
+  local quickfix_log_source = self._internal_config:get_quickfix_log_source()
 
   ---@type string|nil
   local bep_file = nil
 
-  if self._settings:get_enable_bep_integration() or quickfix_log_source == 'bep' then
+  if self._internal_config:get_enable_bep_integration() or quickfix_log_source == 'bep' then
     bep_file = self:_inject_bep_file_option(opts.bazel_command)
   end
 
@@ -76,7 +76,7 @@ function DefaultRunner.__call(self, opts)
   self._build_window_manager:start_new_build({
     term_command = opts.bazel_command,
     cwd = opts.context.package_dir or opts.context.workspace_dir,
-    auto_open = self._settings:get_auto_open_build_term(),
+    auto_open = self._internal_config:get_auto_open_build_term(),
     capture_stdout = quickfix_log_source == 'pty_output',
     on_exit = function(is_current, stdout_lines)
       self:_maybe_clean_temp_bep_files()

@@ -5,13 +5,12 @@
 Contents                                                         *pesto-contents*
 
 1. Intro .......................................................... |pesto-intro|
-2. Configuration ................................................. |pesto-config|
-3. Options ...................................................... |pesto-options|
-4. Commands .................................................... |pesto-commands|
-5. Bazel concepts ........................................ |pesto-bazel-concepts|
-6. Default runner ........................................ |pesto-default-runner|
-7. BEP integration ...................................... |pesto-bep-integration|
-8. Remote caching ........................................ |pesto-remote-caching|
+2. Config ........................................................ |pesto-config|
+3. Commands .................................................... |pesto-commands|
+4. Bazel concepts ........................................ |pesto-bazel-concepts|
+5. Default runner ........................................ |pesto-default-runner|
+6. BEP integration ...................................... |pesto-bep-integration|
+7. Remote caching ........................................ |pesto-remote-caching|
 
 ================================================================================
 Intro                                                               *pesto-intro*
@@ -21,7 +20,7 @@ through the Build Event Protocol to support things like loading compilation
 errors into the quickfix list.
                                                                     *pesto-types*
 Note: Throughout this manual there are references to LuaLS types defined in
-Pesto's source code (e.g., `pesto.Settings`).
+Pesto's source code (e.g., `pesto.Config`).
 
 ================================================================================
 Configuration                                                      *pesto-config*
@@ -30,7 +29,7 @@ You don't need to call a `setup` function to configure `pesto.nvim`. You can
 instead just set `vim.g.pesto`. Here is the default configuration:
 
 >lua
-    ---@type pesto.Settings
+    ---@type pesto.Config
     vim.g.pesto = {
         --- Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a
         --- path to an executable.
@@ -41,7 +40,7 @@ instead just set `vim.g.pesto`. Here is the default configuration:
         end,
         --- Map from a "target resolver ID" to a method that returns a Bazel
         --- target resolver.
-        build_target_resolvers = require("pesto.settings").DEFAULT_TARGET_RESOLVERS,
+        build_target_resolvers = require("pesto.config").DEFAULT_TARGET_RESOLVERS,
         --- Logging level (see `:checkhealth pesto` to get the log file's path)
         log_level = "info",
         --- Indicates which logs Pesto should use to populate the quickfix window
@@ -84,33 +83,33 @@ instead just set `vim.g.pesto`. Here is the default configuration:
 If you prefer, however, `pesto.nvim` does support a setup function:
 
 >lua
-    ---@type pesto.Settings
-    local settings = {...}
-    require("pesto").setup(settings)
+    ---@type pesto.Config
+    local config = {...}
+    require("pesto").setup(config)
 <
 
-================================================================================
-Options                                                            *pesto-options*
+--------------------------------------------------------------------------------
+Config fields                                                *pesto.config.fields*
 
-`bazel_executable`                              *pesto.Settings.bazel_executable*
+`bazel_executable`                                   *pesto.config.bazel_executable*
     type: `string`
     default: `"bazel"`
 
     Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a path
     to an executable.
 
-`bazel_runner`                                      *pesto.Settings.bazel_runner*
+`bazel_runner`                                         *pesto.config.bazel_runner*
     type: pesto.RunBazelFn
     default: Pesto's default runner (see |pesto-config|).
 
     Pesto calls this callback to invoke bazel. By default Pesto uses its own
     default runner callback (see |pesto-default-runner|).
 
-`build_target_resolvers`                   *pesto.Settings.build_target_resolvers*
+`build_target_resolvers`                     *pesto.config.build_target_resolvers*
     type: {
       [string]: fun(context: pesto.RunBazelContext): {query: string}|{targets : string[]}
     }
-    default: require("pesto.settings").DEFAULT_TARGET_RESOLVERS
+    default: require("pesto.config").DEFAULT_TARGET_RESOLVERS
 
     This option is used by Pesto's `build` subcommand (|pesto-commands-build|).
     The option defines a mapping from a string ID to a function that returns
@@ -134,7 +133,7 @@ Options                                                            *pesto-option
     build directly using the given targets.
 
     As an example, here are the default resolvers
-    (`require("pesto.settings").DEFAULT_TARGET_RESOLVERS`):
+    (`require("pesto.config").DEFAULT_TARGET_RESOLVERS`):
 
 >lua
     ---@type pesto.TargetResolvers
@@ -158,14 +157,14 @@ Options                                                            *pesto-option
     buffer level. Pesto merges buffer-level options with the global-level
     options, giving priority to the buffer level.
 
-`enable_bep_integration`                  *pesto.Settings.enable_bep_integration*
+`enable_bep_integration`                     *pesto.config.enable_bep_integration*
     type: `boolean`
     default: `true`
 
     This option enables the default runner's (|pesto-default-runner|) BEP
     integration (|pesto-bep-integration|).
 
-`quickfix_log_source`                        *pesto.Settings.quickfix_log_source*
+`quickfix_log_source`                           *pesto.config.quickfix_log_source*
     type: `"bep"|"pty_output"`
     default: `"bep"`
 
@@ -179,7 +178,7 @@ Options                                                            *pesto-option
     sent to the Neovim pseudo terminal.
 
     Note: When `quickfix_log_source` is set to `"bep"` the
-    `enable_bep_integration` option (|pesto.Settings.enable_bep_integration|)
+    `enable_bep_integration` option (|pesto.config.enable_bep_integration|)
     is always taken to be true.
 
     Pesto defaults to using the `"bep"` option. This is because failed action
@@ -240,7 +239,7 @@ Options                                                            *pesto-option
     Regardless of whether or not the default runner opens, Pesto will always
     send a notification for the build result.
 
-`errorformats`                                        *pesto.Settings.errorformats*
+`errorformats`                                         *pesto.config.errorformats*
     type: `pesto.ActionErrorformat[]`
     default: {}
 
@@ -281,8 +280,8 @@ Options                                                            *pesto-option
 <
 
     Finally, let's look at a snippet that shows the value of Pesto's default
-    errorformats, as defined in `lua/pesto/settings.lua`
-    (|pesto.Settings.default_errorformats|):
+    errorformats, as defined in `lua/pesto/config.lua`
+    (|pesto.config.default_errorformats|):
 
 >lua
   {
@@ -372,32 +371,32 @@ Options                                                            *pesto-option
     Neovim doesn't ship with a compiler plugin for Scala, so we had to define
     the errorformat manually.
 
-`default_errorformats`                      *pesto.Settings.default_errorformats*
+`default_errorformats`                        *pesto.config.default_errorformats*
     type: `pesto.ActionErrorformat[]`
-    default: See `lua/pesto/settings.lua`
+    default: See `lua/pesto/config.lua`
 
     This option defines Pesto's default mapping from a Bazel action mnemonic to
     an |errorformat|. This mapping is used by Pesto to load the quickfix list
     following a failed build.
 
-    This option mirrors |pesto.Settings.errorformats| but comes already
+    This option mirrors |pesto.config.errorformats| but comes already
     populated with mappings for some of Bazel's more well-known rule sets
     (e.g., rules_cc, rules_go, rules_java, etc.)
 
-    The full definition is defined in `lua/pesto/settings.lua`. You can also
+    The full definition is defined in `lua/pesto/config.lua`. You can also
     see a copy of the configuration in the documentation for
-    |pesto.Settings.errorformats|.
+    |pesto.config.errorformats|.
 
-`cli_completion`                           *pesto.Settings.CliCompletionSettings*
-    type: `pesto.CliCompletionSettings`
-    default: See individual settings below
+`cli_completion`                                     *pesto.config.cli_completion*
+    type: `pesto.CliCompletionConfig`
+    default: See individual config below
 
     This setting affects the auto-completion behavior of Pesto's `bazel`
     wrapper command: `:Pesto bazel ...`
 
     Individual fields are described below.
 
-`cli_completion.mode`                 *pesto.Settings.CliCompletionSettings.mode*
+`cli_completion.mode`                           *pesto.config.cli_completion.mode*
     type: `"lua"|"bash"|"automatic"`
     default: "automatic"
 
@@ -418,15 +417,15 @@ Options                                                            *pesto-option
     not require fuller fidelity with the bash CLI experience, you may consider
     using the `"lua"` strategy which is more responsive.
 
-`cli_completion.bash_timeout` *pesto.Settings.CliCompletionSettings.bash_timeout*
+`cli_completion.bash_timeout`           *pesto.config.cli_completion.bash_timeout*
     type: `number`
     default: `15000`
 
     Defines the maximum number of milliseconds to wait for a bazel completion.
     This setting only applies when using the `"bash"` completion mode
-    (|pesto.Settings.CliCompletionSettings.mode|).
+    (|pesto.config.cli_completion.mode|).
 
-                    *pesto.Settings.CliCompletionSettings.bash_completion_script*
+                              *pesto.config.cli_completion.bash_completion_script*
 `cli_completion.bash_completion_script`
     type: `string|nil`
     default: `nil`
@@ -434,14 +433,14 @@ Options                                                            *pesto-option
     Absolute path to the bash completion script that Pesto should use for
     completions. This setting only applies when using the `"bash"` completion
     mode
-    (|pesto.Settings.CliCompletionSettings.mode|).
+    (|pesto.config.cli_completion.mode|).
 
     Note: When the value of `bash_completion_script` is the unset Pesto searches
     among a few well known locations. See
-    `require('pesto.settings').DEFAULT_BASH_COMPLETION_SCRIPTS` for the default
+    `require('pesto.config').DEFAULT_BASH_COMPLETION_SCRIPTS` for the default
     locations.
 
-`log_level`                                            *pesto.Settings.log_level*
+`log_level`                                               *pesto.config.log_level*
     type: `"trace"|"debug"|"info"|"warn"|"error"`
     default: "info"
 
@@ -466,7 +465,7 @@ Listed below are the possible sub-commands:
     By default auto-completion for the Pesto `bazel` sub-command is backed by
     Bazel's own bash completion script (e.g., `/etc/bash_completion.d/bazel`).
     You may point Pesto at the completion script to use through the
-    |pesto.Settings.CliCompletionSettings.bash_completion_script| setting. If
+    |pesto.config.cli_completion.bash_completion_script| setting. If
     the bash completion script is not available, Pesto falls back to a simpler,
     Lua-based auto-completion implementation.
 
@@ -489,7 +488,7 @@ Listed below are the possible sub-commands:
 
 `build [target-resolver-id]`                                *pesto-build-command*
     `target-resolver-id`: This ID acts as a key into the map defined by the
-    |pesto.Settings.build_target_resolvers| option.
+    |pesto.config.build_target_resolvers| option.
 
     The `build` command provides a way to quickly invoke a Bazel build. Its
     primary use case is invoking a build for targets that directly depend on
@@ -551,7 +550,7 @@ This section gives a quick primer on key Bazel concepts underpinning Pesto.
 One of Pesto's key features is its quickfix integration. Here's how it works:
 
 First, we'll assume you're using BEP logs as your quickfix source. In other
-words, the |pesto.Settings.quickfix_log_source| option is set to `"bep"`.
+words, the |pesto.config.quickfix_log_source| option is set to `"bep"`.
 
 When a Bazel build is executed, it can be configured to emit a log of "build
 events". When the BEP integration is enabled (|pesto-bep-integration|), Pesto
@@ -580,7 +579,7 @@ mnemonic and a URI pointing to the action's stderr output.
 
 Pesto fetches the failed action's output and then uses the mnemonic as a key to
 look up which errorformat it should use to parse the output load into the
-quickfix list (|pesto.Settings.errorformats|)
+quickfix list (|pesto.config.errorformats|)
 
 Note: Pesto does not parse the progress output that Bazel emits during
 execution. Pesto's primary source of build information is the build events log.
@@ -589,7 +588,7 @@ execution. Pesto's primary source of build information is the build events log.
 Default runner                                             *pesto-default-runner*
 
 When Pesto needs to invoke Bazel it calls the callback given by the
-|pesto.Settings.bazel_runner| option. This section describes Pesto's default
+|pesto.config.bazel_runner| option. This section describes Pesto's default
 runner.
 
 Pesto's default runner runs the Bazel command in a terminal window. If the
@@ -622,12 +621,12 @@ Remote caching (experimental)                              *pesto-remote-caching
 
 This section explains how Pesto handles quickfix loading under these conditions:
 
-    * |pesto.Settings.quickfix_log_source| is set to `bep`.
+    * |pesto.config.quickfix_log_source| is set to `bep`.
     * You're using Bazel with remote execution or caching.
     * Action logs are stored in the remote cache.
 
 Before getting into Pesto's behavior under these circumstances, consider trying
-|pesto.Settings.quickfix_log_source| with the `pty_output` option first. It may
+|pesto.config.quickfix_log_source| with the `pty_output` option first. It may
 work well-enough and avoids some of the latency of fetching action logs from
 the remote cache discussed below.
 
@@ -639,7 +638,7 @@ a `bytestream` URI like this:
 >
     bytestream://rbe.util.acme.org:8980/blobs/477b2a3983637d7633933691800642a388a38e1dd81ebe12304a603dc3b3dfba/226
 <
-When |pesto.Settings.quickfix_log_source| is set to `bep` Pesto must fetch
+When |pesto.config.quickfix_log_source| is set to `bep` Pesto must fetch
 these logs in order to populate the quickfix list.
 
 A `bytestream` URI is served by a gRPC endpoint. Since implementing a gRPC
@@ -661,7 +660,7 @@ ByteStream URI:
 
 One disadvantage of loading the quickfix list using the remotely stored
 compiler logs is the latency. This is where using `pty_output` for
-|pesto.Settings.quickfix_log_source| may be more practical; Bazel's progress
+|pesto.config.quickfix_log_source| may be more practical; Bazel's progress
 output is immediately available.
 
 ================================================================================

@@ -1,8 +1,8 @@
 local M = {}
 
----@param settings pesto.Settings
-function M.setup(settings)
-  vim.g.pesto = settings
+---@param config pesto.Config
+function M.setup(config)
+  vim.g.pesto = config
 end
 
 return M

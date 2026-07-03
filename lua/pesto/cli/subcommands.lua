@@ -61,8 +61,8 @@ local function execute_yank_package_label_subcommand()
 end
 
 ---@param internal_run_bazel_fn pesto.InternalRunBazelFn
----@param settings pesto.InternalSettings
-local function get_compile_one_dep_subcommand(internal_run_bazel_fn, settings)
+---@param internal_config pesto.InternalConfig
+local function get_compile_one_dep_subcommand(internal_run_bazel_fn, internal_config)
   ---@type pesto.SubcommandExecuteFn
   local function execute()
     local runner = require('pesto.runner.runner')
@@ -75,7 +75,7 @@ local function get_compile_one_dep_subcommand(internal_run_bazel_fn, settings)
 
     ---@type string[]
     local bazel_command =
-      { settings:get_bazel_executable(), 'build', '--compile_one_dependency', filename }
+      { internal_config:get_bazel_executable(), 'build', '--compile_one_dependency', filename }
 
     ---@type pesto.RunBazelOpts
     local opts = {
@@ -101,7 +101,7 @@ end
 ---@field test_subcommand pesto.TestSubcommand
 ---@field internal_run_bazel_fn pesto.InternalRunBazelFn
 ---@field copy_last_bazel_command_subcommand pesto.CopyLastBazelCommandSubcommand
----@field settings pesto.InternalSettings
+---@field internal_config pesto.InternalConfig
 
 ---@param deps pesto.SubcommandDeps
 ---@return pesto.Subcommands[]
@@ -110,7 +110,7 @@ function M.make_subcommands(deps)
     -- Please keep keys alphabetized (by command name)
     deps.bazel_sub_command,
     deps.build_subcommand,
-    get_compile_one_dep_subcommand(deps.internal_run_bazel_fn, deps.settings),
+    get_compile_one_dep_subcommand(deps.internal_run_bazel_fn, deps.internal_config),
     deps.copy_last_bazel_command_subcommand,
     deps.dump_failed_action_logs_subcommand,
     deps.install_remote_apis_helpers_subcommand,

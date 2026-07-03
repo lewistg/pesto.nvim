@@ -37,7 +37,7 @@ local M = {}
 ---| "bep"
 ---| "pty_output"
 
----@class pesto.CliCompletionSettings
+---@class pesto.CliCompletionConfig
 ---
 --- Completion strategy
 ---@field mode pesto.CliCompletionMode
@@ -48,10 +48,10 @@ local M = {}
 ---
 --- Absolute path to the bash completion script. If the setting is not defined,
 --- then Pesto falls back to searching for the completion scripts defined in
---- pesto.InternalSettings.DEFAULT_BASH_COMPLETION_SCRIPTS.
+--- pesto.InternalConfig.DEFAULT_BASH_COMPLETION_SCRIPTS.
 ---@field bash_completion_script string|nil
 
----@class pesto.Settings
+---@class pesto.Config
 ---
 --- Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a
 --- path to an executable.
@@ -97,7 +97,7 @@ local M = {}
 ---@field bytestream_client "pesto-python-remote-apis-helpers"|pesto.ByteStreamClient|nil
 ---
 --- Configuration for the `:Pesto bazel` subcommand auto-completion
----@field cli_completion pesto.CliCompletionSettings
+---@field cli_completion pesto.CliCompletionConfig
 ---
 --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
 ---@field build_target_resolvers pesto.TargetResolvers
@@ -111,7 +111,7 @@ local M = {}
 ---@field temp_dir string|nil
 
 ---@type string
-M.SETTINGS_KEY = 'pesto'
+M.CONFIG_KEY = 'pesto'
 
 ---@type string[]
 M.DEFAULT_BASH_COMPLETION_SCRIPTS = {
@@ -136,8 +136,8 @@ M.DEFAULT_TARGET_RESOLVERS = {
 M.DEFAULT_TARGET_RESOLVER_ID = 'all'
 M.DEFAULT_TEST_TARGET_RESOLVER_ID = 'tests'
 
----@type pesto.Settings
-M.DEFAULT_RAW_SETTINGS = {
+---@type pesto.Config
+M.DEFAULT_RAW_CONFIG = {
   bazel_executable = 'bazel',
   bazel_runner = function(opts)
     require('pesto.components').default_runner(opts)

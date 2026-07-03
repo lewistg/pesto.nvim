@@ -35,7 +35,7 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field quickfix_item_parser pesto.QuickfixItemParser
 ---@field remote_apis_helpers_command_builder pesto.RemoteApisHelpersCommandBuilder
 ---@field run_bazel_fn pesto.RunBazelFn
----@field settings pesto.InternalSettings
+---@field internal_config pesto.InternalConfig
 ---@field subcommands pesto.Subcommands
 ---@field temp_bep_files pesto.TempBepFiles
 ---@field test_subcommand pesto.TestSubcommand
@@ -58,7 +58,7 @@ components.action_logs_quickfix_item_loader = _action_logs_quickfix_item_loader 
 local function _bazel_bash_completion()
   return require('pesto.cli.bazel_bash_completion.bazel_bash_completion'):new(
     components.bazel_bash_completion_client,
-    components.settings
+    components.internal_config
   )
 end
 components.bazel_bash_completion = _bazel_bash_completion --[[@as pesto.BazelBashCompletion]]
@@ -72,7 +72,7 @@ components.bazel_basic_completion = _bazel_basic_completion --[[@as pesto.BazelB
 ---@return pesto.BazelBashCompletionClient
 local function _bazel_bash_completion_client()
   return require('pesto.cli.bazel_bash_completion.bazel_bash_completion_client'):new(
-    components.settings
+    components.internal_config
   )
 end
 components.bazel_bash_completion_client = _bazel_bash_completion_client --[[@as pesto.BazelBashCompletionClient]]
@@ -105,7 +105,7 @@ components.copy_last_bazel_command_subcommand = _copy_last_bazel_command_subcomm
 local function _build_subcommand()
   return require('pesto.cli.build_subcommand').new(
     components.internal_run_bazel_fn,
-    components.settings
+    components.internal_config
   )
 end
 components.build_subcommand = _build_subcommand --[[@as pesto.BuildSubcommand]]
@@ -122,7 +122,7 @@ components.build_window_manager = _build_window_manager --[[@as pesto.BuildWindo
 local function _bazel_sub_command()
   local BazelSubcommand = require('pesto.cli.bazel_subcommand')
   return BazelSubcommand:new(
-    components.settings,
+    components.internal_config,
     components.bazel_basic_completion,
     components.bazel_bash_completion,
     components.internal_run_bazel_fn
@@ -140,7 +140,7 @@ components.byte_stream_client = _byte_stream_client --[[@as pesto.ByteStreamClie
 ---@return pesto.DefaultRunner
 local function _default_runner()
   return require('pesto.runner.default.default_runner'):new(
-    components.settings,
+    components.internal_config,
     components.build_window_manager,
     components.build_event_json_loader,
     components.quick_fix_loader,
@@ -204,15 +204,17 @@ local function _progress_logs_quickfix_item_loader()
 end
 components.progress_logs_quickfix_item_loader = _progress_logs_quickfix_item_loader --[[@as pesto.ProgressLogsQuickfixItemLoader]]
 
----@return pesto.InternalSettings
-local _settings = function()
-  return require('pesto.internal_settings'):new()
+---@return pesto.InternalConfig
+local _internal_config = function()
+  return require('pesto.internal_config'):new()
 end
-components.settings = _settings --[[@as pesto.InternalSettings ]]
+components.internal_config = _internal_config --[[@as pesto.InternalConfig ]]
 
 ---@return pesto.MnemonicErrorformatResolver
 local _mnemonic_errorformat_resolver = function()
-  return require('pesto.runner.quickfix.mnemonic_errorformat_resolver'):new(components.settings)
+  return require('pesto.runner.quickfix.mnemonic_errorformat_resolver'):new(
+    components.internal_config
+  )
 end
 components.mnemonic_errorformat_resolver = _mnemonic_errorformat_resolver --[[@as pesto.MnemonicErrorformatResolver]]
 
@@ -227,7 +229,7 @@ local _quick_fix_loader = function()
   return require('pesto.runner.quickfix.quickfix_loader'):new(
     components.action_logs_quickfix_item_loader,
     components.progress_logs_quickfix_item_loader,
-    components.settings
+    components.internal_config
   )
 end
 components.quick_fix_loader = _quick_fix_loader --[[@as pesto.QuickfixLoader]]
@@ -241,7 +243,7 @@ components.remote_apis_helpers_command_builder = _remote_apis_helpers_command_bu
 ---@return pesto.InternalRunBazelFn
 local _internal_run_bazel_fn = function()
   return require('pesto.runner.internal_run_bazel_fn'):new(
-    components.settings,
+    components.internal_config,
     components.bazel_run_history
   )
 end
@@ -259,7 +261,7 @@ local _subcommands = function()
     internal_run_bazel_fn = components.internal_run_bazel_fn,
     open_build_term_subcommand = components.open_build_term_subcommand,
     copy_last_bazel_command_subcommand = components.copy_last_bazel_command_subcommand,
-    settings = components.settings,
+    internal_config = components.internal_config,
     test_subcommand = components.test_subcommand,
   })
 end
@@ -275,7 +277,7 @@ components.temp_bep_files = _temp_bep_files --[[@as pesto.TempBepFiles]]
 local _test_subcommand = function()
   return require('pesto.cli.test_subcommand').new(
     components.internal_run_bazel_fn,
-    components.settings
+    components.internal_config
   )
 end
 components.test_subcommand = _test_subcommand --[[@as pesto.TestSubcommand]]

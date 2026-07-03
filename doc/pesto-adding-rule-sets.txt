@@ -146,7 +146,7 @@ by Bazel. Here's how you can test whether the plugin's `errorformat` will work:
 
 If you get through those steps and the quickfix window populates, then you now
 have enough information to configure Pesto. You would simply add the following
-to your `vim.g.pesto.errorformats` value (|pesto.Settings.errorformats|):
+to your `vim.g.pesto.errorformats` value (|pesto.config.errorformats|):
 
 >lua
     vim.g.pesto = {
@@ -162,7 +162,7 @@ to your `vim.g.pesto.errorformats` value (|pesto.Settings.errorformats|):
 <
 
 In the case of Java, we would have the following, which is actually part of
-Pesto's default errorformat config (|pesto.Settings.default_errorformats|)
+Pesto's default errorformat config (|pesto.config.default_errorformats|)
 
 >lua
     vim.g.pesto = {

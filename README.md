@@ -18,8 +18,8 @@ It integrates with Bazel using the [Build Event Protocol](https://bazel.build/re
       - `rules_go`
       - `rules_rust`
       - `rules_scala`
-    - For other rule sets, see `:help pesto-adding-rule-sets` and `:help pesto.Settings.errorformats`.
-  - As a first option, `pesto.nvim` identifies and fetches failed action logs using the BEP logs; as an alternative `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.Settings.quickfix_log_source`).
+    - For other rule sets, see `:help pesto-adding-rule-sets` and `:help pesto.config.errorformats`.
+  - As a first option, `pesto.nvim` identifies and fetches failed action logs using the BEP logs; as an alternative `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.config.quickfix_log_source`).
 * A `bazel` wrapper command with autocomplete support:
   - `:Pesto bazel <bazel-subcommand> [subcommand-args]`
   - Auto-completion is backed by Bazel's own bash completion script; a simpler fallback experience is also provided if the script is unavailable.
@@ -48,7 +48,7 @@ vim.pack.add({
 ```lua
 {
   'lewistg/pesto.nvim',
-  ---@type pesto.Settings
+  ---@type pesto.Config
   opts = {},
   -- Pesto is lazy by default (see :h lua-plugin-lazy)
   lazy = false,
@@ -98,7 +98,7 @@ You can instead just set `vim.g.pesto`.
 Here is the default configuration:
 
 ```lua
----@type pesto.Settings
+---@type pesto.Config
 vim.g.pesto = {
   --- Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a
   --- path to an executable.
@@ -108,7 +108,7 @@ vim.g.pesto = {
     require("pesto.components").default_runner(opts)
   end,
   --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
-  --- Please see `:help pesto.Settings.build_target_resolvers` for more details.
+  --- Please see `:help pesto.config.build_target_resolvers` for more details.
   build_target_resolvers = {
     ...
   }
@@ -157,9 +157,9 @@ vim.g.pesto = {
 If you prefer, however, `pesto.nvim` does support a setup function:
 
 ```lua
----@type pesto.Settings
-local settings = {...}
-require("pesto").setup(settings)
+---@type pesto.Config
+local config = {...}
+require("pesto").setup(config)
 ```
 
 ### Quickfix integration
@@ -171,7 +171,7 @@ Here's how it works at a high-level:
 1. Following a build, `pesto.nvim` finds the logs for failed build actions.
 2. To load the errors into the quickfix list, `pesto.nvim` needs an `errorformat` string to parse the logs.
 `pesto.nvim` handles this by defining a mapping from action mnemonic to `errorformat` string.
-    - `pesto.nvim` comes with a default mapping for some of the more popular rule sets (`:help pesto.Settings.default_errorformats`) but also lets users extend this mapping through the `pesto.Settings.errorformats` config setting.
+    - `pesto.nvim` comes with a default mapping for some of the more popular rule sets (`:help pesto.config.default_errorformats`) but also lets users extend this mapping through the `pesto.config.errorformats` config setting.
 
 If you're new to Bazel and the terms "action" and "action mnemonic" are new to you, please see `:help pesto-bazel-concepts` for a quick primer on these Bazel concepts.
 
@@ -219,7 +219,7 @@ Remote caching services for Bazel serve assets, like the stderr logs, through gR
 Since implementing a gRPC client in Lua would be a significant undertaking, Pesto delegates the remote log fetches to a [helper "bytestream" client](tools/pesto-remote-apis-helpers/README.md) written in Python.
 Pesto will prompt you to set up this client before attempting to use it the first time.
 
-Before setting up the helper bytestream client, consider trying `pty_output` for `quickfix_log_source` (`:help pesto.Settings.quickfix_log_source`).
+Before setting up the helper bytestream client, consider trying `pty_output` for `quickfix_log_source` (`:help pesto.config.quickfix_log_source`).
 It is simpler and may work well enough for your needs.
 
 ## Similar plugins
