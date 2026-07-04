@@ -1,10 +1,10 @@
-*pesto-adding-rule-sets*
+*pesto.adding_rule_sets*
 
 Pesto comes pre-configured to support quickfix-loading for a few well-known
 rule sets. This guide explains how you might go about configuring Pesto to load
 errors produced by other rule sets.
 
-If you haven't already, consider reading |pesto-bazel-concepts| for a quick
+If you haven't already, consider reading |pesto.bazel_concepts| for a quick
 primer on Pesto's quickfix implementation. Here also is a recap of that
 section: To load the quickfix list, Pesto does the following:
 
@@ -19,7 +19,7 @@ The first step to adding support for a new rule set is identifying the mnemonic
 for actions emitting parseable error logs.
 
 --------------------------------------------------------------------------------
-Determining the action mnemonic                  *pesto-adding-rule-sets-mnemonic*
+Determining the action mnemonic                  *pesto.adding_rule_sets_mnemonic*
 
 There are a couple ways we can determine the mnemonic. For one, Bazel currently
 includes the mnemonic in its stderr output.
@@ -66,7 +66,7 @@ In this case "Javac" is the mnemonic. You should see similar phrasing for other
 rule sets.
 
 Pesto's `dump-failed-action-logs` command
-(|pesto-dump-failed-action-logs-command|) offers an alternative way to
+(|pesto.commands.dump-failed-action-logs|) offers an alternative way to
 determine the mnemonic:
 
 >viml
@@ -102,7 +102,7 @@ It would have the following contents:
 <
 
 --------------------------------------------------------------------------------
-Getting the errorformat string                *pesto-adding-rule-sets-errorformat*
+Getting the errorformat string                *pesto.adding_rule_sets_errorformat*
 
 The next thing we'll need is an |errorformat| string for the failed action logs.
 

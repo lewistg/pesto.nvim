@@ -18,7 +18,7 @@ It integrates with Bazel using the [Build Event Protocol](https://bazel.build/re
       - `rules_go`
       - `rules_rust`
       - `rules_scala`
-    - For other rule sets, see `:help pesto-adding-rule-sets` and `:help pesto.config.errorformats`.
+    - For other rule sets, see `:help pesto.adding_rule_sets` and `:help pesto.config.errorformats`.
   - As a first option, `pesto.nvim` identifies and fetches failed action logs using the BEP logs; as an alternative `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.config.quickfix_log_source`).
 * A `bazel` wrapper command with autocomplete support:
   - `:Pesto bazel <bazel-subcommand> [subcommand-args]`
@@ -85,7 +85,7 @@ Below is a suggested exercise using the example C project.
 4. After the build finishes, close the terminal by pressing `<Enter>`.
     - Similar to `:make`, Pesto adds the `<Enter>` keymap to quickly dismiss the build output terminal buffer.
 5. To see the quickfix integration, introduce some type of syntax error into `main.c` or some other source file (e.g., `ids.c`).
-6. This time we'll invoke `bazel` by running the `build` sub-command (`:help pesto-build-command`):
+6. This time we'll invoke `bazel` by running the `build` sub-command (`:help pesto.commands.build`):
    ```
    :Pesto build
    ```
@@ -173,11 +173,11 @@ Here's how it works at a high-level:
 `pesto.nvim` handles this by defining a mapping from action mnemonic to `errorformat` string.
     - `pesto.nvim` comes with a default mapping for some of the more popular rule sets (`:help pesto.config.default_errorformats`) but also lets users extend this mapping through the `pesto.config.errorformats` config setting.
 
-If you're new to Bazel and the terms "action" and "action mnemonic" are new to you, please see `:help pesto-bazel-concepts` for a quick primer on these Bazel concepts.
+If you're new to Bazel and the terms "action" and "action mnemonic" are new to you, please see `:help pesto.bazel_concepts` for a quick primer on these Bazel concepts.
 
 ## Commands
 
-This list shows a subset of the commands. For a full list see `:help pesto-commands`.
+This list shows a subset of the commands. For a full list see `:help pesto.commands`.
 
 ```viml
 " This command is somewhat equivalent to `:!bazel <bazel-subcommand> [subcommand-args]`. 
@@ -187,7 +187,7 @@ This list shows a subset of the commands. For a full list see `:help pesto-comma
 
 " Provides a way to quickly invoke a Bazel build without typing out a full bazel
 " command. "Target resolvers" are user-defined callbacks that return either a
-" target query or target pattern. For more info see `:h pesto-build-command`.
+" target query or target pattern. For more info see `:h pesto.commands.build`.
 :Pesto build [target-resolver-id]
 
 " Runs `bazel build --compile_one_dependency <current-file>`
