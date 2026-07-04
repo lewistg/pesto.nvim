@@ -1,7 +1,8 @@
 # pesto.nvim: Neovim Bazel plugin
 
-`pesto.nvim` is a Bazel runner plugin for Neovim with quickfix support.
+`pesto.nvim` is a Bazel runner plugin for Neovim.
 It integrates with Bazel using the [Build Event Protocol](https://bazel.build/remote/bep) to find, fetch, and parse error logs for failed build actions, including logs stored remotely.
+This approach gives it robust quickfix support for multi-language builds, letting you avoid the task of writing a multi-compiler errorformat.
 
 <div align="center">
   <video src="https://github.com/user-attachments/assets/78895432-2730-4e7d-9e96-f028638e4f4a">
@@ -135,7 +136,7 @@ vim.g.pesto = {
   default_errorformats = {
     ...
   },
-  --- This option is still in development. See the "Note about remote execution/caching" section below
+  --- This option is still in development. See the "Remote caching" section below
   bytestream_client = nil,
   --- Configuration for the `:Pesto bazel` subcommand auto-completion
   cli_completion = {
@@ -164,16 +165,60 @@ require("pesto").setup(config)
 
 ### Quickfix integration
 
-One of `pesto.nvim`'s key features is loading build errors into the quickfix list.
+One of `pesto.nvim`'s key features is the way it loads errors into the quickfix list.
 
-Here's how it works at a high-level:
+Here's how it works by default at a high-level:
 
 1. Following a build, `pesto.nvim` finds the logs for failed build actions.
+    - Note: Failed action logs are separate from bazel's stderr output. The action logs are stored in their own isolated files.
 2. To load the errors into the quickfix list, `pesto.nvim` needs an `errorformat` string to parse the logs.
 `pesto.nvim` handles this by defining a mapping from action mnemonic to `errorformat` string.
     - `pesto.nvim` comes with a default mapping for some of the more popular rule sets (`:help pesto.config.default_errorformats`) but also lets users extend this mapping through the `pesto.config.errorformats` config setting.
 
-If you're new to Bazel and the terms "action" and "action mnemonic" are new to you, please see `:help pesto.bazel_concepts` for a quick primer on these Bazel concepts.
+(If you're new to Bazel and the terms "action" and "action mnemonic" are new to you, please see `:help pesto.bazel_concepts` for a quick primer on these Bazel concepts.)
+
+As an example, here are the failed action logs for a basic Java compilation error:
+
+```bash
+src/main/java/net/starlark/java/syntax/LambdaExpression.java:43: error: cannot find symbol
+  public xpression getBody() {
+         ^
+  symbol:   class xpression
+  location: class LambdaExpression
+```
+
+Compare those logs with the bazel command's raw stderr output:
+
+```bash
+INFO: Analyzed target //src/main/java/net/starlark/java/syntax:syntax (0 packages loaded, 0 targets configured).
+ERROR: /home/user/dev/bazel/src/main/java/net/starlark/java/syntax/BUILD:17:13: Building src/main/java/net/starlark/java/syntax/libsyntax.
+jar (42 source files) and running annotation processors (AutoAnnotationProcessor, AutoBuilderProcessor, AutoOneOfProcessor, AutoValuePro
+cessor, AutoValueGsonAdapterFactoryProcessor) failed: (Exit 1): java failed: error executing Javac command (from target //src/main/java/
+net/starlark/java/syntax:syntax) external/rules_java++toolchains+remotejdk21_linux/bin/java '--add-exports=jdk.compiler/com.sun.tools.ja
+vac.api=ALL-UNNAMED' '--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED' ... (remaining 19 arguments skipped)
+src/main/java/net/starlark/java/syntax/LambdaExpression.java:43: error: cannot find symbol
+  public xpression getBody() {
+         ^
+  symbol:   class xpression
+  location: class LambdaExpression
+Target //src/main/java/net/starlark/java/syntax:syntax failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 1.008s, Critical Path: 0.75s
+INFO: 2 processes: 2 internal.
+ERROR: Build did NOT complete successfully
+INFO: Build Event Protocol files produced successfully.
+
+[Process exited 1]
+```
+
+In comparison, the action logs provide a cleaner source for quickfix error parsing.
+Also, Bazel stores separate log files per failed action.
+This makes them an ideal source for quickfix parsing since errors from different actions are not interleaved like they are in the stderr output.
+
+When RBE is involved, the latency of downloading action log files from the remote cache can be a disadvantage.
+As a fallback, `pesto.nvim` does support parsing the stderr output directly.
+The approach is still based on the action mnemonic.
+You can read more about it in `:help pesto.config.quickfix_log_source` and `:help pesto.remote_caching`.
 
 ## Commands
 
