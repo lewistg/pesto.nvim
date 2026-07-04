@@ -1,5 +1,5 @@
 ---@class pesto.BazelSubcommand: pesto.Subcommand
----@field private _settings pesto.InternalSettings
+---@field private _internal_config pesto.InternalConfig
 ---@field private _completion pesto.SubcommandCompletion|nil
 ---@field private _basic_completion pesto.BazelBasicCompletion
 ---@field private _bash_completion pesto.BazelBashCompletion
@@ -9,20 +9,20 @@ BazelSubcommand.__index = BazelSubcommand
 
 BazelSubcommand.name = 'bazel'
 
----@param settings pesto.InternalSettings
+---@param internal_config pesto.InternalConfig
 ---@param bazel_basic_completion pesto.BazelBasicCompletion
 ---@param bazel_bash_completion pesto.BazelBashCompletion
 ---@param internal_run_bazel_fn pesto.InternalRunBazelFn
 ---@return pesto.BazelSubcommand
 function BazelSubcommand:new(
-  settings,
+  internal_config,
   bazel_basic_completion,
   bazel_bash_completion,
   internal_run_bazel_fn
 )
   local o = setmetatable({}, BazelSubcommand)
 
-  o._settings = settings
+  o._internal_config = internal_config
 
   o._basic_completion = bazel_basic_completion
   o._bash_completion = bazel_bash_completion
@@ -71,7 +71,7 @@ function BazelSubcommand:_get_completion()
 
   ---@type pesto.SubcommandCompletion
   local completion
-  local mode = self._settings:get_cli_completion_settings().mode
+  local mode = self._internal_config:get_cli_completion_config().mode
 
   if mode == 'lua' then
     completion = self._basic_completion
@@ -96,7 +96,7 @@ function BazelSubcommand:_execute(opts)
   local context = runner.get_run_bazel_context()
   local bazel_command = vim.deepcopy(opts.fargs)
 
-  table.insert(bazel_command, 1, self._settings:get_bazel_executable())
+  table.insert(bazel_command, 1, self._internal_config:get_bazel_executable())
 
   self._internal_run_bazel_fn({
     bazel_command = bazel_command,

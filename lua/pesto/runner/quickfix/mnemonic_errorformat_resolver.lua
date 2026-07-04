@@ -1,14 +1,14 @@
 ---@class pesto.MnemonicErrorformatResolver
----@field private _settings pesto.InternalSettings
+---@field private _internal_config pesto.InternalConfig
 local MnemonicErrorformatResolver = {}
 MnemonicErrorformatResolver.__index = MnemonicErrorformatResolver
 
----@param settings pesto.InternalSettings
+---@param internal_config pesto.InternalConfig
 ---@return pesto.MnemonicErrorformatResolver
-function MnemonicErrorformatResolver:new(settings)
+function MnemonicErrorformatResolver:new(internal_config)
   local o = setmetatable({}, MnemonicErrorformatResolver)
 
-  o._settings = settings
+  o._internal_config = internal_config
 
   return o
 end
@@ -16,7 +16,7 @@ end
 ---@param action_mnemonic string
 ---@return pesto.ActionErrorformat|nil
 function MnemonicErrorformatResolver:get_errorformat(action_mnemonic)
-  return vim.iter(self._settings:get_errorformats()):find(function(action_errorformat)
+  return vim.iter(self._internal_config:get_errorformats()):find(function(action_errorformat)
     ---@type string[]
     local mnemonic_patterns
     if type(action_errorformat.action_mnemonic) == 'string' then

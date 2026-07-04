@@ -39,7 +39,7 @@ for log_level, numeric_log_level in pairs(LOG_LEVEL) do
     ---@type number
     local log_level_setting = vim.tbl_get(
       LOG_LEVEL,
-      vim.tbl_get(vim.g, require('pesto.settings').SETTINGS_KEY, 'log_level')
+      vim.tbl_get(vim.g, require('pesto.config').CONFIG_KEY, 'log_level')
     ) or LOG_LEVEL[DEFAULT_LOG_LEVEL]
     if numeric_log_level < log_level_setting then
       return

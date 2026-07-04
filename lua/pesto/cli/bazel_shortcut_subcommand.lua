@@ -6,7 +6,7 @@
 
 ---@class pesto.BazelShortcutSubcommand: pesto.Subcommand
 ---@field private _bazel_subcommand string
----@field protected _settings pesto.InternalSettings
+---@field protected _internal_config pesto.InternalConfig
 ---@field private _internal_run_bazel_fn pesto.InternalRunBazelFn
 local BazelShortcutSubcommand = {}
 BazelShortcutSubcommand.__index = BazelShortcutSubcommand
@@ -18,14 +18,19 @@ BazelShortcutSubcommand.__index = BazelShortcutSubcommand
 ---@param instance any
 ---@param bazel_subcommand 'build'|'test'
 ---@param internal_run_bazel_fn pesto.InternalRunBazelFn
----@param settings pesto.InternalSettings
+---@param internal_config pesto.InternalConfig
 ---@return pesto.BazelShortcutSubcommand
-function BazelShortcutSubcommand.new(instance, bazel_subcommand, internal_run_bazel_fn, settings)
+function BazelShortcutSubcommand.new(
+  instance,
+  bazel_subcommand,
+  internal_run_bazel_fn,
+  internal_config
+)
   local o = instance or setmetatable({}, BazelShortcutSubcommand)
 
   o._bazel_subcommand = bazel_subcommand
   o._internal_run_bazel_fn = internal_run_bazel_fn
-  o._settings = settings
+  o._internal_config = internal_config
 
   o.execute = function(opts)
     o:_execute(opts)
@@ -100,7 +105,7 @@ function BazelShortcutSubcommand:_execute(opts)
             return
           end
           local bazel_command = {
-            self._settings:get_bazel_executable(),
+            self._internal_config:get_bazel_executable(),
             self._bazel_subcommand,
             unpack(labels),
           }
@@ -125,7 +130,7 @@ function BazelShortcutSubcommand:_execute(opts)
       )
     else
       local bazel_command = {
-        self._settings:get_bazel_executable(),
+        self._internal_config:get_bazel_executable(),
         self._bazel_subcommand,
         unpack(target_resolver_result.targets),
       }
@@ -148,7 +153,7 @@ function BazelShortcutSubcommand:_query_targets(opts)
 
   ---@type string[]
   local query_command = {
-    self._settings:get_bazel_executable(),
+    self._internal_config:get_bazel_executable(),
     'query',
     opts.query,
   }

@@ -18,8 +18,8 @@ It integrates with Bazel using the [Build Event Protocol](https://bazel.build/re
       - `rules_go`
       - `rules_rust`
       - `rules_scala`
-    - For other rule sets, see `:help pesto-adding-rule-sets` and `:help pesto.Settings.errorformats`.
-  - As a first option, `pesto.nvim` identifies and fetches failed action logs using the BEP logs; as an alternative `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.Settings.quickfix_log_source`).
+    - For other rule sets, see `:help pesto.adding_rule_sets` and `:help pesto.config.errorformats`.
+  - As a first option, `pesto.nvim` identifies and fetches failed action logs using the BEP logs; as an alternative `pesto.nvim` also supports loading the quickfix list using `bazel`'s stderr output (see `:help pesto.config.quickfix_log_source`).
 * A `bazel` wrapper command with autocomplete support:
   - `:Pesto bazel <bazel-subcommand> [subcommand-args]`
   - Auto-completion is backed by Bazel's own bash completion script; a simpler fallback experience is also provided if the script is unavailable.
@@ -48,7 +48,7 @@ vim.pack.add({
 ```lua
 {
   'lewistg/pesto.nvim',
-  ---@type pesto.Settings
+  ---@type pesto.Config
   opts = {},
   -- Pesto is lazy by default (see :h lua-plugin-lazy)
   lazy = false,
@@ -85,7 +85,7 @@ Below is a suggested exercise using the example C project.
 4. After the build finishes, close the terminal by pressing `<Enter>`.
     - Similar to `:make`, Pesto adds the `<Enter>` keymap to quickly dismiss the build output terminal buffer.
 5. To see the quickfix integration, introduce some type of syntax error into `main.c` or some other source file (e.g., `ids.c`).
-6. This time we'll invoke `bazel` by running the `build` sub-command (`:help pesto-build-command`):
+6. This time we'll invoke `bazel` by running the `build` sub-command (`:help pesto.commands.build`):
    ```
    :Pesto build
    ```
@@ -98,7 +98,7 @@ You can instead just set `vim.g.pesto`.
 Here is the default configuration:
 
 ```lua
----@type pesto.Settings
+---@type pesto.Config
 vim.g.pesto = {
   --- Name of bazel binary that Pesto invokes. Should be on your `$PATH` or a
   --- path to an executable.
@@ -108,7 +108,7 @@ vim.g.pesto = {
     require("pesto.components").default_runner(opts)
   end,
   --- Configuration for the `:Pesto build [target_resolver]` subcommand. Defines the possible pre-defined target queries
-  --- Please see `:help pesto.Settings.build_target_resolvers` for more details.
+  --- Please see `:help pesto.config.build_target_resolvers` for more details.
   build_target_resolvers = {
     ...
   }
@@ -157,9 +157,9 @@ vim.g.pesto = {
 If you prefer, however, `pesto.nvim` does support a setup function:
 
 ```lua
----@type pesto.Settings
-local settings = {...}
-require("pesto").setup(settings)
+---@type pesto.Config
+local config = {...}
+require("pesto").setup(config)
 ```
 
 ### Quickfix integration
@@ -171,13 +171,13 @@ Here's how it works at a high-level:
 1. Following a build, `pesto.nvim` finds the logs for failed build actions.
 2. To load the errors into the quickfix list, `pesto.nvim` needs an `errorformat` string to parse the logs.
 `pesto.nvim` handles this by defining a mapping from action mnemonic to `errorformat` string.
-    - `pesto.nvim` comes with a default mapping for some of the more popular rule sets (`:help pesto.Settings.default_errorformats`) but also lets users extend this mapping through the `pesto.Settings.errorformats` config setting.
+    - `pesto.nvim` comes with a default mapping for some of the more popular rule sets (`:help pesto.config.default_errorformats`) but also lets users extend this mapping through the `pesto.config.errorformats` config setting.
 
-If you're new to Bazel and the terms "action" and "action mnemonic" are new to you, please see `:help pesto-bazel-concepts` for a quick primer on these Bazel concepts.
+If you're new to Bazel and the terms "action" and "action mnemonic" are new to you, please see `:help pesto.bazel_concepts` for a quick primer on these Bazel concepts.
 
 ## Commands
 
-This list shows a subset of the commands. For a full list see `:help pesto-commands`.
+This list shows a subset of the commands. For a full list see `:help pesto.commands`.
 
 ```viml
 " This command is somewhat equivalent to `:!bazel <bazel-subcommand> [subcommand-args]`. 
@@ -187,7 +187,7 @@ This list shows a subset of the commands. For a full list see `:help pesto-comma
 
 " Provides a way to quickly invoke a Bazel build without typing out a full bazel
 " command. "Target resolvers" are user-defined callbacks that return either a
-" target query or target pattern. For more info see `:h pesto-build-command`.
+" target query or target pattern. For more info see `:h pesto.commands.build`.
 :Pesto build [target-resolver-id]
 
 " Runs `bazel build --compile_one_dependency <current-file>`
@@ -219,14 +219,12 @@ Remote caching services for Bazel serve assets, like the stderr logs, through gR
 Since implementing a gRPC client in Lua would be a significant undertaking, Pesto delegates the remote log fetches to a [helper "bytestream" client](tools/pesto-remote-apis-helpers/README.md) written in Python.
 Pesto will prompt you to set up this client before attempting to use it the first time.
 
-Before setting up the helper bytestream client, consider trying `pty_output` for `quickfix_log_source` (`:help pesto.Settings.quickfix_log_source`).
+Before setting up the helper bytestream client, consider trying `pty_output` for `quickfix_log_source` (`:help pesto.config.quickfix_log_source`).
 It is simpler and may work well enough for your needs.
-
-## Goals
-
-* General purpose. Try to be useful for all Bazel rule sets.
-* Somewhat low-level. Don't hide Bazel too much.
 
 ## Similar plugins
 
-Pesto was inspired by [vim-bazel](https://github.com/bazelbuild/vim-bazel), which has since been archived.
+* [vim-bazel](https://github.com/bazelbuild/vim-bazel): The original inspiration for `pesto.nvim`, now archived.
+* [neovim-tasks](https://github.com/Shatur/neovim-tasks): A general-purpose build runner plugin that adapts to various build systems including Bazel. Where `pesto.nvim` may have an advantage:
+    - `neovim-tasks`'s approach is more "on-rails." `pesto.nvim`'s `bazel` wrapper command with auto-complete provides more flexibility in comparison.
+    - `neovim-tasks` parses Bazel's stderr to load the quickfix list. If your build mixes compilers (e.g., C++, Java, Rust, etc..), you may need to craft an `errorformat` that covers all possible error outputs. `pesto.nvim`'s approach to the quickfix list and `errorformat` lets you avoid this.

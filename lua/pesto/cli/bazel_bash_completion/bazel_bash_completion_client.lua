@@ -11,7 +11,7 @@
 ---@field timeout number
 
 ---@class pesto.BazelBashCompletionClient
----@field private _settings pesto.InternalSettings
+---@field private _internal_config pesto.InternalConfig
 ---@field private _bash_completion_server_system_object vim.SystemObj|nil
 ---@field private _current_response_line_handler fun(line: string)|nil
 ---@field private _bash_completion_script string|-1|nil
@@ -22,12 +22,12 @@ BazelBashCompletionClient.TIMEOUT_ERROR = {
   message = 'bash completion timed out',
 }
 
----@param settings pesto.InternalSettings
+---@param internal_config pesto.InternalConfig
 ---@return pesto.BazelBashCompletionClient
-function BazelBashCompletionClient:new(settings)
+function BazelBashCompletionClient:new(internal_config)
   local o = setmetatable({}, BazelBashCompletionClient)
 
-  o._settings = settings
+  o._internal_config = internal_config
   o._bash_completion_server_system_object = nil
   o._current_response_line_handler = nil
 
@@ -252,14 +252,14 @@ function BazelBashCompletionClient:_get_bash_completion_script()
     local logger = require('pesto.logger')
     logger.trace('finding the bash completion script')
 
-    local cli_options = self._settings:get_cli_completion_settings()
+    local cli_options = self._internal_config:get_cli_completion_config()
     ---@type string[]
     local bash_completion_scripts
     if cli_options.bash_completion_script ~= nil then
       bash_completion_scripts = { cli_options.bash_completion_script }
     else
-      local settings = require('pesto.settings')
-      bash_completion_scripts = settings.DEFAULT_BASH_COMPLETION_SCRIPTS
+      local config = require('pesto.config')
+      bash_completion_scripts = config.DEFAULT_BASH_COMPLETION_SCRIPTS
     end
 
     logger.trace(

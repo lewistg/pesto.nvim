@@ -15,7 +15,7 @@ The scripts are written in Python and invoked using `uv`. Python has firstclass 
 ### Are these scripts necessary? 
 
 No, you don't have to use these scripts.
-Try using `pty_output` for `quickfix_log_source` (`:help pesto.Settings.quickfix_log_source`).
+Try using `pty_output` for `quickfix_log_source` (`:help pesto.config.quickfix_log_source`).
 It may work well enough, and Pesto won't use this helper script at all.
 
 Pesto also won't use these scripts unless they've been set up using the Pesto's `install-remote-apis-helpers` command.

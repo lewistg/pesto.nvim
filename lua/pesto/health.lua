@@ -2,7 +2,7 @@ local M = {}
 
 local function check_bazel_executable()
   local components = require('pesto.components')
-  local bazel_command = components.settings:get_bazel_executable()
+  local bazel_command = components.internal_config:get_bazel_executable()
   local header = 'Bazel executable: '
   local command_line = '\t- Executable: ' .. tostring(bazel_command)
   if vim.fn.executable(bazel_command) == 1 then
@@ -23,9 +23,9 @@ end
 local function check_bazel_bash_completion()
   local components = require('pesto.components')
 
-  local completion_settings = components.settings:get_cli_completion_settings()
+  local completion_config = components.internal_config:get_cli_completion_config()
 
-  if completion_settings.mode == 'lua' then
+  if completion_config.mode == 'lua' then
     vim.health.info('Bash Bazel completion: disabled')
   else
     local bazel_bash_completion_client = components.bazel_bash_completion_client

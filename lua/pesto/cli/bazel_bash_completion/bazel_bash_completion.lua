@@ -5,7 +5,7 @@
 ---@field private _bash_completion_server_channel number|nil
 ---@field private _enabled boolean
 ---@field private _bash_completion_server_script_path string
----@field private _settings pesto.InternalSettings
+---@field private _internal_config pesto.InternalConfig
 local BazelBashCompletion = {}
 BazelBashCompletion.__index = BazelBashCompletion
 
@@ -15,13 +15,13 @@ BazelBashCompletion.MIN_WAIT = 2 * 1000
 BazelBashCompletion.MAX_WAIT = 30 * 1000
 
 ---@param bazel_bash_completion_client pesto.BazelBashCompletionClient
----@param settings pesto.InternalSettings
+---@param internal_config pesto.InternalConfig
 ---@return pesto.BazelBashCompletion
-function BazelBashCompletion:new(bazel_bash_completion_client, settings)
+function BazelBashCompletion:new(bazel_bash_completion_client, internal_config)
   local o = setmetatable({}, BazelBashCompletion)
 
   o._bazel_bash_completion_client = bazel_bash_completion_client
-  o._settings = settings
+  o._internal_config = internal_config
 
   o._enabled = true
 
@@ -53,9 +53,9 @@ function BazelBashCompletion:complete(opts)
   local request =
     bazel_bash_completion_request.get_bazel_bash_completion_request(opts, bash_command_tokens)
 
-  local completion_settings = self._settings:get_cli_completion_settings()
+  local completion_config = self._internal_config:get_cli_completion_config()
   local timeout = math.min(
-    math.max(completion_settings.bash_timeout or 0, BazelBashCompletion.MIN_WAIT),
+    math.max(completion_config.bash_timeout or 0, BazelBashCompletion.MIN_WAIT),
     BazelBashCompletion.MAX_WAIT
   )
 
