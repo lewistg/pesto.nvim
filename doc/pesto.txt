@@ -15,9 +15,11 @@ Contents                                                         *pesto-contents
 ================================================================================
 Intro                                                               *pesto.intro*
 
-`pesto.nvim` is a Bazel runner plugin for Neovim. It integrates with Bazel
-through the Build Event Protocol to support things like loading compilation
-errors into the quickfix list.
+`pesto.nvim` is a Bazel runner plugin for Neovim. It integrates with Bazel using
+the [Build Event Protocol](https://bazel.build/remote/bep) to find, fetch, and
+parse error logs for failed build actions, including logs stored remotely. This
+approach gives it robust quickfix support for multi-language builds, letting you
+avoid the task of writing a multi-compiler errorformat.
                                                                     *pesto.types*
 Note: Throughout this manual there are references to LuaLS types defined in
 Pesto's source code (e.g., `pesto.Config`).
