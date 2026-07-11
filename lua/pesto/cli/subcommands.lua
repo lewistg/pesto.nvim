@@ -92,6 +92,7 @@ end
 
 ---@class pesto.SubcommandDeps
 ---@field bazel_sub_command pesto.BazelSubcommand
+---@field build_under_cursor_subcommand pesto.BuildUnderCursorSubcommand
 ---@field dump_failed_action_logs_subcommand pesto.DumpFailedActionLogsSubcommand
 ---@field open_build_events_summary_subcommand pesto.OpenBuildEventsSummarySubcommand
 ---@field open_build_term_subcommand pesto.OpenBuildTermSubcommand
@@ -109,6 +110,7 @@ function M.make_subcommands(deps)
   local subcommands = {
     -- Please keep keys alphabetized (by command name)
     deps.bazel_sub_command,
+    deps.build_under_cursor_subcommand,
     deps.build_subcommand,
     get_compile_one_dep_subcommand(deps.internal_run_bazel_fn, deps.internal_config),
     deps.copy_last_bazel_command_subcommand,

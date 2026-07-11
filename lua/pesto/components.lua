@@ -18,6 +18,7 @@ local LazyTable = require('pesto.util.lazy_table')
 ---@field build_subcommand pesto.BuildSubcommand
 ---@field build_event_json_loader pesto.BuildEventJsonLoader
 ---@field build_event_file_loader pesto.BuildEventFileLoader
+---@field build_under_cursor_subcommand pesto.BuildUnderCursorSubcommand
 ---@field build_window_manager pesto.BuildWindowManager
 ---@field byte_stream_client pesto.ByteStreamClient
 ---@field copy_last_bazel_command_subcommand pesto.CopyLastBazelCommandSubcommand
@@ -117,6 +118,15 @@ local function _build_window_manager()
   )
 end
 components.build_window_manager = _build_window_manager --[[@as pesto.BuildWindowManager]]
+
+---@return pesto.BuildUnderCursorSubcommand
+local function _build_under_cursor_subcommand()
+  return require('pesto.cli.build_under_cursor').new(
+    components.internal_config,
+    components.internal_run_bazel_fn
+  )
+end
+components.build_under_cursor_subcommand = _build_under_cursor_subcommand --[[@as pesto.BuildUnderCursorSubcommand]]
 
 ---@return pesto.BazelSubcommand
 local function _bazel_sub_command()
@@ -254,6 +264,7 @@ local _subcommands = function()
   return require('pesto.cli.subcommands').make_subcommands({
     bazel_sub_command = components.bazel_sub_command,
     build_subcommand = components.build_subcommand,
+    build_under_cursor_subcommand = components.build_under_cursor_subcommand,
     dump_failed_action_logs_subcommand = components.dump_failed_action_logs_subcommand,
     install_remote_apis_helpers_subcommand = components.install_remote_apis_helpers_subcommand,
     load_quickfix_subcommand = components.load_quickfix_subcommand,
