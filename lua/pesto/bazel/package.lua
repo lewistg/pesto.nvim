@@ -30,22 +30,35 @@ function M.guess_target_names(build_file)
   return names
 end
 
-local RULE_TARGET_QUERY = vim.treesitter.query.parse(
-  'starlark',
-  [[
-  (
-    (expression_statement
-      (call
-        function: (identifier) @ruleTarget.functionIdentifier
-        arguments: (argument_list
-          (keyword_argument
-            name: (identifier) @ruleTarget.argKeyword
-            value: (string
-                    (string_content) @ruleTarget.nameArgValue))))) @ruleTarget.wholeExpression
-    (#eq? @ruleTarget.argKeyword "name")
+---@type vim.treesitter.Query|nil
+local _rule_target_query
+
+--- Some users may not have the starlark grammar installed, so we parse the
+--- rule target query lazily instead of at the module-require time, which would
+--- error.
+---@return vim.treesitter.Query
+local function get_rule_target_query()
+  if _rule_target_query ~= nil then
+    return _rule_target_query
+  end
+  _rule_target_query = vim.treesitter.query.parse(
+    'starlark',
+    [[
+    (
+      (expression_statement
+        (call
+          function: (identifier) @ruleTarget.functionIdentifier
+          arguments: (argument_list
+            (keyword_argument
+              name: (identifier) @ruleTarget.argKeyword
+              value: (string
+                      (string_content) @ruleTarget.nameArgValue))))) @ruleTarget.wholeExpression
+      (#eq? @ruleTarget.argKeyword "name")
+    )
+    ]]
   )
-  ]]
-)
+  return _rule_target_query
+end
 
 ---@param buf_id number|nil
 ---@param position [number, number]|nil 0-indexed row, column indexes
@@ -59,14 +72,23 @@ function M.infer_rule_target_name_by_ts_query(buf_id, position)
     buf_id = 0
   end
 
-  -- Side effect: calling parse ensures the tree is up to date (see :help vim.treesitter.get_node()
-  local tree = vim.treesitter.get_parser(buf_id):parse()[1]
+  -- Side effect: calling parse ensures the tree is up to date (see :help vim.treesitter.get_node())
+  local status, ret = pcall(function()
+    return vim.treesitter.get_parser(buf_id):parse()[1]
+  end)
+  if not status then
+    return {}
+  end
+  ---@type TSTree
+  local tree = ret
+
+  local rule_target_query = get_rule_target_query()
 
   local treesitter_util = require('pesto.util.treesitter_util')
   local parsed_matches = vim
-    .iter(RULE_TARGET_QUERY:iter_matches(tree:root(), 0, 0, -1))
+    .iter(rule_target_query:iter_matches(tree:root(), 0, 0, -1))
     :map(function(_, match)
-      return treesitter_util.get_match_captures_by_name(match, RULE_TARGET_QUERY)
+      return treesitter_util.get_match_captures_by_name(match, rule_target_query)
     end)
   if position ~= nil then
     local position_range = vim.iter({ position, position }):flatten():totable()

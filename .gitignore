@@ -2,3 +2,10 @@
 # adding anything inside of it.
 # See tools/nluah.sh
 test/xdg/local/share/nvim/site/pack/pesto/start/pesto.nvim
+
+# Ignore all bazel-* symlinks.
+/bazel-*
+/examples/*/bazel-*
+
+# Doc
+/doc/tags
