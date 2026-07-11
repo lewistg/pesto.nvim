@@ -235,6 +235,10 @@ This list shows a subset of the commands. For a full list see `:help pesto.comma
 " target query or target pattern. For more info see `:h pesto.commands.build`.
 :Pesto build [target-resolver-id]
 
+" Builds the rule target underneath the cursor. Must be run from a `BUILD` or
+" `BUILD.bazel` file. The Starlark Treesitter grammar must be installed.
+:Pesto build-under-cursor
+
 " Runs `bazel build --compile_one_dependency <current-file>`
 :Pesto compile-one-dep
 

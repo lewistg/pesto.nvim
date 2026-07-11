@@ -496,6 +496,14 @@ Listed below are the possible sub-commands:
     primary use case is invoking a build for targets that directly depend on
     the source file currently being edited.
 
+`build-under-cursor`                          *pesto.commands.build-under-cursor*
+    Builds the rule target underneath the cursor. This command must be run from
+    within a BUILD or BUILD.bazel file.
+
+    This command uses Starlark treesitter queries to infer the rule underneath
+    cursor. If you nvim-treesitter plugin installed, then you can install the
+    Starlark grammar using this command: `:TSInstall starlark`.
+
 `sp-build`                                              *pesto.commands.sp-build*
     Opens the BUILD or BUILD.bazel file for the current file's package in a
     horizontal split.
