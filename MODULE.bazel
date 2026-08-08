@@ -1,0 +1,17 @@
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "nvim",
+    urls = [
+        "https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.tar.gz"
+    ],
+    sha256 = "012bf3fcac5ade43914df3f174668bf64d05e049a4f032a388c027b1ebd78628",
+    strip_prefix = "nvim-linux-x86_64",
+    build_file_content = """
+exports_files(["bin/nvim"], visibility =["//visibility:public"])
+"""
+)
+
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
+
+bazel_dep(name = "rules_shell", version = "0.8.0")
