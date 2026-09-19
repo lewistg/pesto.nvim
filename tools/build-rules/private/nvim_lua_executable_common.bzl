@@ -7,7 +7,6 @@ def nvim_lua_executable_rule_impl(
         nvim_bin,
         entry_point,
         entry_point_args,
-        lua_path_roots,
         srcs,
         deps,
         run_files_lib):
@@ -17,12 +16,15 @@ def nvim_lua_executable_rule_impl(
 
     all_sources = depset(srcs, transitive = [dep[NvimLuaInfo].sources for dep in deps])
 
+    lua_path_roots = depset(transitive = [dep[NvimLuaInfo].lua_path_roots for dep in deps])
+
     srcs_by_lua_root_dirs = _get_srcs_by_lua_root_dirs(lua_path_roots, all_sources)
     lua_root_dirs = _create_lua_root_dirs(ctx, srcs_by_lua_root_dirs)
 
     lua_path_root_dirs = _get_lua_root_dirs(lua_path_roots)
 
     runfiles = ctx.runfiles([nvim_bin] + all_sources.to_list() + lua_root_dirs + [entry_point])
+    runfiles = runfiles.merge_all([dep[DefaultInfo].default_runfiles for dep in deps])
 
     # Make the rlocation library available
     runfiles = runfiles.merge(run_files_lib[DefaultInfo].default_runfiles)
@@ -48,7 +50,7 @@ def nvim_lua_executable_rule_impl(
 def _get_lua_root_dirs(lua_path_roots):
     return [
         paths.join(path_root.label.repo_name or "_main", path_root.label.package)
-        for path_root in lua_path_roots
+        for path_root in lua_path_roots.to_list()
     ]
 
 def _create_lua_root_dirs(ctx, srcs_by_lua_path_roots):
@@ -144,10 +146,10 @@ def _get_srcs_by_lua_root_dirs(lua_path_roots, srcs):
 
         return lua_path_root
 
-    for lua_path_root in lua_path_roots:
+    for lua_path_root in lua_path_roots.to_list():
         add_path_root(lua_path_root)
 
-    srcs_by_lua_path_roots = {lua_path_root: [] for lua_path_root in lua_path_roots}
+    srcs_by_lua_path_roots = {lua_path_root: [] for lua_path_root in lua_path_roots.to_list()}
     for src in srcs.to_list():
         lua_path_root = get_lua_path_root(src)
         if lua_path_root != None:

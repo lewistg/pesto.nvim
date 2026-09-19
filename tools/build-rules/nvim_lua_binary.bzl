@@ -8,7 +8,6 @@ def _nvim_lua_binary_impl(ctx):
         nvim_bin = ctx.file._nvim_bin,
         entry_point = ctx.file.entry_point,
         entry_point_args = [],
-        lua_path_roots = ctx.attr.lua_path_roots,
         srcs = ctx.files.srcs,
         deps = ctx.attr.deps,
         run_files_lib = ctx.attr._run_files_lib
@@ -25,7 +24,6 @@ nvim_lua_binary = rule(
         "entry_point": attr.label(
             allow_single_file = True,
         ),
-        "lua_path_roots": attr.label_list(providers = [NvimLuaPathRootInfo]),
         "_nvim_bin_runner_template": attr.label(
             allow_single_file = True,
             default = "//tools/build-rules/private:nvim_lua.sh.tpl",
