@@ -1,6 +1,7 @@
 describe('pesto.BuildEventTree', function()
-  local busted_fixtures = require('busted.fixtures')
-  local bazel_repo_dir = busted_fixtures.path('build_event_tree_spec_fixtures')
+  local run_files = require('rules_nvim_lua.runfiles')
+  local bazel_repo_dir =
+    run_files.rlocation('_main/test/spec/unit/bazel/build_event_tree_spec_fixtures')
   local clean_compile_build_events_path = vim.fs.joinpath(bazel_repo_dir, 'clean-compile.json')
 
   it('BuildEventTree:new constructs the tree from raw build events', function()
@@ -8,12 +9,12 @@ describe('pesto.BuildEventTree', function()
     local bep_tree = bep_json_loader:load(clean_compile_build_events_path)
 
     local started_events = bep_tree:find_events_by_kind({ 'started' })
-    assert.is_equal(1, #started_events)
-    assert.is_equal('started', started_events[1].kind)
+    assert.equal(1, #started_events)
+    assert.equal('started', started_events[1].kind)
 
     local target_completed_events = bep_tree:find_events_by_kind({ 'target_completed' })
-    assert.is_equal(1, #started_events)
-    assert.is_equal('target_completed', target_completed_events[1].kind)
+    assert.equal(1, #started_events)
+    assert.equal('target_completed', target_completed_events[1].kind)
   end)
 end)
 

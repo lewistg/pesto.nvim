@@ -1,6 +1,8 @@
 describe('pesto.BuildEventTreeQueries', function()
-  local busted_fixtures = require('busted.fixtures')
-  local bazel_repo_dir = busted_fixtures.path('build_event_tree_spec_fixtures')
+  local run_files = require('rules_nvim_lua.runfiles')
+  local bazel_repo_dir =
+    run_files.rlocation('_main/test/spec/unit/bazel/build_event_tree_spec_fixtures')
+
   local broken_build_remote_cache_bep_path =
     vim.fs.joinpath(bazel_repo_dir, 'broken-build-remote-cache-bep.json')
   local broken_scala_build_bep_path = vim.fs.joinpath(bazel_repo_dir, 'broken-scala-build-bep.json')
@@ -15,7 +17,7 @@ describe('pesto.BuildEventTreeQueries', function()
     local remote_cache_option =
       bep_tree_queries:find_command_line_option('canonical', 'remote_cache')[1]
 
-    assert.is_equal('grpc://localhost:8980', remote_cache_option.option_value)
+    assert.equal('grpc://localhost:8980', remote_cache_option.option_value)
   end)
 
   it(

@@ -1,6 +1,7 @@
 describe('bazel_repo.get_package_label', function()
-  local busted_fixtures = require('busted.fixtures')
-  local bazel_repo_dir = busted_fixtures.path('repo_spec_example_repo_fixture')
+  local run_files = require('rules_nvim_lua.runfiles')
+  local bazel_repo_dir =
+    run_files.rlocation('_main/test/spec/unit/bazel/repo_spec_example_repo_fixture')
 
   teardown(function()
     -- Clean up buffers opened during the test. Each test should clean up their

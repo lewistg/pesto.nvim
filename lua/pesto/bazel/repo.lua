@@ -39,8 +39,10 @@ function M.get_package_label(buf_nr)
     return nil
   end
   local package_dir_path = vim.fn.fnamemodify(build_file_path, ':p:h')
+
   local root_dir_path = M.find_project_root_dir()
   local package_rel_path = vim.fs.relpath(root_dir_path, package_dir_path)
+
   if package_rel_path == '.' then
     return '//'
   else
@@ -79,9 +81,11 @@ end
 ---@return string|nil
 function M.find_project_root_marker_file(buf_nr)
   local buffer_dir = get_buffer_dir(buf_nr)
+
   local root_marker_filenames = { 'MODULE.bazel', 'REPO.bazel', 'WORKSPACE', 'WORKSPACE.bazel' }
   for _, filename in ipairs(root_marker_filenames) do
     local root_marker_file = vim.fn.findfile(filename, buffer_dir .. ';')
+    root_marker_file = vim.fs.abspath(root_marker_file)
     if root_marker_file and string.len(root_marker_file) > 0 then
       return root_marker_file
     end

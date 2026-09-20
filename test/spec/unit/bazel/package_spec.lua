@@ -1,8 +1,8 @@
 describe('bazel.package', function()
   it('guess_target_names guesses target names', function()
-    local busted_fixtures = require('busted.fixtures')
-    local bazel_repo_dir = busted_fixtures.path('package_spec_fixtures')
-    local build_file_path = vim.fs.joinpath(bazel_repo_dir, 'BUILD')
+    local run_files = require('rules_nvim_lua.runfiles')
+    local build_file_path =
+      run_files.rlocation('_main/test/spec/unit/bazel/package_spec_fixtures/BUILD')
     local bazel = require('pesto.bazel')
     local targets = bazel.package.guess_target_names(build_file_path)
     assert.are.same({ 'foo', 'foo1', 'foo2', 'foo3' }, targets)
