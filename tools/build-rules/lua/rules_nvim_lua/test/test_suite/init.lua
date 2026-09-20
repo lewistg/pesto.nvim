@@ -16,6 +16,7 @@ end
 ---@class rules_nvim_lua.TestSuite
 ---@field description string
 ---@field examples (rules_nvim_lua.TestSuiteExample|rules_nvim_lua.TestSuite)[]
+---@field teardown fun()|nil
 M.TestSuite = {}
 M.TestSuite.__index = M.TestSuite
 
@@ -61,6 +62,11 @@ function M.it(description, test_fn)
   else
     error('it must be called within a describe callback')
   end
+end
+
+function M.teardown(teardown_fn)
+  local current_test_suite = get_current_test_suite()
+  current_test_suite.teardown = teardown_fn
 end
 
 return M

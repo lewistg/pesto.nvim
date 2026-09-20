@@ -68,6 +68,10 @@ local function run_test_suite(test, level)
     end
   end
 
+  if test.teardown ~= nil then
+    test.teardown()
+  end
+
   return test_stats
 end
 
