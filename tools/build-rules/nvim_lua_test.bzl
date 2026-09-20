@@ -10,10 +10,10 @@ def _nvim_lua_test_impl(ctx):
         nvim_bin = ctx.file._nvim_bin,
         entry_point = ctx.file.test_runner_entry_point,
         entry_point_args = spec_file_args,
-        lua_path_roots = ctx.attr.lua_path_roots + ctx.attr.test_runner_lua_path_roots,
         srcs = ctx.files.srcs,
         deps = ctx.attr.deps + [ctx.attr.test_runner_deps],
         run_files_lib = ctx.attr._run_files_lib,
+        data = ctx.attr.data
     )
 
 nvim_lua_test = rule(
@@ -24,7 +24,6 @@ nvim_lua_test = rule(
             allow_empty = False,
         ),
         "deps": attr.label_list(providers = [NvimLuaInfo]),
-        "lua_path_roots": attr.label_list(providers = [NvimLuaPathRootInfo]),
         "test_runner_entry_point": attr.label(
             allow_single_file = True,
             default = "//tools/build-rules/lua/rules_nvim_lua/test/runner:init.lua",
@@ -37,6 +36,9 @@ nvim_lua_test = rule(
         "test_runner_lua_path_roots": attr.label_list(
             providers = [NvimLuaPathRootInfo],
             default = ["//tools/build-rules/lua:lua"],
+        ),
+        "data": attr.label_list(
+            allow_files = True,
         ),
         "_nvim_bin_runner_template": attr.label(
             allow_single_file = True,

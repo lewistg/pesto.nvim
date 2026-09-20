@@ -10,7 +10,8 @@ def _nvim_lua_binary_impl(ctx):
         entry_point_args = [],
         srcs = ctx.files.srcs,
         deps = ctx.attr.deps,
-        run_files_lib = ctx.attr._run_files_lib
+        run_files_lib = ctx.attr._run_files_lib,
+        data = ctx.attr.data
     )
 
 nvim_lua_binary = rule(

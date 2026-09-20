@@ -9,7 +9,8 @@ def nvim_lua_executable_rule_impl(
         entry_point_args,
         srcs,
         deps,
-        run_files_lib):
+        run_files_lib,
+        data):
     nvim_runner_file = ctx.actions.declare_file("nvim_runner.sh")
 
     nvim_bin_path = ctx.workspace_name + "/" + entry_point.short_path
@@ -23,7 +24,16 @@ def nvim_lua_executable_rule_impl(
 
     lua_path_root_dirs = _get_lua_root_dirs(lua_path_roots)
 
-    runfiles = ctx.runfiles([nvim_bin] + all_sources.to_list() + lua_root_dirs + [entry_point])
+    data_files = []
+    if data:
+        for datum in data:
+            if datum[DefaultInfo]:
+                data_files += datum[DefaultInfo].files.to_list()
+            else:
+                # File
+                data_files.append(datum)
+
+    runfiles = ctx.runfiles([nvim_bin] + all_sources.to_list() + lua_root_dirs + [entry_point] + data_files)
     runfiles = runfiles.merge_all([dep[DefaultInfo].default_runfiles for dep in deps])
 
     # Make the rlocation library available
