@@ -17,6 +17,9 @@ end
 ---@field description string
 ---@field examples (rules_nvim_lua.TestSuiteExample|rules_nvim_lua.TestSuite)[]
 ---@field teardown fun()|nil
+---@field setup fun()|nil
+---@field before_each fun()|nil
+---@field after_each fun()|nil
 M.TestSuite = {}
 M.TestSuite.__index = M.TestSuite
 
@@ -64,9 +67,24 @@ function M.it(description, test_fn)
   end
 end
 
+function M.setup(setup_fn)
+  local current_test_suite = get_current_test_suite()
+  current_test_suite.setup = setup_fn
+end
+
 function M.teardown(teardown_fn)
   local current_test_suite = get_current_test_suite()
   current_test_suite.teardown = teardown_fn
+end
+
+function M.before_each(before_each_fn)
+  local current_test_suite = get_current_test_suite()
+  current_test_suite.before_each = before_each_fn
+end
+
+function M.after_each(after_each_fn)
+  local current_test_suite = get_current_test_suite()
+  current_test_suite.after_each = after_each_fn
 end
 
 return M

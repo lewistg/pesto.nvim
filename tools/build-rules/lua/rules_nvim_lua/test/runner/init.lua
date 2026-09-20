@@ -9,6 +9,10 @@ local function get_env()
   local env = {
     describe = test_suite.describe,
     it = test_suite.it,
+    setup = test_suite.setup,
+    teardown = test_suite.teardown,
+    before_each = test_suite.before_each,
+    after_each = test_suite.after_each,
     assert = require('rules_nvim_lua.test.test_suite.assert'),
   }
   return setmetatable(env, { __index = _G })
@@ -45,11 +49,21 @@ local function run_test_suite(test, level)
 
   local AssertionError = require('rules_nvim_lua.test.test_suite.assertion_error')
   vim.print(get_description(test, level))
+
+  if test.setup ~= nil then
+    test.setup()
+  end
+
   for _, example in ipairs(test.examples) do
     if getmetatable(example) == test_suite.TestSuite then
       run_test_suite(example, level + 1)
     elseif getmetatable(example) == test_suite.TestSuiteExample then
       vim.print(get_description(example, level + 1))
+
+      if test.before_each ~= nil then
+        test.before_each()
+      end
+
       local result = xpcall(example.test, function(error)
         ---@type string
         local message
@@ -64,6 +78,10 @@ local function run_test_suite(test, level)
         test_stats:inc_successes()
       else
         test_stats:inc_failures()
+      end
+
+      if test.after_each ~= nil then
+        test.after_each()
       end
     end
   end
