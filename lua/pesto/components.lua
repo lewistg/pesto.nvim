@@ -206,7 +206,7 @@ components.progress_logs_quickfix_item_loader = _progress_logs_quickfix_item_loa
 
 ---@return pesto.InternalConfig
 local _internal_config = function()
-  return require('pesto.internal_config'):new()
+  return require('pesto.config.internal_config'):new()
 end
 components.internal_config = _internal_config --[[@as pesto.InternalConfig ]]
 
@@ -244,6 +244,9 @@ components.remote_apis_helpers_command_builder = _remote_apis_helpers_command_bu
 local _internal_run_bazel_fn = function()
   return require('pesto.runner.internal_run_bazel_fn'):new(
     components.internal_config,
+    function(opts)
+      components.default_runner(opts)
+    end,
     components.bazel_run_history
   )
 end
