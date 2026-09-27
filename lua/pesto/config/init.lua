@@ -58,7 +58,7 @@ local M = {}
 ---@field bazel_executable string
 ---
 --- Callback invoked to run bazel.
----@field bazel_runner pesto.RunBazelFn Method invoked to run bazel.
+---@field bazel_runner pesto.RunBazelFn|nil Method invoked to run bazel.
 ---
 --- Logging level (see `:checkhealth pesto` to get the log file's path).
 ---@field log_level string
@@ -139,9 +139,7 @@ M.DEFAULT_TEST_TARGET_RESOLVER_ID = 'tests'
 ---@type pesto.Config
 M.DEFAULT_RAW_CONFIG = {
   bazel_executable = 'bazel',
-  bazel_runner = function(opts)
-    require('pesto.components').default_runner(opts)
-  end,
+  bazel_runner = nil,
   build_target_resolvers = M.DEFAULT_TARGET_RESOLVERS,
   quickfix_log_source = 'bep',
   enable_bep_integration = true,

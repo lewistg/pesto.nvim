@@ -8,4 +8,7 @@ nvim_lua_library(
         "//lua:__subpackages__",
         "//test:__subpackages__",
     ],
+    deps = [
+        "//lua/pesto/util",
+    ],
 )
