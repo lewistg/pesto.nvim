@@ -2,8 +2,11 @@ load("//tools/build-rules:nvim_plugin.bzl", "nvim_plugin")
 
 nvim_plugin(
     name = "pesto.nvim",
-    deps = [
+    lua = [
         "//plugin",
+    ],
+    support_files = [
+        "//tools/pesto-bash-helpers",
     ],
     visibility = [
         "//visibility:public",

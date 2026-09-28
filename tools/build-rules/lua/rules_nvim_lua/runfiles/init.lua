@@ -49,8 +49,12 @@ function M.rlocation(path)
 
   local segments = vim.split(path, '/')
   local apparent_repo_name = segments[1]
-  segments[1] =
+
+  local canonical_repo_name =
     get_canonical_repo_name({ source_repo = source_repo, apparent_repo_name = apparent_repo_name })
+  if canonical_repo_name ~= nil then
+    segments[1] = canonical_repo_name
+  end
 
   return vim.fs.joinpath(RUNFILES_DIR, unpack(segments))
 end
