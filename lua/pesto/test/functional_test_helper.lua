@@ -152,4 +152,19 @@ function FunctionalTestHelper:get_build_exit_code()
   )
 end
 
+---@param win_id number
+---@return string[]|nil
+function FunctionalTestHelper:dump_win_buffer(win_id)
+  local win_info = vim.rpcrequest(self.nvim_chan, 'nvim_call_function', 'getwininfo', { win_id })
+  if win_info == nil or #win_info == 0 then
+    return nil
+  end
+  local buf_id = win_info[1]['bufnr']
+  return vim.rpcrequest(self.nvim_chan, 'nvim_buf_get_lines', buf_id, 0, -1, false)
+end
+
+function FunctionalTestHelper:dump_messages()
+  return vim.rpcrequest(self.nvim_chan, 'nvim_cmd', { cmd = 'messages' }, { output = true })
+end
+
 return FunctionalTestHelper
