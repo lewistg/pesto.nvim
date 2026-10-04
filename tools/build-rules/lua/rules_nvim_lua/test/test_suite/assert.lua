@@ -137,7 +137,7 @@ end
 local _assert = make_assert(false)
 local _negated_assert = make_assert(true)
 
-global_assert = {
+global_assert = setmetatable({
   assert = _assert,
   is = _assert,
   are = _assert,
@@ -148,6 +148,10 @@ global_assert = {
   falsey = _assert.falsey,
   same = _assert.same,
   equal = _assert.equal,
-}
+}, {
+  __call = function(_, condition)
+    return _assert.is_true(condition)
+  end,
+})
 
 return global_assert

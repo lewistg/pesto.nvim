@@ -14,7 +14,7 @@ function BuildWindowTestHelper:new(nvim_chan, functional_test_helper)
 end
 
 function BuildWindowTestHelper:verify_build_window_opens()
-  local assert = require('luassert')
+  local assert = require('rules_nvim_lua.test.test_suite.assert')
 
   -- There should be two windows open in the current tab
   local curr_tab_page_nr =
