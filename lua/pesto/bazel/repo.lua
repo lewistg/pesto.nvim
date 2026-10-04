@@ -7,25 +7,19 @@ local PACKAGE_MARKERS = {
   'BUILD',
 }
 
--- Finds the corresponding build file for the source file in the given buffer.
---
+local function normalize_path(path)
+  return vim.fn.resolve(vim.fs.abspath(path))
+end
+
 ---@param buf_nr number|nil
 local function get_buffer_dir(buf_nr)
-  local buffer_dir = nil
-  if buf_nr == nil then
-    -- Get the current buffer's path
-    buffer_dir = vim.fn.expand('%:p:h')
+  local path = vim.api.nvim_buf_get_name(buf_nr or 0)
+  path = normalize_path(path)
+  if vim.fn.isdirectory(path) then
+    return path
   else
-    local buffers = vim.fn.getbufinfo(buf_nr or '%')
-    if #buffers < 1 then
-      error('invalid buffer number')
-    elseif buffers[1].name == '' then
-      buffer_dir = vim.fn.getcwd(buffers[1].windows[1])
-    else
-      buffer_dir = vim.fn.fnamemodify(buffers[1].name, ':p:h')
-    end
+    return vim.fs.dirname(path)
   end
-  return buffer_dir
 end
 
 -- Gets the label for the package that contains the file associated with the
@@ -38,9 +32,12 @@ function M.get_package_label(buf_nr)
   if build_file_path == nil then
     return nil
   end
-  local package_dir_path = vim.fn.fnamemodify(build_file_path, ':p:h')
 
+  local package_dir_path = vim.fs.dirname(build_file_path)
   local root_dir_path = M.find_project_root_dir()
+  if root_dir_path == nil then
+    return nil
+  end
   local package_rel_path = vim.fs.relpath(root_dir_path, package_dir_path)
 
   if package_rel_path == '.' then
@@ -71,7 +68,7 @@ end
 ---@param buf_nr number|nil
 function M.find_project_root_dir(buf_nr)
   local root_marker_file = M.find_project_root_marker_file(buf_nr)
-  local root_dir = vim.fn.fnamemodify(root_marker_file, ':p:h')
+  local root_dir = vim.fs.dirname(root_marker_file)
   return root_dir
 end
 
@@ -85,9 +82,8 @@ function M.find_project_root_marker_file(buf_nr)
   local root_marker_filenames = { 'MODULE.bazel', 'REPO.bazel', 'WORKSPACE', 'WORKSPACE.bazel' }
   for _, filename in ipairs(root_marker_filenames) do
     local root_marker_file = vim.fn.findfile(filename, buffer_dir .. ';')
-    root_marker_file = vim.fs.abspath(root_marker_file)
     if root_marker_file and string.len(root_marker_file) > 0 then
-      return root_marker_file
+      return normalize_path(root_marker_file)
     end
   end
   return nil
@@ -96,7 +92,6 @@ end
 ---@param buf_nr number
 ---@return boolean
 function M.is_in_bazel_repo(buf_nr)
-  local ret = M.find_project_root_marker_file(buf_nr) ~= nil
   return M.find_project_root_marker_file(buf_nr) ~= nil
 end
 
