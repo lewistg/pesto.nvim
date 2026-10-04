@@ -5,6 +5,6 @@ nvim_lua_library(
     srcs = glob(["*.lua"]),
     lua_path_root = "//tools/build-rules/lua",
     visibility = [
-        "//tools/build-rules/lua/rules_nvim_lua:__subpackages__",
+        "//visibility:public",
     ],
 )

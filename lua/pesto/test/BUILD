@@ -8,4 +8,7 @@ nvim_lua_library(
         "//lua:__subpackages__",
         "//test:__subpackages__",
     ],
+    deps = [
+        "//tools/build-rules/lua/rules_nvim_lua/test/test_suite",
+    ],
 )
