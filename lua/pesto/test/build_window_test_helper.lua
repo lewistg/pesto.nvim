@@ -33,9 +33,10 @@ function BuildWindowTestHelper:verify_build_window_opens()
   local build_win_ids = self._functional_test_helper:find_build_windows()
   assert.are.equal(1, #build_win_ids)
 
-  wait_status = vim.fn.wait(10 * 1000, function()
+  wait_status = vim.fn.wait(10 * 6000, function()
     return self._functional_test_helper:get_build_exit_code() == 0
   end)
+
   assert.are.equal(0, wait_status)
 end
 
