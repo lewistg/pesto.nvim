@@ -1,17 +1,5 @@
 describe('test subcommand', function()
   local nvim_chan
-  local busted_fixtures = require('busted.fixtures')
-  local bazel_repo_dir = busted_fixtures.path('bazel_repo_fixture')
-  local env_vars = vim.fn.environ()
-  local job_opts = {
-    rpc = true,
-    cwd = bazel_repo_dir,
-    env = {
-      XDG_CONFIG_HOME = env_vars['XDG_CONFIG_HOME'],
-      XDG_STATE_HOME = env_vars['XDG_STATE_HOME'],
-      XDG_DATA_HOME = env_vars['XDG_DATA_HOME'],
-    },
-  }
 
   ---@type pesto.FunctionalTestHelper
   local functional_test_helper
@@ -20,7 +8,25 @@ describe('test subcommand', function()
   local build_window_test_helper
 
   before_each(function()
-    nvim_chan = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, job_opts)
+    local run_files = require('rules_nvim_lua.runfiles')
+    local nvim_bin = run_files.rlocation('nvim/bin/nvim')
+
+    local functional_test_setup = require('pesto.test.functional_test_setup')
+    local fixture_repo =
+      functional_test_setup.set_up_repo_fixture('_main/test/spec/functional/bazel_repo_fixture')
+    local xdg_dirs = functional_test_setup.set_up_plugin()
+
+    local job_opts = {
+      rpc = true,
+      cwd = fixture_repo,
+      env = {
+        XDG_CONFIG_HOME = xdg_dirs.xdg_config,
+        XDG_STATE_HOME = xdg_dirs.xdg_state,
+        XDG_DATA_HOME = xdg_dirs.xdg_home,
+      },
+    }
+
+    nvim_chan = vim.fn.jobstart({ nvim_bin, '--embed', '--headless' }, job_opts)
     functional_test_helper = require('pesto.test.functional_test_helper'):new(nvim_chan)
     build_window_test_helper =
       require('pesto.test.build_window_test_helper'):new(nvim_chan, functional_test_helper)

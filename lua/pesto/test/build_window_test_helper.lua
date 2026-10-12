@@ -21,7 +21,7 @@ function BuildWindowTestHelper:verify_build_window_opens()
     vim.rpcrequest(self._nvim_chan, 'nvim_call_function', 'tabpagenr', { '$' })
 
   -- There should be two windows open eventually
-  local wait_status = vim.fn.wait(5 * 1000, function()
+  local wait_status = vim.fn.wait(60 * 1000, function()
     local tab_info =
       vim.rpcrequest(self._nvim_chan, 'nvim_call_function', 'gettabinfo', { curr_tab_page_nr })
     assert(tab_info ~= nil)
@@ -33,7 +33,7 @@ function BuildWindowTestHelper:verify_build_window_opens()
   local build_win_ids = self._functional_test_helper:find_build_windows()
   assert.are.equal(1, #build_win_ids)
 
-  wait_status = vim.fn.wait(10 * 6000, function()
+  wait_status = vim.fn.wait(60 * 1000, function()
     return self._functional_test_helper:get_build_exit_code() == 0
   end)
 

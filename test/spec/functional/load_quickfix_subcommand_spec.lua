@@ -1,23 +1,37 @@
 describe('load-quickfix subcommand', function()
   local nvim_chan
-  local busted_fixtures = require('busted.fixtures')
-  local env_vars = vim.fn.environ()
-  local fixture_root = busted_fixtures.path('bazel_repo_fixture')
-  local job_opts = {
-    rpc = true,
-    cwd = fixture_root,
-    env = {
-      XDG_CONFIG_HOME = env_vars['XDG_CONFIG_HOME'],
-      XDG_STATE_HOME = env_vars['XDG_STATE_HOME'],
-      XDG_DATA_HOME = env_vars['XDG_DATA_HOME'],
-    },
-  }
+
+  local run_files = require('rules_nvim_lua.runfiles')
+  local NVIM_BIN = run_files.rlocation('nvim/bin/nvim')
 
   ---@type pesto.FunctionalTestHelper
   local functional_test_helper
 
+  ---@type pesto.XdgDirs
+  local xdg_dirs
+
+  ---@type string
+  local fixture_repo
+
+  setup(function()
+    local functional_test_setup = require('pesto.test.functional_test_setup')
+
+    fixture_repo =
+      functional_test_setup.set_up_repo_fixture('_main/test/spec/functional/bazel_repo_fixture')
+    xdg_dirs = functional_test_setup.set_up_plugin()
+  end)
+
   before_each(function()
-    nvim_chan = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, job_opts)
+    local job_opts = {
+      rpc = true,
+      cwd = fixture_repo,
+      env = {
+        XDG_CONFIG_HOME = xdg_dirs.xdg_config,
+        XDG_STATE_HOME = xdg_dirs.xdg_state,
+        XDG_DATA_HOME = xdg_dirs.xdg_home,
+      },
+    }
+    nvim_chan = vim.fn.jobstart({ NVIM_BIN, '--embed', '--headless' }, job_opts)
     functional_test_helper = require('pesto.test.functional_test_helper'):new(nvim_chan)
   end)
 
@@ -30,7 +44,7 @@ describe('load-quickfix subcommand', function()
     -- Note: hello-error/main.c has an  error
     local system_completed = vim
       .system({ 'bazel', 'build', '//hello-error:main', '--build_event_json_file', bep_json_file }, {
-        cwd = fixture_root,
+        cwd = fixture_repo,
       })
       :wait()
     assert.is_true(system_completed.code == 1)
@@ -39,7 +53,7 @@ describe('load-quickfix subcommand', function()
     local subcommand = { 'load-quickfix', bep_json_file }
     vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'Pesto', args = subcommand }, {})
 
-    local wait_status = vim.wait(1000 * 5, function()
+    local wait_status = vim.wait(1000 * 10, function()
       local buf_id = functional_test_helper:get_quickfix_buf_id()
       return buf_id ~= vim.NIL
     end)

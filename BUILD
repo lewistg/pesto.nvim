@@ -7,6 +7,7 @@ nvim_plugin(
     ],
     support_files = [
         "//tools/pesto-bash-helpers",
+        "//tools/pesto-remote-apis-helpers",
     ],
     visibility = [
         "//visibility:public",

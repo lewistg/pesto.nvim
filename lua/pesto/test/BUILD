@@ -9,6 +9,7 @@ nvim_lua_library(
         "//test:__subpackages__",
     ],
     deps = [
+        "//lua/pesto/util",
         "//tools/build-rules/lua/rules_nvim_lua/test/test_suite",
     ],
 )

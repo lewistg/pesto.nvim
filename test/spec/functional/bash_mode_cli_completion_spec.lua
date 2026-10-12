@@ -1,18 +1,6 @@
 describe("CLI completion with 'bash' mode", function()
+  ---@type integer
   local nvim_chan
-  local run_files = require('rules_nvim_lua.runfiles')
-
-  local bazel_repo_dir = run_files.rlocation('_main/test/spec/functional/bazel_repo_fixture')
-
-  local job_opts = {
-    rpc = true,
-    cwd = bazel_repo_dir,
-    env = {
-      XDG_CONFIG_HOME = run_files.rlocation('xdg/local/config'),
-      XDG_STATE_HOME = run_files.rlocation('xdg/local/state'),
-      XDG_DATA_HOME = run_files.rlocation('xdg/local/share'),
-    },
-  }
 
   local ESCAPE_KEY = vim.api.nvim_replace_termcodes('<Esc>', true, false, true)
   local TAB_KEY = vim.api.nvim_replace_termcodes('<Tab>', true, false, true)
@@ -20,10 +8,26 @@ describe("CLI completion with 'bash' mode", function()
   ---@type pesto.FunctionalTestHelper
   local functional_test_helper
 
-  local NVIM_BIN = run_files.rlocation('nvim/bin/nvim')
-
   setup(function()
-    nvim_chan = vim.fn.jobstart({ NVIM_BIN, '--embed', '--headless' }, job_opts)
+    local functional_test_setup = require('pesto.test.functional_test_setup')
+    local fixture_repo =
+      functional_test_setup.set_up_repo_fixture('_main/test/spec/functional/bazel_repo_fixture')
+    local xdg_dirs = functional_test_setup.set_up_plugin()
+
+    local run_files = require('rules_nvim_lua.runfiles')
+    local nvim_bin = run_files.rlocation('nvim/bin/nvim')
+    local job_opts = {
+      rpc = true,
+      cwd = fixture_repo,
+      env = {
+        XDG_CONFIG_HOME = xdg_dirs.xdg_config,
+        XDG_STATE_HOME = xdg_dirs.xdg_state,
+        XDG_DATA_HOME = xdg_dirs.xdg_home,
+      },
+    }
+
+    nvim_chan = vim.fn.jobstart({ nvim_bin, '--embed', '--headless' }, job_opts)
+
     functional_test_helper = require('pesto.test.functional_test_helper'):new(nvim_chan)
     functional_test_helper:set_completion_mode('bash')
   end)

@@ -1,16 +1,5 @@
 describe("CLI completion with 'lua' mode", function()
   local nvim_chan
-  local env_vars = vim.fn.environ()
-  local busted_fixtures = require('busted.fixtures')
-  local job_opts = {
-    rpc = true,
-    cwd = busted_fixtures.path('bazel_repo_fixture'),
-    env = {
-      XDG_CONFIG_HOME = env_vars['XDG_CONFIG_HOME'],
-      XDG_STATE_HOME = env_vars['XDG_STATE_HOME'],
-      XDG_DATA_HOME = env_vars['XDG_DATA_HOME'],
-    },
-  }
 
   local ESCAPE_KEY = vim.api.nvim_replace_termcodes('<Esc>', true, false, true)
   local TAB_KEY = vim.api.nvim_replace_termcodes('<Tab>', true, false, true)
@@ -19,7 +8,25 @@ describe("CLI completion with 'lua' mode", function()
   local functional_test_helper
 
   setup(function()
-    nvim_chan = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, job_opts)
+    local functional_test_setup = require('pesto.test.functional_test_setup')
+    local fixture_repo =
+      functional_test_setup.set_up_repo_fixture('_main/test/spec/functional/bazel_repo_fixture')
+    local xdg_dirs = functional_test_setup.set_up_plugin()
+
+    local job_opts = {
+      rpc = true,
+      cwd = fixture_repo,
+      env = {
+        XDG_CONFIG_HOME = xdg_dirs.xdg_config,
+        XDG_STATE_HOME = xdg_dirs.xdg_state,
+        XDG_DATA_HOME = xdg_dirs.xdg_home,
+      },
+    }
+
+    local run_files = require('rules_nvim_lua.runfiles')
+    local NVIM_BIN = run_files.rlocation('nvim/bin/nvim')
+    nvim_chan = vim.fn.jobstart({ NVIM_BIN, '--embed', '--headless' }, job_opts)
+
     functional_test_helper = require('pesto.test.functional_test_helper'):new(nvim_chan)
     functional_test_helper:set_completion_mode('lua')
   end)
@@ -33,7 +40,7 @@ describe("CLI completion with 'lua' mode", function()
     vim.rpcrequest(nvim_chan, 'nvim_feedkeys', ESCAPE_KEY, 't', false)
   end)
 
-  ---@type {prefix_keys: string, expected_command_line: string, expected_completions: string[], open_file: Path|nil}[]
+  ---@type {prefix_keys: string, expected_command_line: string, expected_completions: string[], open_file: string|nil}[]
   local test_cases = {
     {
       prefix_keys = 'Pes',

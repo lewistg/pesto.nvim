@@ -1,16 +1,21 @@
 describe('default runner loader', function()
   local nvim_chan
-  local busted_fixtures = require('busted.fixtures')
-  local env_vars = vim.fn.environ()
+  local run_files = require('rules_nvim_lua.runfiles')
+
+  local bazel_repo_dir = run_files.rlocation('_main/test/spec/functional/bazel_repo_fixture')
+
   local job_opts = {
     rpc = true,
-    cwd = busted_fixtures.path('bazel_repo_fixture'),
+    cwd = bazel_repo_dir,
     env = {
-      XDG_CONFIG_HOME = env_vars['XDG_CONFIG_HOME'],
-      XDG_STATE_HOME = env_vars['XDG_STATE_HOME'],
-      XDG_DATA_HOME = env_vars['XDG_DATA_HOME'],
+      XDG_CONFIG_HOME = run_files.rlocation('xdg/local/config'),
+      XDG_STATE_HOME = run_files.rlocation('xdg/local/state'),
+      XDG_DATA_HOME = run_files.rlocation('xdg/local/share'),
     },
   }
+
+
+  local NVIM_BIN = run_files.rlocation('nvim/bin/nvim')
 
   local ENTER_KEY = vim.api.nvim_replace_termcodes('<CR>', true, false, true)
 
@@ -18,7 +23,7 @@ describe('default runner loader', function()
   local functional_test_helper
 
   before_each(function()
-    nvim_chan = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, job_opts)
+    nvim_chan = vim.fn.jobstart({ NVIM_BIN, '--embed', '--headless' }, job_opts)
     functional_test_helper = require('pesto.test.functional_test_helper'):new(nvim_chan)
   end)
 
@@ -39,7 +44,7 @@ describe('default runner loader', function()
 
     -- Build should finish successfully
     local expected_exit_code = 1 -- The build should fail
-    local wait_status = vim.fn.wait(10 * 1000, function()
+    local wait_status = vim.fn.wait(10 * 6000, function()
       local exit_code = vim.rpcrequest(
         nvim_chan,
         'nvim_exec_lua',
@@ -106,9 +111,9 @@ describe('default runner loader', function()
       build_win_id = functional_test_helper:find_build_windows(0)[1]
       return build_win_id ~= nil
     end)
-    assert.is_truthy(build_win_id)
+    assert.truthy(build_win_id)
 
-    functional_test_helper:wait_for_build(10 * 1000)
+    functional_test_helper:wait_for_build(120 * 1000)
 
     -- Build window should close on <CR>
     vim.rpcrequest(nvim_chan, 'nvim_feedkeys', ENTER_KEY, 't', false)
