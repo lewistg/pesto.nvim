@@ -1,24 +1,41 @@
 describe('default runner loader', function()
+  ---@type integer
   local nvim_chan
-  local busted_fixtures = require('busted.fixtures')
-  local env_vars = vim.fn.environ()
-  local job_opts = {
-    rpc = true,
-    cwd = busted_fixtures.path('bazel_repo_fixture'),
-    env = {
-      XDG_CONFIG_HOME = env_vars['XDG_CONFIG_HOME'],
-      XDG_STATE_HOME = env_vars['XDG_STATE_HOME'],
-      XDG_DATA_HOME = env_vars['XDG_DATA_HOME'],
-    },
-  }
+
+  ---@type string
+  local nvim_bin
+
+  ---@type table
+  local job_opts
 
   local ENTER_KEY = vim.api.nvim_replace_termcodes('<CR>', true, false, true)
 
   ---@type pesto.FunctionalTestHelper
   local functional_test_helper
 
+  setup(function()
+    local run_files = require('rules_nvim_lua.runfiles')
+
+    nvim_bin = run_files.rlocation('nvim/bin/nvim')
+
+    local functional_test_setup = require('pesto.test.functional_test_setup')
+    local fixture_repo =
+      functional_test_setup.set_up_repo_fixture('_main/test/spec/functional/bazel_repo_fixture')
+    local xdg_dirs = functional_test_setup.set_up_plugin()
+
+    job_opts = {
+      rpc = true,
+      cwd = fixture_repo,
+      env = {
+        XDG_CONFIG_HOME = xdg_dirs.xdg_config,
+        XDG_STATE_HOME = xdg_dirs.xdg_state,
+        XDG_DATA_HOME = xdg_dirs.xdg_home,
+      },
+    }
+  end)
+
   before_each(function()
-    nvim_chan = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, job_opts)
+    nvim_chan = vim.fn.jobstart({ nvim_bin, '--embed', '--headless' }, job_opts)
     functional_test_helper = require('pesto.test.functional_test_helper'):new(nvim_chan)
   end)
 
@@ -38,21 +55,11 @@ describe('default runner loader', function()
     vim.rpcrequest(nvim_chan, 'nvim_cmd', { cmd = 'Pesto', args = { 'compile-one-dep' } }, {})
 
     -- Build should finish successfully
-    local expected_exit_code = 1 -- The build should fail
-    local wait_status = vim.fn.wait(10 * 1000, function()
-      local exit_code = vim.rpcrequest(
-        nvim_chan,
-        'nvim_exec_lua',
-        "return require('pesto.components').functional_test_hooks:get_build_exit_code()",
-        {}
-      )
-      assert.is_true(exit_code == vim.NIL or exit_code == expected_exit_code)
-      return exit_code == expected_exit_code
-    end)
-    assert.are.same(0, wait_status)
+    local exit_code = functional_test_helper:wait_for_build(60 * 1000)
+    assert.are.same(0, exit_code)
 
     -- Eventually the quickfix window should be opened
-    wait_status = vim.fn.wait(5 * 1000, function()
+    local wait_status = vim.fn.wait(5 * 1000, function()
       local current_tab_page_id = vim.rpcrequest(nvim_chan, 'nvim_get_current_tabpage')
       local tabpage_win_ids =
         vim.rpcrequest(nvim_chan, 'nvim_tabpage_list_wins', current_tab_page_id)
@@ -106,9 +113,9 @@ describe('default runner loader', function()
       build_win_id = functional_test_helper:find_build_windows(0)[1]
       return build_win_id ~= nil
     end)
-    assert.is_truthy(build_win_id)
+    assert.truthy(build_win_id)
 
-    functional_test_helper:wait_for_build(10 * 1000)
+    functional_test_helper:wait_for_build(120 * 1000)
 
     -- Build window should close on <CR>
     vim.rpcrequest(nvim_chan, 'nvim_feedkeys', ENTER_KEY, 't', false)

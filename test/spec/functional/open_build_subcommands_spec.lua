@@ -1,20 +1,38 @@
 describe('open BUILD file subcommands', function()
+  ---@type integer
   local nvim_chan
-  local env_vars = vim.fn.environ()
-  local busted_fixtures = require('busted.fixtures')
-  local bazel_repo_dir = busted_fixtures.path('bazel_repo_fixture')
-  local job_opts = {
-    rpc = true,
-    cwd = bazel_repo_dir,
-    env = {
-      XDG_CONFIG_HOME = env_vars['XDG_CONFIG_HOME'],
-      XDG_STATE_HOME = env_vars['XDG_STATE_HOME'],
-      XDG_DATA_HOME = env_vars['XDG_DATA_HOME'],
-    },
-  }
+
+  ---@type string
+  local nvim_bin
+
+  ---@type table
+  local job_opts
+
+  ---@type string
+  local fixture_repo
+
+  setup(function()
+    local run_files = require('rules_nvim_lua.runfiles')
+    nvim_bin = run_files.rlocation('nvim/bin/nvim')
+
+    local functional_test_setup = require('pesto.test.functional_test_setup')
+    fixture_repo =
+      functional_test_setup.set_up_repo_fixture('_main/test/spec/functional/bazel_repo_fixture')
+    local xdg_dirs = functional_test_setup.set_up_plugin()
+
+    job_opts = {
+      rpc = true,
+      cwd = fixture_repo,
+      env = {
+        XDG_CONFIG_HOME = xdg_dirs.xdg_config,
+        XDG_STATE_HOME = xdg_dirs.xdg_state,
+        XDG_DATA_HOME = xdg_dirs.xdg_home,
+      },
+    }
+  end)
 
   before_each(function()
-    nvim_chan = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, job_opts)
+    nvim_chan = vim.fn.jobstart({ nvim_bin, '--embed', '--headless' }, job_opts)
   end)
 
   after_each(function()
@@ -66,10 +84,10 @@ describe('open BUILD file subcommands', function()
     local right_buf_info =
       vim.rpcrequest(nvim_chan, 'nvim_call_function', 'getbufinfo', { tab_win_infos[2].bufnr })[1]
 
-    local build_file_path = vim.fs.joinpath(bazel_repo_dir, 'foo/foo1/foo2/foo3/BUILD')
+    local build_file_path = vim.fs.joinpath(fixture_repo, 'foo/foo1/foo2/foo3/BUILD')
     assert.are.same(tostring(build_file_path), left_buf_info.name)
 
-    local source_file_path = vim.fs.joinpath(bazel_repo_dir, source_file_relative_path)
+    local source_file_path = vim.fs.joinpath(fixture_repo, source_file_relative_path)
     assert.are.same(tostring(source_file_path), right_buf_info.name)
   end
 
