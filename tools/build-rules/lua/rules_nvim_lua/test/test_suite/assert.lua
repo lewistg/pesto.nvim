@@ -9,6 +9,7 @@ end
 ---@field is_true fun(v: boolean)
 ---@field is_false fun(v: boolean)
 ---@field falsey fun(v: boolean)
+---@field truthy fun(v: boolean)
 ---@field same fun(...)
 ---@field equal fun(...)
 
@@ -126,11 +127,21 @@ Passed in:
     }, 2)
   end
 
+  local function falsey(value)
+    return not value
+  end
+
+  local function truthy(value)
+    return not not value
+  end
+
   return {
     same = same,
     equal = equal,
     is_true = is_true,
     is_false = is_false,
+    truthy = truthy,
+    falsey = falsey,
   }
 end
 
@@ -146,6 +157,7 @@ global_assert = setmetatable({
   is_true = _assert.is_true,
   is_false = _assert.is_false,
   falsey = _assert.falsey,
+  truthy = _assert.truthy,
   same = _assert.same,
   equal = _assert.equal,
 }, {
