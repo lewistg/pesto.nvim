@@ -6,6 +6,7 @@ nvim_lua_library(
     lua_path_root = "//lua",
     visibility = [
         "//lua:__subpackages__",
+        "//test/spec/unit/runner/quickfix:__subpackages__",
     ],
     deps = [
         "//lua/pesto/bazel",

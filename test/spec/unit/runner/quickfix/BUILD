@@ -5,10 +5,8 @@ nvim_lua_test(
     srcs = glob([
         "*_spec.lua",
     ]),
-    lua_path_roots = [
-        "//lua",
-    ],
     deps = [
+        "//lua/pesto/runner/quickfix",
         "//lua/pesto/util",
     ],
 )
