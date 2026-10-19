@@ -206,7 +206,7 @@ components.progress_logs_quickfix_item_loader = _progress_logs_quickfix_item_loa
 
 ---@return pesto.InternalConfig
 local _internal_config = function()
-  return require('pesto.internal_config'):new()
+  return require('pesto.config.internal_config'):new()
 end
 components.internal_config = _internal_config --[[@as pesto.InternalConfig ]]
 
