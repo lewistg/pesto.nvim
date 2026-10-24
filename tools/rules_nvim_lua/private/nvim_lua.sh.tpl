@@ -19,4 +19,28 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
 NVIM_BIN="$(rlocation "{{NVIM_BIN}}")"
 ENTRY_POINT="$(rlocation "{{ENTRY_POINT}}")"
 
-"$NVIM_BIN" --clean -l "$ENTRY_POINT"
+ENTRY_POINT_ARGS="{{ENTRY_POINT_ARGS}}"
+if [ -z "$ENTRY_POINT_ARGS" ]; then
+    ENTRY_POINT_ARGS="/dev/null"
+else
+    ENTRY_POINT_ARGS="$(rlocation "{{ENTRY_POINT_ARGS}}")"
+fi
+
+export LUA_PATH=""
+LUA_PATH_ROOTS=(
+    {{LUA_PATH_ROOTS}}
+)
+for path in "${LUA_PATH_ROOTS[@]}"; do
+    path=$(rlocation "$path")
+    paths="${path}/?.lua;${path}/?/init.lua"
+    if [ -n "$LUA_PATH" ]; then
+        LUA_PATH="${LUA_PATH};$paths"
+    else
+        LUA_PATH="$paths"
+    fi
+done
+
+"$NVIM_BIN" --clean \
+    -l \
+    "$ENTRY_POINT" \
+    $(< "$ENTRY_POINT_ARGS")
