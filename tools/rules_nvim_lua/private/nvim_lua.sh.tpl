@@ -16,6 +16,18 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
   { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
 # --- end runfiles.bash initialization v3 ---
 
+# We don't want the runfiles library to resolve runfiles using the manifest. We
+# do this by unsetting RUNFILES_MANIFEST_FILE (see the implementation of
+# rlocation). If we use the manifest we are unable to look up intermediate
+# parent directories like the "lua root dirs."
+#
+# When the "binary" is run using bazel run, the RUNFILES_DIR directory will not
+# be set, so we set it here.
+#
+# (Runfiles are so frustrating.)
+unset RUNFILES_MANIFEST_FILE
+RUNFILES_DIR="${RUNFILES_DIR:-$0.runfiles}"
+
 NVIM_BIN="$(rlocation "{{NVIM_BIN}}")"
 ENTRY_POINT="$(rlocation "{{ENTRY_POINT}}")"
 
