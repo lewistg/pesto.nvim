@@ -53,7 +53,6 @@ def _nvim_lua_executable_impl(ctx):
     )
 
     dep_sources = depset(None, transitive = [dep[NvimLuaInfo].sources for dep in ctx.attr.deps])
-    print(dep_sources)
 
     files = [
         ctx.file.entry_point,
@@ -64,8 +63,6 @@ def _nvim_lua_executable_impl(ctx):
 
     runfiles = ctx.runfiles(files = files, transitive_files = dep_sources)
     runfiles = runfiles.merge(ctx.attr._runfiles_lib[DefaultInfo].default_runfiles)
-
-    print(runfiles)
 
     return [DefaultInfo(
         executable = runner,
